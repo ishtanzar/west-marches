@@ -7,6 +7,8 @@
   "minimumCoreVersion": "0.7.9",
   "download": "https://github.com/ishtanzar/west-marches/archive/refs/heads/main.zip",
   "bugs": "https://github.com/ishtanzar/west-marches/issues",
-  "scripts": [],
+  "scripts": [
+    "scripts/main.js"
+  ],
   "styles": []
 }
