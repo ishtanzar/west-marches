@@ -3,9 +3,9 @@
   "title": "La Cave du Rôliste West Marches Module",
   "description": "Custom Module for La Cave du Rôliste West Marches.",
   "author": "ishtanzar",
-  "version": "0.0.1",
+  "version": "main",
   "minimumCoreVersion": "0.7.9",
-  "download": "https://github.com/ishtanzar/west-marches/archive/refs/tags/v0.0.1.zip",
+  "download": "https://github.com/ishtanzar/west-marches/archive/refs/heads/main.zip",
   "bugs": "https://github.com/ishtanzar/west-marches/issues",
   "scripts": [],
   "styles": []
