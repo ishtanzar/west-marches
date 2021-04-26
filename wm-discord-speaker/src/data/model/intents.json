@@ -1,0 +1,14 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": [
+        "Bonjour bot_self",
+        "Salut bot_self",
+        "Bien le bonjour bot_self !",
+        "Salutations bot_self",
+        "Hello bot_self"
+      ]
+    }
+  ]
+}

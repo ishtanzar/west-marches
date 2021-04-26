@@ -1,0 +1,7 @@
+replit
+flask
+Red-DiscordBot
+requests
+spacy
+fr-core-news-sm==3.0.0
+tflearn
