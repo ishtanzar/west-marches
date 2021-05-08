@@ -15,4 +15,6 @@ def test_train(wm_cog: WestMarchesCog):
 
 
 def test_chat(wm_cog: WestMarchesCog):
-    response = wm_cog._predict('Bonjour !')
+    response = wm_cog._predict('hein, que tu comprends rien ?')
+
+    assert response == 'insult'

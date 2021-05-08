@@ -3,7 +3,7 @@ import os
 import pickle
 import random
 import re
-from typing import List
+from typing import List, Mapping
 
 import discord
 import numpy
@@ -108,25 +108,48 @@ class WestMarchesCog(commands.Cog):
         ctx = await self.bot.get_context(message)  # type: commands.Context
 
         if str(self.bot.user.id) in message.content:
-            clean_message = re.sub('<@!?([0-9]*)>', 'bot_self', message.content)
-            print(clean_message)
+            clean_message = re.sub('<@!?([0-9]*)>', '', message.content)
             intent = self._predict(clean_message)
 
-            await ctx.send(intent)
+            if intent == "rumors":
+                await self.rumors(ctx)
+            else:
+                await ctx.send(intent)
+
+    @commands.command()
+    async def learn(self, ctx: commands.Context, new_intent):
+        if ctx.message.reference:
+            message = await ctx.fetch_message(ctx.message.reference.message_id)
+            clean_message = re.sub('<@!?([0-9]*)>', '', message.content).strip()
+            json = self._load_intents()
+            create_intent = True
+
+            for intent in json["intents"]:
+                if new_intent == intent["tag"]:
+                    intent["patterns"].append(clean_message)
+                    create_intent = False
+
+            if create_intent:
+                json["intents"].append({
+                    "tag": new_intent,
+                    "patterns": [clean_message]
+                })
+
+            self._save_intents(json)
 
     @commands.group(invoke_without_command=True)
     async def rumors(self, ctx: commands.Context):
-        await ctx.send(random.choice(await self.config.guild(ctx.guild).rumors()))
+        await ctx.send(random.choice(await self.config.rumors()))
 
     @rumors.command("add")
     async def add_rumor(self, ctx: commands.Context, *new_rumor):
-        async with self.config.guild(ctx.guild).rumors() as rumors:
+        async with self.config.rumors() as rumors:
             rumors.append(" ".join(new_rumor))
         await ctx.send("Nouvelle rumeur enregistrée.")
 
     @rumors.command("ls")
     async def list_rumors(self, ctx: commands.Context):
-        async with self.config.guild(ctx.guild).rumors() as rumors:
+        async with self.config.rumors() as rumors:
             indexed_rumors = []
             for i, rumor in enumerate(rumors):
                 indexed_rumors.append('{} - {}'.format(i, rumor))
@@ -137,10 +160,10 @@ class WestMarchesCog(commands.Cog):
     async def del_rumor(self, ctx: commands.Context, rumor_id: int):
         old_rumor = None
 
-        async with self.config.guild(ctx.guild).rumors() as rumors:
+        async with self.config.rumors() as rumors:
             old_rumor = rumors[rumor_id]
             del rumors[rumor_id]
-            self.config.guild(ctx.guild).rumors.set(rumors)
+            self.config.rumors.set(rumors)
 
         await ctx.send("Rumeur supprimée : {}".format(old_rumor))
 
@@ -208,6 +231,10 @@ class WestMarchesCog(commands.Cog):
         with open(self._get_filename(filename), "rb") as f:
             return pickle.load(f)
 
-    def _load_intents(self):
-        with open(self._get_filename('intents.json')) as file:
+    def _load_intents(self) -> Mapping:
+        with open(self._get_filename('intents.json'), "r") as file:
             return json.load(file)
+
+    def _save_intents(self, intents):
+        with open(self._get_filename('intents.json'), "w") as file:
+            return json.dump(intents, file, indent=2)
