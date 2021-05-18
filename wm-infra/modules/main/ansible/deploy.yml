@@ -1,0 +1,63 @@
+
+- name: Pre-tasks
+  hosts: all
+  tasks:
+    - name: Generate Scaleway token
+      local_action:
+        module: ansible.builtin.uri
+        url: https://api.scaleway.com/account/v1/tokens
+        method: POST
+        body: "{{ body_obj | to_json }}"
+        headers:
+          X-Auth-Token: "{{ lookup('env', 'SCW_TOKEN') }}"
+        status_code: 201
+        body_format: json
+      vars:
+        body_obj:
+          email: pgmillon@gmail.com
+          description: "Ansible {{ ansible_hostname }}"
+          expires: false
+      register: scw_token_response
+      
+    - set_fact:
+        SCW_ACCESS_KEY: "{{ scw_token_response.json.token.access_key }}"
+        SCW_SECRET_KEY: "{{ scw_token_response.json.token.secret_key }}"
+
+    - name: Install awscli package
+      ansible.builtin.apt:
+        pkg:
+          - awscli
+          - python3-pip
+          - python3-boto3
+        state: present
+        update_cache: yes
+        
+    - name: Install awscli_plugin_endpoint
+      ansible.builtin.pip:
+        name: awscli_plugin_endpoint
+        
+    - name: Create AWS folder
+      ansible.builtin.file:
+        path: /root/.aws
+        state: directory
+        
+    - name: AWS config
+      ansible.builtin.template:
+        src: aws_config
+        dest: /root/.aws/config
+
+    - name: AWS credentials
+      ansible.builtin.template:
+        src: aws_credentials
+        dest: /root/.aws/credentials
+
+- name: FoundryVTT
+  hosts: foundry
+  roles:
+    - docker
+    - foundry
+
+#- name: Kanka
+#  hosts: kanka
+#  roles:
+#    - docker

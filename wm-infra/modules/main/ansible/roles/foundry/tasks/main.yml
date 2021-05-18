@@ -1,0 +1,53 @@
+- set_fact:
+    foundry_src_templates: "{{ role_path }}/templates"
+
+- name: Create some paths
+  ansible.builtin.file:
+    path: "/opt/foundry/{{ item }}"
+    state: directory
+  loop:
+    - container_cache
+    - container_patches/resources
+
+- name: Fetch foundry
+  amazon.aws.aws_s3:
+    bucket: "{{ s3_bucket }}"
+    object: "private/foundryvtt/{{ foundryvtt_zip }}"
+    dest: "/opt/foundry/container_cache/{{ foundryvtt_zip }}"
+    s3_url: https://s3.fr-par.scw.cloud
+    region: fr-par
+    aws_access_key: "{{ SCW_ACCESS_KEY }}"
+    aws_secret_key: "{{ SCW_SECRET_KEY }}"
+    mode: get
+
+- name: Fetch patch resources
+  amazon.aws.aws_s3:
+    bucket: "{{ s3_bucket }}"
+    object: "private/foundryvtt/patch/0-7-9/{{ item }}"
+    dest: "/opt/foundry/container_patches/resources/{{ item }}"
+    s3_url: https://s3.fr-par.scw.cloud
+    region: fr-par
+    aws_access_key: "{{ SCW_ACCESS_KEY }}"
+    aws_secret_key: "{{ SCW_SECRET_KEY }}"
+    mode: get
+  loop:
+    - auth.js
+    - init.js
+    
+- name: Upload patches
+  ansible.builtin.copy:
+    src: patches/custom.sh
+    dest: /opt/foundry/container_patches/
+    
+- name: Systemd unit
+  include_role:
+    name: systemd
+    tasks_from: unit
+  vars:
+    docker_compose:
+      src: "{{ foundry_src_templates }}/docker-compose.tpl.yml"
+      dest: /opt/foundry-compose.yml
+    unit:
+      src: "{{ foundry_src_templates }}/foundry.service"
+      name: foundry.service
+    data_path: /opt/foundry

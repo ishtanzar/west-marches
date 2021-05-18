@@ -1,0 +1,10 @@
+plugin: community.general.scaleway
+regions:
+  - par1
+hostnames:
+  - hostname
+variables:
+  ansible_host: public_ip.address
+tags:
+  - foundry
+  - kanka

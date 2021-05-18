@@ -1,0 +1,34 @@
+- name: Docker requirements
+  ansible.builtin.apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg2
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Docker APT repository GPG key
+  ansible.builtin.apt_key:
+    url: "{{ docker_apt_gpg_key }}"
+    state: present
+
+- name: Docker APT repository
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_apt_repository }} "
+    state: present
+    update_cache: true
+
+- name: Install Docker
+  ansible.builtin.apt:
+    pkg:
+      - docker-ce
+    state: present
+    update_cache: false
+  
+- name: Run and enable docker
+  service:
+    name: docker
+    state: started
+    enabled: true

@@ -1,6 +1,8 @@
 *.tflearn.*
 *.pickle
 checkpoint
+.terraform
+.terraform.lock.hcl
 
 ### Node template
 # Logs

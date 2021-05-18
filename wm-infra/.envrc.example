@@ -1,0 +1,12 @@
+export SCW_ACCESS_KEY="..."
+export SCW_SECRET_KEY="..."
+export SCW_DEFAULT_PROJECT_ID="..."
+export GANDI_KEY="..."
+
+## ALIASES ##
+
+export SCW_TOKEN=$SCW_SECRET_KEY
+export TF_VAR_gandi_key=$GANDI_KEY
+export AWS_ACCESS_KEY_ID=$SCW_ACCESS_KEY
+export AWS_SECRET_ACCESS_KEY=$SCW_SECRET_KEY
+
