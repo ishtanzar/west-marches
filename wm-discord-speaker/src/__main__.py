@@ -9,7 +9,7 @@ from redbot.__main__ import global_exception_handler, run_bot, red_exception_han
 from redbot.core import data_manager
 from redbot.core.bot import RedBase, ExitCodes
 
-from westmarches import WestMarchesCog
+from westmarches.cog import WestMarchesCog
 
 
 class _DefaultRepr:
