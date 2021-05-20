@@ -3,6 +3,7 @@
 checkpoint
 .terraform
 .terraform.lock.hcl
+.envrc
 
 ### Node template
 # Logs

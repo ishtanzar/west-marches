@@ -25,20 +25,62 @@ data "scaleway_account_ssh_key" "ssh" {
 
 resource "scaleway_instance_ip" "public_ip" {}
 
+resource "scaleway_instance_volume" "data" {
+  type = "b_ssd"
+  size_in_gb = 20
+}
+
+resource "scaleway_instance_security_group" "front" {
+  inbound_default_policy = "drop"
+  outbound_default_policy = "accept"
+
+  inbound_rule {
+    action = "accept"
+    port = "22"
+  }
+
+  inbound_rule {
+    action = "accept"
+    port = "80"
+  }
+
+  inbound_rule {
+    action = "accept"
+    port = "443"
+  }
+
+  inbound_rule {
+    action = "accept"
+    port = "30000"
+  }
+}
+
 resource "scaleway_instance_server" "main" {
   type = "DEV1-S"
   image = "ubuntu_focal"
   ip_id = scaleway_instance_ip.public_ip.id
   tags = ["foundry", "kanka"]
+  additional_volume_ids = [scaleway_instance_volume.data.id]
+  security_group_id = scaleway_instance_security_group.front.id
 
   provisioner "local-exec" {
     command = "ansible-playbook -i inventory deploy.yml"
     working_dir = "${path.module}/ansible"
+
+    environment = {
+      SCW_VOLUME_ID=scaleway_instance_volume.data.id
+    }
   }
 }
 
 resource "restapi_object" "dns_record" {
   path = "/domains/ishtanzar.net/records"
-  data = ""
+  read_path = "/domains/ishtanzar.net/records/{id}/A"
+  data = jsonencode({
+    rrset_name = "westmarchesdelacave"
+    rrset_type = "A"
+    rrset_values = [scaleway_instance_ip.public_ip.address]
+    rrset_ttl = 300
+  })
 }
 

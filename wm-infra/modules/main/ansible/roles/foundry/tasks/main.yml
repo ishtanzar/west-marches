@@ -3,7 +3,7 @@
 
 - name: Create some paths
   ansible.builtin.file:
-    path: "/opt/foundry/{{ item }}"
+    path: "{{ foundry_data_path }}/{{ item }}"
     state: directory
   loop:
     - container_cache
@@ -13,7 +13,7 @@
   amazon.aws.aws_s3:
     bucket: "{{ s3_bucket }}"
     object: "private/foundryvtt/{{ foundryvtt_zip }}"
-    dest: "/opt/foundry/container_cache/{{ foundryvtt_zip }}"
+    dest: "{{ foundry_data_path }}/container_cache/{{ foundryvtt_zip }}"
     s3_url: https://s3.fr-par.scw.cloud
     region: fr-par
     aws_access_key: "{{ SCW_ACCESS_KEY }}"
@@ -24,7 +24,7 @@
   amazon.aws.aws_s3:
     bucket: "{{ s3_bucket }}"
     object: "private/foundryvtt/patch/0-7-9/{{ item }}"
-    dest: "/opt/foundry/container_patches/resources/{{ item }}"
+    dest: "{{ foundry_data_path }}/container_patches/resources/{{ item }}"
     s3_url: https://s3.fr-par.scw.cloud
     region: fr-par
     aws_access_key: "{{ SCW_ACCESS_KEY }}"
@@ -37,7 +37,7 @@
 - name: Upload patches
   ansible.builtin.copy:
     src: patches/custom.sh
-    dest: /opt/foundry/container_patches/
+    dest: "{{ foundry_data_path }}/container_patches/"
     
 - name: Systemd unit
   include_role:
@@ -46,8 +46,8 @@
   vars:
     docker_compose:
       src: "{{ foundry_src_templates }}/docker-compose.tpl.yml"
-      dest: /opt/foundry-compose.yml
+      dest: "{{ foundry_data_path }}-compose.yml"
     unit:
       src: "{{ foundry_src_templates }}/foundry.service"
       name: foundry.service
-    data_path: /opt/foundry
+    data_path: "{{ foundry_data_path }}"

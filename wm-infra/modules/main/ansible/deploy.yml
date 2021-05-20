@@ -2,6 +2,9 @@
 - name: Pre-tasks
   hosts: all
   tasks:
+    - assert:
+        that: lookup('env', 'SCW_VOLUME_ID')
+        
     - name: Generate Scaleway token
       local_action:
         module: ansible.builtin.uri
@@ -18,8 +21,8 @@
           description: "Ansible {{ ansible_hostname }}"
           expires: false
       register: scw_token_response
-      
-    - set_fact:
+
+    - ansible.builtin.set_fact:
         SCW_ACCESS_KEY: "{{ scw_token_response.json.token.access_key }}"
         SCW_SECRET_KEY: "{{ scw_token_response.json.token.secret_key }}"
 
@@ -36,11 +39,39 @@
       ansible.builtin.pip:
         name: awscli_plugin_endpoint
         
-    - name: Create AWS folder
+    - name: AWS folder exists
       ansible.builtin.file:
         path: /root/.aws
         state: directory
         
+    - name: Lookup Data device
+      ansible.builtin.set_fact:
+        SCW_DATA_VOLUME: "/dev/{{ ansible_devices|dict2items|json_query('[].{dev: key, ids: join(`,`, value.links.ids)}[?contains(ids, `' + lookup('env', 'SCW_VOLUME_ID') + '`)]|[0].dev' )}}"
+        
+    - name: "Create {{ SCW_DATA_VOLUME }} partition"
+      community.general.parted:
+        device: "{{ SCW_DATA_VOLUME }}"
+        number: 1
+        fs_type: ext4
+        state: present
+        
+    - name: "Create a ext4 filesystem on {{ SCW_DATA_VOLUME }}"
+      community.general.filesystem:
+        fstype: ext4
+        dev: "{{ SCW_DATA_VOLUME }}1"
+        
+    - name: Mount point exists
+      ansible.builtin.file:
+        path: /opt/data
+        state: directory
+
+    - name: "Mount {{ SCW_DATA_VOLUME }}"
+      ansible.posix.mount:
+        path: /opt/data
+        src: "{{ SCW_DATA_VOLUME }}1"
+        fstype: ext4
+        state: mounted
+    
     - name: AWS config
       ansible.builtin.template:
         src: aws_config
