@@ -1,0 +1,4 @@
+Flask
+bjoern
+docker
+docker-compose
