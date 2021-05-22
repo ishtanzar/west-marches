@@ -11,6 +11,14 @@ terraform {
 
 variable "gandi_key" {}
 
+variable "host_name" {
+  default = "westmarchesdelacave"
+}
+
+variable "ssh_key_id" {
+  default = "def22f15-3be9-4fbc-ae46-49de416bd66a"
+}
+
 provider "restapi" {
   uri = "https://api.gandi.net/v5/livedns"
   id_attribute = "rrset_name"
@@ -20,7 +28,7 @@ provider "restapi" {
 }
 
 data "scaleway_account_ssh_key" "ssh" {
-  ssh_key_id = "5cff6783-ee69-4366-9ffe-4bafb9340e4d"
+  ssh_key_id = var.ssh_key_id
 }
 
 resource "scaleway_instance_ip" "public_ip" {}
@@ -69,6 +77,7 @@ resource "scaleway_instance_server" "main" {
 
     environment = {
       SCW_VOLUME_ID=scaleway_instance_volume.data.id
+      FOUNDRY_HOSTNAME=var.host_name
     }
   }
 }
@@ -77,7 +86,7 @@ resource "restapi_object" "dns_record" {
   path = "/domains/ishtanzar.net/records"
   read_path = "/domains/ishtanzar.net/records/{id}/A"
   data = jsonencode({
-    rrset_name = "westmarchesdelacave"
+    rrset_name = var.host_name
     rrset_type = "A"
     rrset_values = [scaleway_instance_ip.public_ip.address]
     rrset_ttl = 300

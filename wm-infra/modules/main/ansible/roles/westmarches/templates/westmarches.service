@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Global WestMarches service
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} kill
+ExecStartPre=-/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} rm
+ExecStart=/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} up
+ExecStop=/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} down
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

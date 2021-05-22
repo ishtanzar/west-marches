@@ -1,5 +1,31 @@
-- set_fact:
-    foundry_src_templates: "{{ role_path }}/templates"
+
+- name: Lookup Data device
+  ansible.builtin.set_fact:
+    SCW_DATA_VOLUME: "/dev/{{ ansible_devices|dict2items|json_query('[].{dev: key, ids: join(`,`, value.links.ids)}[?contains(ids, `' + SCW_VOLUME_ID + '`)]|[0].dev' )}}"
+
+- name: "Create {{ SCW_DATA_VOLUME }} partition"
+  community.general.parted:
+    device: "{{ SCW_DATA_VOLUME }}"
+    number: 1
+    fs_type: ext4
+    state: present
+
+- name: "Create a ext4 filesystem on {{ SCW_DATA_VOLUME }}"
+  community.general.filesystem:
+    fstype: ext4
+    dev: "{{ SCW_DATA_VOLUME }}1"
+
+- name: Mount point exists
+  ansible.builtin.file:
+    path: /opt/data
+    state: directory
+
+- name: "Mount {{ SCW_DATA_VOLUME }}"
+  ansible.posix.mount:
+    path: /opt/data
+    src: "{{ SCW_DATA_VOLUME }}1"
+    fstype: ext4
+    state: mounted
 
 - name: Create some paths
   ansible.builtin.file:
@@ -38,16 +64,13 @@
   ansible.builtin.copy:
     src: patches/custom.sh
     dest: "{{ foundry_data_path }}/container_patches/"
-    
-- name: Systemd unit
-  include_role:
-    name: systemd
-    tasks_from: unit
-  vars:
-    docker_compose:
-      src: "{{ foundry_src_templates }}/docker-compose.tpl.yml"
-      dest: "{{ foundry_data_path }}-compose.yml"
-    unit:
-      src: "{{ foundry_src_templates }}/foundry.service"
-      name: foundry.service
-    data_path: "{{ foundry_data_path }}"
+
+- name: Upload secrets file
+  ansible.builtin.copy:
+    src: secrets.json
+    dest: "{{ foundry_data_path }}/secrets.json"
+
+- name: Template docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.tpl.yml
+    dest: "{{ foundry_data_path }}-compose.yml"

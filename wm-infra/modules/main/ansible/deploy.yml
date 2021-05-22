@@ -1,77 +1,20 @@
 
 - name: Pre-tasks
   hosts: all
-  tasks:
+  pre_tasks:
     - assert:
-        that: lookup('env', 'SCW_VOLUME_ID')
-        
-    - name: Generate Scaleway token
-      local_action:
-        module: ansible.builtin.uri
-        url: https://api.scaleway.com/account/v1/tokens
-        method: POST
-        body: "{{ body_obj | to_json }}"
-        headers:
-          X-Auth-Token: "{{ lookup('env', 'SCW_TOKEN') }}"
-        status_code: 201
-        body_format: json
-      vars:
-        body_obj:
-          email: pgmillon@gmail.com
-          description: "Ansible {{ ansible_hostname }}"
-          expires: false
-      register: scw_token_response
-
+        that:
+          - lookup('env', 'SCW_VOLUME_ID')
+          - lookup('env', 'SCW_ACCESS_KEY')
+          - lookup('env', 'SCW_SECRET_KEY')
+  roles:
+    - base-system
+  post_tasks:
     - ansible.builtin.set_fact:
-        SCW_ACCESS_KEY: "{{ scw_token_response.json.token.access_key }}"
-        SCW_SECRET_KEY: "{{ scw_token_response.json.token.secret_key }}"
+        SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
+        SCW_SECRET_KEY: "{{ lookup('env', 'SCW_SECRET_KEY') }}"
+        SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
 
-    - name: Install awscli package
-      ansible.builtin.apt:
-        pkg:
-          - awscli
-          - python3-pip
-          - python3-boto3
-        state: present
-        update_cache: yes
-        
-    - name: Install awscli_plugin_endpoint
-      ansible.builtin.pip:
-        name: awscli_plugin_endpoint
-        
-    - name: AWS folder exists
-      ansible.builtin.file:
-        path: /root/.aws
-        state: directory
-        
-    - name: Lookup Data device
-      ansible.builtin.set_fact:
-        SCW_DATA_VOLUME: "/dev/{{ ansible_devices|dict2items|json_query('[].{dev: key, ids: join(`,`, value.links.ids)}[?contains(ids, `' + lookup('env', 'SCW_VOLUME_ID') + '`)]|[0].dev' )}}"
-        
-    - name: "Create {{ SCW_DATA_VOLUME }} partition"
-      community.general.parted:
-        device: "{{ SCW_DATA_VOLUME }}"
-        number: 1
-        fs_type: ext4
-        state: present
-        
-    - name: "Create a ext4 filesystem on {{ SCW_DATA_VOLUME }}"
-      community.general.filesystem:
-        fstype: ext4
-        dev: "{{ SCW_DATA_VOLUME }}1"
-        
-    - name: Mount point exists
-      ansible.builtin.file:
-        path: /opt/data
-        state: directory
-
-    - name: "Mount {{ SCW_DATA_VOLUME }}"
-      ansible.posix.mount:
-        path: /opt/data
-        src: "{{ SCW_DATA_VOLUME }}1"
-        fstype: ext4
-        state: mounted
-    
     - name: AWS config
       ansible.builtin.template:
         src: aws_config
@@ -87,8 +30,4 @@
   roles:
     - docker
     - foundry
-
-#- name: Kanka
-#  hosts: kanka
-#  roles:
-#    - docker
+    - westmarches

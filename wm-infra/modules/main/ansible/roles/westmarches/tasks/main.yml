@@ -1,0 +1,19 @@
+
+- name: Template unit file
+  ansible.builtin.template:
+    src: westmarches.service
+    dest: "/etc/systemd/system/westmarches.service"
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    compose_files:
+      - "{{ foundry_data_path }}-compose.yml"
+  register: unit_file_status
+
+- name: Reload Systemd
+  systemd:
+    name: westmarches.service
+    enabled: true
+    daemon_reload: true
+  when: unit_file_status.changed

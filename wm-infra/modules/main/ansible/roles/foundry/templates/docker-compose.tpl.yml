@@ -1,21 +1,46 @@
 # {{ ansible_managed }}
 version: "3.8"
 
+secrets:
+  config_json:
+    file: "{{ foundry_data_path }}/secrets.json"
+
 services:
   foundry:
     image: felddy/foundryvtt:0.7.9
-#    hostname: my_foundry_host
     init: true
     restart: "unless-stopped"
     volumes:
       - type: bind
-        source: "{{ data_path }}"
+        source: "{{ foundry_data_path }}"
         target: /data
     environment:
       - CONTAINER_CACHE=/data/container_cache
       - CONTAINER_PATCHES=/data/container_patches
-      - TIMEZONE=Europe/Paris
+      - "TIMEZONE={{ foundry_timezone }}"
+      - "FOUNDRY_HOSTNAME={{ foundry_hostname }}"
+      - "FOUNDRY_LANGUAGE={{ foundry_language }}"
+      - "FOUNDRY_WORLD={{ foundry_world }}"
+    healthcheck:
+      test: nc -z localhost 30000 || exit -1
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+    secrets:
+      - source: config_json
+        target: config.json
     ports:
-      - target: 30000
-        published: 30000
-        protocol: tcp
+      - "30000:30000"
+  manager_api:
+    image: ishtanzar/wm-manager-api:latest
+    restart: "unless-stopped"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "{{ foundry_data_path }}-compose.yml:/opt/docker-compose.yml"
+    secrets:
+      - source: config_json
+        target: /opt/data/foundry/secrets.json
+    environment:
+      - COMPOSE_DIR=/opt
+  

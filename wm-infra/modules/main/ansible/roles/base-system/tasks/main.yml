@@ -1,0 +1,20 @@
+
+- name: Install base packages
+  ansible.builtin.apt:
+    pkg:
+      - awscli
+      - python3-pip
+      - python3-boto3
+      - unzip
+      - zip
+    state: present
+    update_cache: yes
+
+- name: Install awscli_plugin_endpoint
+  ansible.builtin.pip:
+    name: awscli_plugin_endpoint
+
+- name: AWS folder exists
+  ansible.builtin.file:
+    path: /root/.aws
+    state: directory
