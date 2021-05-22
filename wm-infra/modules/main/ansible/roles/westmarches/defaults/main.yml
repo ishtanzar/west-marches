@@ -1,1 +1,4 @@
 foundry_data_path: /opt/data/foundry
+foundry_hostname: westmarchesdelacave.ishtanzar.net
+
+westmarches_data_path: /opt/data/westmarches

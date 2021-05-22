@@ -1,4 +1,19 @@
 
+- name: Create data path
+  ansible.builtin.file:
+    path: "{{ westmarches_data_path }}"
+    state: directory
+
+- name: Template proxy conf
+  ansible.builtin.template:
+    src: custom.tpl.nginx
+    dest: "{{ westmarches_data_path }}/nginx.conf"
+
+- name: Template docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.tpl.yml
+    dest: "{{ westmarches_data_path }}/docker-compose.yml"
+
 - name: Template unit file
   ansible.builtin.template:
     src: westmarches.service
@@ -9,6 +24,7 @@
   vars:
     compose_files:
       - "{{ foundry_data_path }}-compose.yml"
+      - "{{ westmarches_data_path }}/docker-compose.yml"
   register: unit_file_status
 
 - name: Reload Systemd

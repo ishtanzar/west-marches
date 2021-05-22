@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+version: "3.8"
+
+services:
+  proxy:
+    image: nginx
+    restart: "unless-stopped"
+    volumes:
+      - "{{ westmarches_data_path }}/nginx.conf:/etc/nginx/conf.d/custom.conf:ro"
+    links:
+      - "foundry"
+    ports:
+      - "80:80"
+      - "443:443"

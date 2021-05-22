@@ -21,6 +21,7 @@ services:
       - "FOUNDRY_HOSTNAME={{ foundry_hostname }}"
       - "FOUNDRY_LANGUAGE={{ foundry_language }}"
       - "FOUNDRY_WORLD={{ foundry_world }}"
+      - FOUNDRY_PROXY_PORT=80
     healthcheck:
       test: nc -z localhost 30000 || exit -1
       interval: 10s
@@ -31,7 +32,7 @@ services:
       - source: config_json
         target: config.json
     ports:
-      - "30000:30000"
+      - "30000"
   manager_api:
     image: ishtanzar/wm-manager-api:latest
     restart: "unless-stopped"
