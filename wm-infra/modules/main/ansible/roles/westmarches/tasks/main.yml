@@ -6,13 +6,14 @@
 
 - name: Template proxy conf
   ansible.builtin.template:
-    src: custom.tpl.nginx
-    dest: "{{ westmarches_data_path }}/nginx.conf"
-
-- name: Template docker-compose file
-  ansible.builtin.template:
-    src: docker-compose.tpl.yml
-    dest: "{{ westmarches_data_path }}/docker-compose.yml"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: custom.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx.conf" }
+    - { src: docker-compose.tpl.yml, dest: "{{ westmarches_data_path }}/docker-compose.yml" }
+    - { src: prometheus.tpl.yml, dest: "{{ westmarches_data_path }}/prometheus.yml" }
+    - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana-datasources.yml" }
+    - { src: grafana.tpl.ini, dest: "{{ westmarches_data_path }}/grafana.ini" }
 
 - name: Template unit file
   ansible.builtin.template:

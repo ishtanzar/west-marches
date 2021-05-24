@@ -2,13 +2,40 @@
 version: "3.8"
 
 services:
+  prometheus:
+    image: prom/prometheus
+    restart: "unless-stopped"
+    volumes:
+      - "prometheus-v2:/prometheus"
+      - "{{ westmarches_data_path }}/prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - 9090
+  grafana:
+    image: grafana/grafana
+    restart: "unless-stopped"
+    volumes:
+      - "grafana:/var/lib/grafana"
+      - "{{ westmarches_data_path }}/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
+    environment:
+      - "GF_SERVER_DOMAIN={{ foundry_hostname }}"
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/monitoring/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    links:
+      - prometheus
+    ports:
+      - 3000
   proxy:
     image: nginx
     restart: "unless-stopped"
     volumes:
       - "{{ westmarches_data_path }}/nginx.conf:/etc/nginx/conf.d/custom.conf:ro"
     links:
-      - "foundry"
+      - foundry
+      - grafana
     ports:
       - "80:80"
       - "443:443"
+
+volumes:
+  prometheus-v2:
+  grafana:

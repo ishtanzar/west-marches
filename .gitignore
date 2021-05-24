@@ -4,6 +4,7 @@ checkpoint
 .terraform
 .terraform.lock.hcl
 .envrc
+/wm-infra/modules/main/ansible/roles/.galaxy/
 
 ### Node template
 # Logs

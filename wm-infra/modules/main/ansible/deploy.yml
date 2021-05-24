@@ -9,6 +9,7 @@
           - lookup('env', 'SCW_SECRET_KEY')
   roles:
     - base-system
+    - cloudalchemy.node_exporter
   post_tasks:
     - ansible.builtin.set_fact:
         SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
