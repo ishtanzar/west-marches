@@ -3,7 +3,9 @@ foundry_data_path: /opt/data/foundry
 foundry_timezone: Europe/Paris
 foundry_language: fr.tidy5e-sheet
 foundry_world: west-marches-de-la-cave
-foundry_hostname: westmarchesdelacave.ishtanzar.net
+foundry_hostname: westmarchesdelacave
+foundry_domain: ishtanzar.net
+foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 
 s3_bucket: test-bucket-pgmillon
 SCW_ACCESS_KEY: ''

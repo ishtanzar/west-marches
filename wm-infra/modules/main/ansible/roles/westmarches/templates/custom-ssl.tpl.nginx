@@ -1,11 +1,24 @@
+
 server {
-  listen 443 ssl;
-  server_name "{{ foundry_hostname }}";
+  listen 80;
+  listen [::]:80;
+
+  server_name "{{ foundry_fqdn }}";
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+
+  server_name "{{ foundry_fqdn }}";
+
   client_max_body_size 300M;
   root /usr/share/nginx/html;
 
-  ssl_certificate "/etc/letsencrypt/live/{{ foundry_hostname }}/fullchain.pem";
-  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_hostname }}/privkey.pem";
+  ssl_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}/fullchain.pem";
+  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_fqdn }}/privkey.pem";
+  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}/chain.pem";
 
   location /.well-known {}
 
@@ -17,7 +30,39 @@ server {
     proxy_pass http://grafana:3000;
   }
 
+#  location = /validate {
+#    proxy_pass http://oauth:9090/validate;
+#
+#    # be sure to pass the original host header
+#    proxy_set_header Host $http_host;
+#
+#    # Vouch Proxy only acts on the request headers
+#    proxy_pass_request_body off;
+#    proxy_set_header Content-Length "";
+#
+#    # optionally add X-Vouch-User as returned by Vouch Proxy along with the request
+#    auth_request_set $auth_resp_x_vouch_user $upstream_http_x_vouch_user;
+#    auth_request_set $auth_resp_x_vouch_idp_claims_email $upstream_http_x_vouch_idp_claims_email;
+#    auth_request_set $auth_resp_x_vouch_idp_claims_discriminator $upstream_http_x_vouch_idp_claims_discriminator;
+#    auth_request_set $auth_resp_x_vouch_idp_claims_id $upstream_http_x_vouch_idp_claims_id;
+#
+#    # these return values are used by the @error401 call
+#    auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
+#    auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
+#    auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
+#  }
+#
+#  # if validate returns `401 not authorized` then forward the request to the error401block
+#  error_page 401 = @error401;
+#
+#  location @error401 {
+#    # redirect to Vouch Proxy for login
+#    return 302 "https://{{ foundry_hostname }}-vouch.{{ foundry_domain }}/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err";
+#  }
+
   location / {
+#    auth_request /validate;
+
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -28,13 +73,36 @@ server {
 
     # Make sure to set your Foundry VTT port number
     proxy_pass http://foundry:30000;
+#
+#    auth_request_set $auth_resp_x_vouch_user $upstream_http_x_vouch_user;
+#    proxy_set_header X-Vouch-User $auth_resp_x_vouch_user;
+#
+#    auth_request_set $auth_resp_x_vouch_idp_claims_email $upstream_http_x_vouch_idp_claims_email;
+#    proxy_set_header X-Vouch-IdP-Claims-Email $auth_resp_x_vouch_idp_claims_email;
+#
+#    auth_request_set $auth_resp_x_vouch_idp_claims_discriminator $upstream_http_x_vouch_idp_claims_discriminator;
+#    proxy_set_header X-Vouch-IdP-Claims-Discriminator $auth_resp_x_vouch_idp_claims_discriminator;
+#
+#    auth_request_set $auth_resp_x_vouch_idp_claims_id $upstream_http_x_vouch_idp_claims_id;
+#    proxy_set_header X-Vouch-IdP-Claims-Id $auth_resp_x_vouch_idp_claims_id;
   }
 }
 
-server {
-  listen 80;
-  listen [::]:80;
-
-  server_name "{{ foundry_hostname }}";
-  return 301 https://$host$request_uri;
-}
+#server {
+#  listen 80;
+#  listen [::]:80;
+#  listen 443 ssl http2;
+#  listen [::]:443 ssl http2;
+#
+#  root /usr/share/nginx/html;
+#  server_name "{{ foundry_hostname }}-vouch.{{ foundry_domain }}";
+#
+#  ssl_certificate "/etc/letsencrypt/live/{{ foundry_hostname }}-vouch.{{ foundry_domain }}/fullchain.pem";
+#  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_hostname }}-vouch.{{ foundry_domain }}/privkey.pem";
+#  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_hostname }}-vouch.{{ foundry_domain }}/chain.pem";
+#
+#  location / {
+#    proxy_pass http://oauth:9090;
+#    proxy_set_header Host $host;
+#  }
+#}

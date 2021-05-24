@@ -45,7 +45,7 @@
     state: started
 
 - name: SSL certificate
-  ansible.builtin.shell: "certbot certonly --keep --webroot -w /opt/data/www/ -d {{ foundry_hostname }}"
+  ansible.builtin.shell: "certbot certonly --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }}"
 
 #- name: Restart unit
 #  ansible.builtin.systemd:

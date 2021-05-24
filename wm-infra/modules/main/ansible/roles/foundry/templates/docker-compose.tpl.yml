@@ -18,7 +18,7 @@ services:
       - CONTAINER_CACHE=/data/container_cache
       - CONTAINER_PATCHES=/data/container_patches
       - "TIMEZONE={{ foundry_timezone }}"
-      - "FOUNDRY_HOSTNAME={{ foundry_hostname }}"
+      - "FOUNDRY_HOSTNAME={{ foundry_fqdn }}"
       - "FOUNDRY_LANGUAGE={{ foundry_language }}"
       - "FOUNDRY_WORLD={{ foundry_world }}"
       - FOUNDRY_PROXY_PORT=443

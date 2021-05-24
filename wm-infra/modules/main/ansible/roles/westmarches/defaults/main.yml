@@ -1,4 +1,6 @@
 foundry_data_path: /opt/data/foundry
-foundry_hostname: westmarchesdelacave.ishtanzar.net
+foundry_hostname: westmarchesdelacave
+foundry_domain: ishtanzar.net
+foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 
 westmarches_data_path: /opt/data/westmarches

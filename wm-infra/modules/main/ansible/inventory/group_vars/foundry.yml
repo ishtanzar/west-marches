@@ -1,1 +1,1 @@
-foundry_hostname: "{{ lookup('env', 'FOUNDRY_HOSTNAME')|default('westmarchesdelacave', True) }}.ishtanzar.net"
+foundry_hostname: "{{ lookup('env', 'FOUNDRY_HOSTNAME')|default('westmarchesdelacave', True) }}"
