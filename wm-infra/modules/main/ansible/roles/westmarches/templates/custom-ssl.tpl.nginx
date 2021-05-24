@@ -1,8 +1,11 @@
 server {
-  listen 80;
+  listen 443 ssl;
   server_name "{{ foundry_hostname }}";
   client_max_body_size 300M;
   root /usr/share/nginx/html;
+
+  ssl_certificate "/etc/letsencrypt/live/{{ foundry_hostname }}/fullchain.pem";
+  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_hostname }}/privkey.pem";
 
   location /.well-known {}
 
@@ -26,4 +29,12 @@ server {
     # Make sure to set your Foundry VTT port number
     proxy_pass http://foundry:30000;
   }
+}
+
+server {
+  listen 80;
+  listen [::]:80;
+
+  server_name "{{ foundry_hostname }}";
+  return 301 https://$host$request_uri;
 }

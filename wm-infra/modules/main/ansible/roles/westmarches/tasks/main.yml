@@ -1,19 +1,23 @@
 
 - name: Create data path
   ansible.builtin.file:
-    path: "{{ westmarches_data_path }}"
+    path: "{{ item }}"
     state: directory
+  loop:
+    - "{{ westmarches_data_path }}"
+    - /opt/data/www/.well-known
 
 - name: Template proxy conf
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   loop:
-    - { src: custom.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx.conf" }
+    - { src: custom.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-custom.conf" }
+    - { src: custom-ssl.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-ssl.conf" }
+    - { src: nginx-entrypoint.sh, dest: "{{ westmarches_data_path }}/nginx-entrypoint.sh" }
     - { src: docker-compose.tpl.yml, dest: "{{ westmarches_data_path }}/docker-compose.yml" }
     - { src: prometheus.tpl.yml, dest: "{{ westmarches_data_path }}/prometheus.yml" }
     - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana-datasources.yml" }
-    - { src: grafana.tpl.ini, dest: "{{ westmarches_data_path }}/grafana.ini" }
 
 - name: Template unit file
   ansible.builtin.template:
@@ -29,8 +33,21 @@
   register: unit_file_status
 
 - name: Reload Systemd
-  systemd:
+  ansible.builtin.systemd:
     name: westmarches.service
     enabled: true
     daemon_reload: true
   when: unit_file_status.changed
+
+- name: Start unit
+  ansible.builtin.systemd:
+    name: westmarches.service
+    state: started
+
+- name: SSL certificate
+  ansible.builtin.shell: "certbot certonly --keep --webroot -w /opt/data/www/ -d {{ foundry_hostname }}"
+
+#- name: Restart unit
+#  ansible.builtin.systemd:
+#    name: westmarches.service
+#    state: restarted

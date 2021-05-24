@@ -28,7 +28,11 @@ services:
     image: nginx
     restart: "unless-stopped"
     volumes:
-      - "{{ westmarches_data_path }}/nginx.conf:/etc/nginx/conf.d/custom.conf:ro"
+      - "{{ westmarches_data_path }}/nginx-custom.conf:/etc/nginx/01-custom.conf.new:ro"
+      - "{{ westmarches_data_path }}/nginx-ssl.conf:/etc/nginx/02-ssl.conf.new:ro"
+      - "{{ westmarches_data_path }}/nginx-entrypoint.sh:/docker-entrypoint.d/ssl-config.sh:ro"
+      - "/etc/letsencrypt:/etc/letsencrypt:ro"
+      - "/opt/data/www:/usr/share/nginx/html:ro"
     links:
       - foundry
       - grafana
