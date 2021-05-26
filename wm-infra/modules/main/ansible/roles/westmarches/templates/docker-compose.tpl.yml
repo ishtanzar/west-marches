@@ -18,12 +18,12 @@ services:
       - "{{ westmarches_data_path }}/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
     environment:
       - "GF_SERVER_DOMAIN={{ foundry_fqdn }}"
-      - GF_SERVER_ROOT_URL=https://{{ foundry_fqdn }}/monitoring
+      - "GF_SERVER_ROOT_URL=https://{{ foundry_fqdn }}/monitoring"
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_AUTH_GENERIC_OAUTH_NAME=Discord
       - GF_AUTH_GENERIC_OAUTH_ENABLED=true
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID=831107286654910495
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=CFJA6W8uxD9obmc7St0v7KvQCXL0Oisq
+      - "GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ OAUTH_CLIENT }}"
+      - "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ OAUTH_SECRET }}"
       - GF_AUTH_GENERIC_OAUTH_SCOPES=identify email
       - GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://discordapp.com/api/oauth2/authorize
       - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://discordapp.com/api/oauth2/token
@@ -61,8 +61,8 @@ services:
 #      - "VOUCH_DOMAINS={{ foundry_domain }}"
 #      - VOUCH_HEADERS_CLAIMS=id, discriminator, email
 #      - OAUTH_PROVIDER=oidc
-#      - OAUTH_CLIENT_ID=831107286654910495
-#      - OAUTH_CLIENT_SECRET=CFJA6W8uxD9obmc7St0v7KvQCXL0Oisq
+#      - OAUTH_CLIENT_ID=
+#      - OAUTH_CLIENT_SECRET=
 #      - "OAUTH_CALLBACK_URL=https://{{ foundry_hostname }}-vouch.{{ foundry_domain }}/auth"
 #      - OAUTH_SCOPES=identify, email
 

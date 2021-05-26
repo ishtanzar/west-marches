@@ -78,6 +78,8 @@ resource "scaleway_instance_server" "main" {
     environment = {
       SCW_VOLUME_ID=scaleway_instance_volume.data.id
       FOUNDRY_HOSTNAME=var.host_name
+      OAUTH_CLIENT=var.host_name
+      OAUTH_SECRET=var.host_name
     }
   }
 }

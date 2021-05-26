@@ -7,6 +7,8 @@
           - lookup('env', 'SCW_VOLUME_ID')
           - lookup('env', 'SCW_ACCESS_KEY')
           - lookup('env', 'SCW_SECRET_KEY')
+          - lookup('env', 'OAUTH_CLIENT')
+          - lookup('env', 'OAUTH_SECRET')
   roles:
     - base-system
     - cloudalchemy.node_exporter
@@ -15,6 +17,8 @@
         SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
         SCW_SECRET_KEY: "{{ lookup('env', 'SCW_SECRET_KEY') }}"
         SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
+        OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
+        OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
 
     - name: AWS config
       ansible.builtin.template:
