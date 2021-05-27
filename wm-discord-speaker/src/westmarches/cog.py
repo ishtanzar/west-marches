@@ -12,7 +12,8 @@ class WestMarchesCog(commands.Commands,
                      metaclass=CompositeMetaClass):
 
     default_guild_settings = {
-        "rumors": []
+        "rumors": [],
+        "intents": []
     }
 
     def __init__(self, bot: Red):
@@ -23,4 +24,3 @@ class WestMarchesCog(commands.Commands,
 
         self.config = Config.get_conf(self, identifier=567346224)
         self.config.register_global(**self.default_guild_settings)
-        self.config.register_guild(**self.default_guild_settings)

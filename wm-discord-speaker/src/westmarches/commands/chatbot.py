@@ -1,4 +1,5 @@
 import json
+import logging
 import pickle
 import re
 from typing import Mapping, List
@@ -11,11 +12,13 @@ import tflearn
 from redbot.core import commands, data_manager
 from spacy.lang.fr.stop_words import STOP_WORDS
 from spacy.tokens.token import Token
+from tflearn import DNN
 
 from westmarches import MixinMeta
 from westmarches.utils import CompositeMetaClass
 
 PUNCTUATION = list("?:!.,;")
+log = logging.getLogger("westmarches.cogs.chatbot")
 
 
 class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
@@ -66,16 +69,19 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
     @commands.command()
     async def train(self, ctx: commands.Context):
         await ctx.send('Training started...')
-        self._train(self._load_intents())
+        self._train(await self._load_intents())
         await ctx.send('Training completed.')
 
-    def _load_intents(self) -> Mapping:
-        with (data_manager.cog_data_path(self) / 'intents.json').open('r') as file:
-            return json.load(file)
+    async def _load_intents(self) -> Mapping:
+        intents = await self.config.intents()
+        if not intents:
+            log.info('No saved invents, loading defaults')
+            with (data_manager.cog_data_path(self) / 'intents.json').open('r') as file:
+                intents = json.load(file)
+        return intents
 
     def _save_intents(self, intents):
-        with (data_manager.cog_data_path(self) / 'intents.json').open('w') as file:
-            return json.dump(intents, file, indent=2)
+        self.config.intents.set(intents)
 
     def _train(self, data):
         all_words = []
@@ -152,8 +158,8 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
 
         return self._get_labels()[numpy.argmax(result)]
 
-    def _save_model(self, model, filename):
-        model.save((data_manager.cog_data_path(self) / filename))
+    def _save_model(self, model: DNN, filename):
+        model.save(str(data_manager.cog_data_path(self) / filename))
 
     def _save_data(self, data, filename):
         with (data_manager.cog_data_path(self) / filename).open('wb') as f:
