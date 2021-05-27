@@ -1,7 +1,6 @@
-replit
-flask
 Red-DiscordBot
-requests
 spacy
-fr-core-news-sm==3.0.0
 tflearn
+tensorflow
+
+https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.0.0/fr_core_news_sm-3.0.0-py3-none-any.whl
