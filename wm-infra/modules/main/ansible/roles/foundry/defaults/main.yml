@@ -7,6 +7,8 @@ foundry_hostname: westmarchesdelacave
 foundry_domain: ishtanzar.net
 foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 
+manager_api_secret: changeme
+
 s3_bucket: test-bucket-pgmillon
 SCW_ACCESS_KEY: ''
 SCW_SECRET_KEY: ''

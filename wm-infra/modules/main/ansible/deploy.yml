@@ -19,6 +19,7 @@
         SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
         OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
+        manager_api_secret: "{{ lookup('password', '/dev/null') }}"
 
     - name: AWS config
       ansible.builtin.template:

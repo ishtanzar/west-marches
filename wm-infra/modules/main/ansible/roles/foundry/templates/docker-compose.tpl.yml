@@ -40,9 +40,11 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "{{ foundry_data_path }}-compose.yml:/opt/docker-compose.yml"
+      - "{{ foundry_data_path }}/.htpasswd:/opt/.htpasswd"
     secrets:
       - source: config_json
         target: /opt/data/foundry/secrets.json
     environment:
       - COMPOSE_DIR=/opt
+      - HTPASSWD_PATH=/opt/.htpasswd
   

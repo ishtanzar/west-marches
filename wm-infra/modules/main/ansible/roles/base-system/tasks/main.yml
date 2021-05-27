@@ -10,9 +10,11 @@
     state: present
     update_cache: yes
 
-- name: Install awscli_plugin_endpoint
+- name: Install pip packages
   ansible.builtin.pip:
-    name: awscli_plugin_endpoint
+    name:
+      - awscli_plugin_endpoint
+      - passlib
 
 - name: AWS folder exists
   ansible.builtin.file:

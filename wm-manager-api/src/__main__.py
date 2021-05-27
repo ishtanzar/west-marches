@@ -4,6 +4,7 @@ import bjoern
 from compose.cli.command import get_project
 from compose.project import NoSuchService
 from flask import Flask
+from flask_htpasswd import HtPasswdAuth
 
 
 class FoundryProject:
@@ -21,31 +22,24 @@ class FoundryProject:
         self.project.restart([service_name])
 
 
-app = Flask(__name__)
 project_path = os.environ['COMPOSE_DIR']
-print(project_path)
-project = FoundryProject(project_path)
+
+app = Flask(__name__)
+app.config['FLASK_HTPASSWD_PATH'] = os.environ['HTPASSWD_PATH']
+auth = HtPasswdAuth(app)
 
 
 @app.route('/')
-def index():
-    return 'Hello World'
-
-
-@app.route('/container/stop/<service_name>', methods=['POST'])
-def stop_container(service_name):
-    try:
-        project.stop(service_name)
-    except NoSuchService as nse:
-        return nse.msg, 404
-
-    return 'Done', 204
+@auth.required
+def index(user):
+    return "Hello, {}!".format(user)
 
 
 @app.route('/container/restart/<service_name>', methods=['POST'])
+@auth.required
 def restart_container(service_name):
     try:
-        project.restart(service_name)
+        FoundryProject(project_path).restart(service_name)
     except NoSuchService as nse:
         return nse.msg, 404
 

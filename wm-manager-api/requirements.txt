@@ -1,4 +1,5 @@
 Flask
+flask-htpasswd
 bjoern
 docker
 docker-compose
