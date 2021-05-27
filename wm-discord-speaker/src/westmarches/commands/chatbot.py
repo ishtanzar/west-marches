@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import pickle
 import re
 from typing import Mapping, List
@@ -76,7 +77,7 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
         intents = await self.config.intents()
         if not intents:
             log.info('No saved invents, loading defaults')
-            with (data_manager.cog_data_path(self) / 'intents.json').open('r') as file:
+            with open(os.environ['DEFAULT_INTENTS_PATH'], 'r') as file:
                 intents = json.load(file)
         return intents
 
