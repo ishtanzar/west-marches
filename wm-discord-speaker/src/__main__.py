@@ -6,6 +6,7 @@ import sys
 from argparse import Namespace
 
 from redbot.__main__ import global_exception_handler, run_bot, red_exception_handler, shutdown_handler
+from redbot.cogs.permissions import setup as permissions
 from redbot.core import data_manager
 from redbot.core.bot import RedBase, ExitCodes
 
@@ -26,6 +27,7 @@ class WMBot(RedBase):
     async def pre_flight(self, cli_flags):
         await super().pre_flight(cli_flags)
         self.add_cog(WestMarchesCog(self))
+        await permissions(self)
 
 
 def main():
@@ -60,7 +62,7 @@ def main():
             no_cogs=True)
 
         data_manager.basic_config = {
-            'DATA_PATH': os.getcwd() + '/data/westmarches',
+            'DATA_PATH': os.environ['DISCORD_BOT_DATA_PATH'],
             'COG_PATH_APPEND': 'cogs',
             'CORE_PATH_APPEND': 'core',
             'STORAGE_TYPE': 'JSON',

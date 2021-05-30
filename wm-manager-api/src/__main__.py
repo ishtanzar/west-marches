@@ -37,7 +37,7 @@ def index(user):
 
 @app.route('/container/restart/<service_name>', methods=['POST'])
 @auth.required
-def restart_container(service_name):
+def restart_container(service_name, user):
     try:
         FoundryProject(project_path).restart(service_name)
     except NoSuchService as nse:
@@ -47,7 +47,7 @@ def restart_container(service_name):
 
 
 def main():
-    bjoern.run(app, '127.0.0.1', 5000)
+    bjoern.run(app, '0.0.0.0', 5000)
 
 
 if __name__ == "__main__":

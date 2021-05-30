@@ -9,6 +9,7 @@
           - lookup('env', 'SCW_SECRET_KEY')
           - lookup('env', 'OAUTH_CLIENT')
           - lookup('env', 'OAUTH_SECRET')
+          - lookup('env', 'DISCORD_BOT_SECRET')
   roles:
     - base-system
     - cloudalchemy.node_exporter
@@ -19,6 +20,7 @@
         SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
         OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
+        DISCORD_BOT_SECRET: "{{ lookup('env', 'DISCORD_BOT_SECRET') }}"
         manager_api_secret: "{{ lookup('password', '/dev/null') }}"
 
     - name: AWS config
@@ -36,4 +38,5 @@
   roles:
     - docker
     - foundry
+    - discordbot
     - westmarches

@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  foundry:
+    image: ubuntu
+    command: tail -f /dev/null
+  manager_api:
+    build:
+      context: wm-manager-api/
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/opt
+    command: ["python", "/opt/wm-manager-api/src/__main__.py"]
+    ports:
+      - "5000:5000"
+    environment:
+      - COMPOSE_DIR=/opt
+      - HTPASSWD_PATH=/opt/tests/resources/.htpasswd
+  discordbot:
+    build:
+      context: wm-discord-speaker/
+    links:
+      - manager_api
+    volumes:
+      - ./wm-discord-speaker/src:/opt/wm-discord-speaker
+      - ./wm-discord-speaker/data:/opt/redbot/data
+      - ./wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json:/opt/default-intents.json
+    environment:
+      - FOUNDRY_HOST=manager_api
+      - MANAGER_API_SECRET=changeme
+      - DEFAULT_INTENTS_PATH=/opt/default-intents.json
+      - DISCORD_BOT_DATA_PATH=/opt/redbot/data
+      - "DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}"
+    command: ["python3", "/opt/wm-discord-speaker/__main__.py"]

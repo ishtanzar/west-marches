@@ -50,6 +50,16 @@ services:
     ports:
       - "80:80"
       - "443:443"
+  manager_api:
+    volumes:
+      - "{{ westmarches_data_path }}/.env:/opt/.env"
+  discordbot:
+    links:
+      - manager_api
+    environment:
+      - FOUNDRY_HOST=manager_api
+      - "MANAGER_API_SECRET={{ manager_api_secret }}"
+
 #  oauth:
 #    image: voucher/vouch-proxy
 #    restart: "unless-stopped"

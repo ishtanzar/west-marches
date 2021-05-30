@@ -19,6 +19,11 @@
     - { src: prometheus.tpl.yml, dest: "{{ westmarches_data_path }}/prometheus.yml" }
     - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana-datasources.yml" }
 
+- name: Upload compose env file
+  ansible.builtin.copy:
+    dest: "{{ westmarches_data_path }}/.env"
+    content: "COMPOSE_PROJECT_NAME=west-marches"
+
 - name: Template unit file
   ansible.builtin.template:
     src: westmarches.service
@@ -29,6 +34,7 @@
   vars:
     compose_files:
       - "{{ foundry_data_path }}-compose.yml"
+      - "{{ discordbot_data_path }}-compose.yml"
       - "{{ westmarches_data_path }}/docker-compose.yml"
   register: unit_file_status
 

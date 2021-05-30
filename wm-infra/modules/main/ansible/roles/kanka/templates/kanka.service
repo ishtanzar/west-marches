@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+[Unit]
+Description=FoundryVTT service
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/local/bin/docker-compose -f {{ docker_compose_file }} kill
+ExecStartPre=-/usr/local/bin/docker-compose -f {{ docker_compose_file }} rm
+ExecStart=/usr/local/bin/docker-compose -f {{ docker_compose_file }} up
+ExecStop=/usr/local/bin/docker-compose -f {{ docker_compose_file }} down
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

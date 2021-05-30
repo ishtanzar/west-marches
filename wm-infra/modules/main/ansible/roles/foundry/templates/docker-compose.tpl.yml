@@ -44,6 +44,8 @@ services:
     secrets:
       - source: config_json
         target: /opt/data/foundry/secrets.json
+    ports:
+      - "5000"
     environment:
       - COMPOSE_DIR=/opt
       - HTPASSWD_PATH=/opt/.htpasswd

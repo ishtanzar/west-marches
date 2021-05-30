@@ -1,0 +1,15 @@
+- set_fact:
+    kanka_src_templates: "{{ role_path }}/templates"
+
+- name: Systemd unit
+  include_role:
+    name: systemd
+    tasks_from: unit
+  vars:
+    docker_compose:
+      src: "{{ kanka_src_templates }}/docker-compose.tpl.yml"
+      dest: /opt/kanka-compose.yml
+    unit:
+      src: "{{ kanka_src_templates }}/foundry.service"
+      name: kanka.service
+    data_path: /opt/kanka

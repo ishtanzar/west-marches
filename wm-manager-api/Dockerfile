@@ -1,6 +1,6 @@
 FROM python:3-slim
 
-WORKDIR /opt/manager-api
+WORKDIR /opt/wm-manager-api
 
 COPY requirements.txt ./
 

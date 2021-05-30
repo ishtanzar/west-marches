@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+version: "3.8"
+
+services:
+  discordbot:
+    image: ishtanzar/wm-discord-speaker:latest
+    restart: "unless-stopped"
+    volumes:
+      - "{{ discordbot_data_path }}:/opt/redbot/data"
+    environment:
+      - "DISCORD_BOT_DATA_PATH=/opt/redbot/data"
+      - "DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}"
+      - "DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json"

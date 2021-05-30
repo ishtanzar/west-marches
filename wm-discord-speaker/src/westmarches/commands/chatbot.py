@@ -10,7 +10,7 @@ import numpy
 import spacy
 import tensorflow as tf
 import tflearn
-from redbot.core import commands, data_manager
+from redbot.core import commands, data_manager, checks
 from spacy.lang.fr.stop_words import STOP_WORDS
 from spacy.tokens.token import Token
 from tflearn import DNN
@@ -46,8 +46,10 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
             else:
                 await ctx.send(intent)
 
+    @checks.is_owner()
     @commands.command()
     async def learn(self, ctx: commands.Context, new_intent):
+        """Learn an intent from a message"""
         if ctx.message.reference:
             message = await ctx.fetch_message(ctx.message.reference.message_id)
             clean_message = re.sub('<@!?([0-9]*)>', '', message.content).strip()
@@ -67,8 +69,10 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
 
             self._save_intents(json)
 
+    @checks.is_owner()
     @commands.command()
     async def train(self, ctx: commands.Context):
+        """Update AI model"""
         await ctx.send('Training started...')
         self._train(await self._load_intents())
         await ctx.send('Training completed.')

@@ -13,7 +13,8 @@ class WestMarchesCog(commands.Commands,
 
     default_guild_settings = {
         "rumors": [],
-        "intents": []
+        "intents": [],
+        "taverns": []
     }
 
     def __init__(self, bot: Red):

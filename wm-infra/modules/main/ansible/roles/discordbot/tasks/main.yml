@@ -1,0 +1,15 @@
+
+- name: Create data path
+  ansible.builtin.file:
+    path: "{{ discordbot_data_path }}"
+    state: directory
+
+- name: Upload default intents
+  ansible.builtin.copy:
+    src: default-intents.json
+    dest: "{{ discordbot_data_path }}/default-intents.json"
+
+- name: Template docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.tpl.yml
+    dest: "{{ discordbot_data_path }}-compose.yml"

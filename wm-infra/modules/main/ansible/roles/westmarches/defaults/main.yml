@@ -4,3 +4,4 @@ foundry_domain: ishtanzar.net
 foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 
 westmarches_data_path: /opt/data/westmarches
+discordbot_data_path: /opt/data/discordbot
