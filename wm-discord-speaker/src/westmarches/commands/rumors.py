@@ -2,10 +2,8 @@ import random
 
 from discord import ChannelType
 from redbot.core import commands, checks
-from redbot.core.utils.chat_formatting import pagify
 
-from westmarches import MixinMeta
-from westmarches.utils import CompositeMetaClass
+from westmarches.utils import CompositeMetaClass, MixinMeta
 
 
 class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
@@ -33,11 +31,8 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
     async def list_rumors(self, ctx: commands.Context):
         """List all rumors"""
         async with self.config.rumors() as rumors:
-            indexed_rumors = []
             for i, rumor in enumerate(rumors):
-                indexed_rumors.append('{} - {}'.format(i, rumor))
-            for page in pagify(", ".join(indexed_rumors), delims=[",", "\n"], page_length=120):
-                await ctx.send(page)
+                await ctx.send('{} - {}'.format(i, rumor))
 
     @checks.is_owner()
     @rumors.command("rm")

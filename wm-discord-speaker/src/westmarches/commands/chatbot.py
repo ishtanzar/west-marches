@@ -15,11 +15,10 @@ from spacy.lang.fr.stop_words import STOP_WORDS
 from spacy.tokens.token import Token
 from tflearn import DNN
 
-from westmarches import MixinMeta
-from westmarches.utils import CompositeMetaClass
+from westmarches.utils import CompositeMetaClass, MixinMeta
 
 PUNCTUATION = list("?:!.,;")
-log = logging.getLogger("westmarches.cogs.chatbot")
+log = logging.getLogger("red.westmarches.chatbot")
 
 
 class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
@@ -43,6 +42,8 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
 
             if intent == "rumors":
                 await self.bot.all_commands.get("rumors").invoke(ctx)
+            elif intent == "greeting":
+                await ctx.send("Bonjour")
             else:
                 await ctx.send(intent)
 
@@ -53,7 +54,7 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
         if ctx.message.reference:
             message = await ctx.fetch_message(ctx.message.reference.message_id)
             clean_message = re.sub('<@!?([0-9]*)>', '', message.content).strip()
-            json = self._load_intents()
+            json = await self._load_intents()
             create_intent = True
 
             for intent in json["intents"]:

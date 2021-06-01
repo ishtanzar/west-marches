@@ -4,8 +4,7 @@ import os
 import requests
 from redbot.core import commands, checks
 
-from westmarches import MixinMeta
-from westmarches.utils import CompositeMetaClass
+from westmarches.utils import CompositeMetaClass, MixinMeta
 
 log = logging.getLogger("red.westmarches.foundry")
 

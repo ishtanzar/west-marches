@@ -1,9 +1,7 @@
-from abc import ABC
-
-from redbot.core import Config
 from redbot.core.bot import Red
 
+from .cog import WestMarchesCog
 
-class MixinMeta(ABC):
-    bot: Red
-    config: Config
+
+def setup(bot: Red):
+    bot.add_cog(WestMarchesCog(bot))

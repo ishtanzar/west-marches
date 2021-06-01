@@ -24,11 +24,10 @@ services:
     volumes:
       - ./wm-discord-speaker/src:/opt/wm-discord-speaker
       - ./wm-discord-speaker/data:/opt/redbot/data
+      - ./tests/resources/redbot-config.json:/root/.config/Red-DiscordBot/config.json
       - ./wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json:/opt/default-intents.json
     environment:
       - FOUNDRY_HOST=manager_api
       - MANAGER_API_SECRET=changeme
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
-      - DISCORD_BOT_DATA_PATH=/opt/redbot/data
-      - "DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}"
-    command: ["python3", "/opt/wm-discord-speaker/__main__.py"]
+    command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH"]
