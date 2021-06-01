@@ -68,7 +68,7 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
                     "patterns": [clean_message]
                 })
 
-            self._save_intents(json)
+            await self._save_intents(json)
 
     @checks.is_owner()
     @commands.command()
@@ -86,8 +86,8 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
                 intents = json.load(file)
         return intents
 
-    def _save_intents(self, intents):
-        self.config.intents.set(intents)
+    async def _save_intents(self, intents):
+        await self.config.intents.set(intents)
 
     def _train(self, data):
         all_words = []
