@@ -11,6 +11,7 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
     def __init__(self) -> None:
         super().__init__()
 
+    @checks.has_permissions(administrator=True)
     @commands.group(invoke_without_command=True)
     async def rumors(self, ctx: commands.Context):
         """Get a rumor from the West-Marches"""
@@ -18,7 +19,6 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
             if ctx.channel.type is ChannelType.text and ctx.channel.id in taverns:
                 await ctx.send(random.choice(await self.config.rumors()))
 
-    @checks.is_owner()
     @rumors.command("add")
     async def add_rumor(self, ctx: commands.Context, *new_rumor):
         """Add a new rumor"""
@@ -26,7 +26,6 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
             rumors.append(" ".join(new_rumor))
         await ctx.send("Nouvelle rumeur enregistrée.")
 
-    @checks.is_owner()
     @rumors.command("ls")
     async def list_rumors(self, ctx: commands.Context):
         """List all rumors"""
@@ -34,7 +33,6 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
             for i, rumor in enumerate(rumors):
                 await ctx.send('{} - {}'.format(i, rumor))
 
-    @checks.is_owner()
     @rumors.command("rm")
     async def del_rumor(self, ctx: commands.Context, rumor_id: int):
         """Remove a rumor"""
@@ -45,7 +43,6 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
 
         await ctx.send("Rumeur supprimée : {}".format(old_rumor))
 
-    @checks.is_owner()
     @rumors.command("listen")
     async def rumors_listen(self, ctx: commands.Context):
         """Tell the bot to listen pings in current channel"""

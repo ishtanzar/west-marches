@@ -11,7 +11,7 @@ class FoundryProject:
 
     def __init__(self, compose_file) -> None:
         self.compose_file = compose_file
-        self.project = get_project(compose_file)
+        self.project = get_project(compose_file, project_name='west-marches')
 
     def stop(self, service_name):
         self.project.validate_service_names([service_name])

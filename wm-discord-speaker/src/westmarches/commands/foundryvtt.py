@@ -3,6 +3,7 @@ import os
 
 import requests
 from redbot.core import commands, checks
+from redbot.core.commands import PrivilegeLevel, Requires
 
 from westmarches.utils import CompositeMetaClass, MixinMeta
 
@@ -22,11 +23,11 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     def foundry_auth(self):
         return 'foundry_manager', os.environ['MANAGER_API_SECRET']
 
+    @checks.has_permissions(administrator=True)
     @commands.group(name="foundry")
     async def command_foundry(self, ctx: commands.Context):
         """Foundry admin commands"""
 
-    @checks.is_owner()
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):
         """Restart FoundryVTT"""
