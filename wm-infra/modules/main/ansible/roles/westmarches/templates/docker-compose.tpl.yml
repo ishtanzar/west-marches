@@ -56,6 +56,8 @@ services:
   discordbot:
     links:
       - manager_api
+    volumes:
+      - "{{ discordbot_data_path }}/redbot-config.json:/root/.config/Red-DiscordBot/config.json"
     environment:
       - FOUNDRY_HOST=manager_api
       - "MANAGER_API_SECRET={{ manager_api_secret }}"

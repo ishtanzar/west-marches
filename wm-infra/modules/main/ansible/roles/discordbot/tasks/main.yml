@@ -9,7 +9,10 @@
     src: default-intents.json
     dest: "{{ discordbot_data_path }}/default-intents.json"
 
-- name: Template docker-compose file
+- name: Template config files
   ansible.builtin.template:
-    src: docker-compose.tpl.yml
-    dest: "{{ discordbot_data_path }}-compose.yml"
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+  loop:
+    - {src: docker-compose.tpl.yml, dest: "{{ discordbot_data_path }}-compose.yml"}
+    - {src: redbot-config.tpl.json, dest: "{{ discordbot_data_path }}/redbot-config.json"}
