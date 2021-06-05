@@ -1,0 +1,29 @@
+
+- block:
+  - set_fact:
+      retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
+      
+  - ansible.builtin.setup:
+  
+  - name: Lookup device with id {{ SCW_VOLUME_ID }}
+    ansible.builtin.set_fact:
+      scw_data_device: "/dev/{{ ansible_devices|dict2items|json_query('[].{dev: key, ids: join(`,`, value.links.ids)}[?contains(ids, `' + SCW_VOLUME_ID + '`)]|[0].dev' )}}"
+  
+  - name: Check {{ scw_data_device }} is a device
+    ansible.builtin.stat:
+      path: "{{ scw_data_device }}"
+    register: scw_data_device_stat
+    
+  - ansible.builtin.assert: { that: "scw_data_device_stat.stat.mimetype == 'inode/blockdevice'" }
+  
+  rescue:
+    - fail:
+        msg: Ended after 5 retries
+      when: retry_count|int == 5
+      
+    - pause:
+        seconds: 10
+      
+    - include_tasks: data_device.yml
+  
+  

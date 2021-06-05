@@ -1,29 +1,27 @@
 
-- name: Lookup Data device
-  ansible.builtin.set_fact:
-    SCW_DATA_VOLUME: "/dev/{{ ansible_devices|dict2items|json_query('[].{dev: key, ids: join(`,`, value.links.ids)}[?contains(ids, `' + SCW_VOLUME_ID + '`)]|[0].dev' )}}"
+- include_tasks: data_device.yml
 
-- name: "Create {{ SCW_DATA_VOLUME }} partition"
+- name: "Create {{ scw_data_device }} partition"
   community.general.parted:
-    device: "{{ SCW_DATA_VOLUME }}"
+    device: "{{ scw_data_device }}"
     number: 1
     fs_type: ext4
     state: present
 
-- name: "Create a ext4 filesystem on {{ SCW_DATA_VOLUME }}"
+- name: "Create a ext4 filesystem on {{ scw_data_device }}"
   community.general.filesystem:
     fstype: ext4
-    dev: "{{ SCW_DATA_VOLUME }}1"
+    dev: "{{ scw_data_device }}1"
 
 - name: Mount point exists
   ansible.builtin.file:
     path: /opt/data
     state: directory
 
-- name: "Mount {{ SCW_DATA_VOLUME }}"
+- name: "Mount {{ scw_data_device }}"
   ansible.posix.mount:
     path: /opt/data
-    src: "{{ SCW_DATA_VOLUME }}1"
+    src: "{{ scw_data_device }}1"
     fstype: ext4
     state: mounted
 
@@ -37,24 +35,22 @@
 
 - name: Fetch foundry
   amazon.aws.aws_s3:
-    bucket: "{{ s3_bucket }}"
+    bucket: "{{ foundry_s3_bucket }}"
     object: "private/foundryvtt/{{ foundryvtt_zip }}"
     dest: "{{ foundry_data_path }}/container_cache/{{ foundryvtt_zip }}"
-    s3_url: https://s3.fr-par.scw.cloud
-    region: fr-par
-    aws_access_key: "{{ SCW_ACCESS_KEY }}"
-    aws_secret_key: "{{ SCW_SECRET_KEY }}"
+    region: eu-west-3
+    aws_access_key: "{{ FOUNDRY_BUCKET_ACCESS_KEY_ID }}"
+    aws_secret_key: "{{ FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}"
     mode: get
 
 - name: Fetch patch resources
   amazon.aws.aws_s3:
-    bucket: "{{ s3_bucket }}"
-    object: "private/foundryvtt/patch/0-7-9/{{ item }}"
+    bucket: "{{ foundry_s3_bucket }}"
+    object: "private/foundryvtt/crack/0.7.9/{{ item }}"
     dest: "{{ foundry_data_path }}/container_patches/resources/{{ item }}"
-    s3_url: https://s3.fr-par.scw.cloud
-    region: fr-par
-    aws_access_key: "{{ SCW_ACCESS_KEY }}"
-    aws_secret_key: "{{ SCW_SECRET_KEY }}"
+    region: eu-west-3
+    aws_access_key: "{{ FOUNDRY_BUCKET_ACCESS_KEY_ID }}"
+    aws_secret_key: "{{ FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}"
     mode: get
   loop:
     - auth.js

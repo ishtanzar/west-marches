@@ -9,6 +9,6 @@ foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 
 manager_api_secret: changeme
 
-s3_bucket: test-bucket-pgmillon
-SCW_ACCESS_KEY: ''
-SCW_SECRET_KEY: ''
+foundry_s3_bucket: caveduroliste-westmarches
+FOUNDRY_BUCKET_ACCESS_KEY_ID: ''
+FOUNDRY_BUCKET_SECRET_ACCESS_KEY: ''

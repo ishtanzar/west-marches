@@ -7,16 +7,21 @@
           - lookup('env', 'SCW_VOLUME_ID')
           - lookup('env', 'SCW_ACCESS_KEY')
           - lookup('env', 'SCW_SECRET_KEY')
+          - lookup('env', 'FOUNDRY_BUCKET_ACCESS_KEY_ID')
+          - lookup('env', 'FOUNDRY_BUCKET_SECRET_ACCESS_KEY')
           - lookup('env', 'OAUTH_CLIENT')
           - lookup('env', 'OAUTH_SECRET')
           - lookup('env', 'DISCORD_BOT_SECRET')
   roles:
     - base-system
+    - docker
     - cloudalchemy.node_exporter
   post_tasks:
     - ansible.builtin.set_fact:
         SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
         SCW_SECRET_KEY: "{{ lookup('env', 'SCW_SECRET_KEY') }}"
+        FOUNDRY_BUCKET_ACCESS_KEY_ID: "{{ lookup('env', 'FOUNDRY_BUCKET_ACCESS_KEY_ID') }}"
+        FOUNDRY_BUCKET_SECRET_ACCESS_KEY: "{{ lookup('env', 'FOUNDRY_BUCKET_SECRET_ACCESS_KEY') }}"
         SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
         OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
@@ -36,7 +41,6 @@
 - name: FoundryVTT
   hosts: foundry
   roles:
-    - docker
     - foundry
     - discordbot
     - westmarches

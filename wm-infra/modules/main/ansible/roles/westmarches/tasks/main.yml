@@ -49,9 +49,19 @@
   ansible.builtin.systemd:
     name: westmarches.service
     state: started
-
+    
+- name: Install certbot snap
+  community.general.snap:
+    name: certbot
+    classic: yes
+    
+- name: Wait for port 80 to become open on the host
+  ansible.builtin.wait_for:
+    port: 80
+    delay: 10
+    
 - name: SSL certificate
-  ansible.builtin.shell: "certbot certonly --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }}"
+  ansible.builtin.shell: "certbot certonly -n --agree-tos --email webmaster@ishtanzar.net --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }}"
 
 #- name: Restart unit
 #  ansible.builtin.systemd:

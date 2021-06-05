@@ -24,4 +24,5 @@ module "main" {
   source = "../../modules/main"
 
   gandi_key = var.gandi_key
+  ssh_key_id = "def22f15-3be9-4fbc-ae46-49de416bd66a"
 }

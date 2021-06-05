@@ -76,7 +76,7 @@ resource "scaleway_instance_server" "main" {
     working_dir = "${path.module}/ansible"
 
     environment = {
-      SCW_VOLUME_ID=scaleway_instance_volume.data.id
+      SCW_VOLUME_ID=element(split("/", scaleway_instance_volume.data.id), 1)
       FOUNDRY_HOSTNAME=var.host_name
       OAUTH_CLIENT=var.host_name
       OAUTH_SECRET=var.host_name
