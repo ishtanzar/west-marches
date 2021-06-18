@@ -4,10 +4,11 @@
     path: "{{ item }}"
     state: directory
   loop:
-    - "{{ westmarches_data_path }}"
+    - "{{ westmarches_data_path }}/grafana"
+    - "{{ westmarches_data_path }}/influxdb"
     - /opt/data/www/.well-known
 
-- name: Template proxy conf
+- name: Template config files
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -16,13 +17,19 @@
     - { src: custom-ssl.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-ssl.conf" }
     - { src: nginx-entrypoint.sh, dest: "{{ westmarches_data_path }}/nginx-entrypoint.sh" }
     - { src: docker-compose.tpl.yml, dest: "{{ westmarches_data_path }}/docker-compose.yml" }
-    - { src: prometheus.tpl.yml, dest: "{{ westmarches_data_path }}/prometheus.yml" }
-    - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana-datasources.yml" }
+    - { src: telegraf.tpl.toml, dest: "/etc/telegraf/telegraf.d/custom.conf" }
+    - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/datasources.yml" }
+    - { src: grafana-dashboards.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/dashboards.yml" }
 
 - name: Upload compose env file
   ansible.builtin.copy:
     dest: "{{ westmarches_data_path }}/.env"
     content: "COMPOSE_PROJECT_NAME=west-marches"
+
+- name: Upload grafana dashboards
+  ansible.builtin.copy:
+    src: grafana-dashboards
+    dest: "{{ westmarches_data_path }}/grafana/storage/dashboards"
 
 - name: Template unit file
   ansible.builtin.template:
@@ -63,7 +70,10 @@
 - name: SSL certificate
   ansible.builtin.shell: "certbot certonly -n --agree-tos --email webmaster@ishtanzar.net --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }}"
 
-#- name: Restart unit
-#  ansible.builtin.systemd:
-#    name: westmarches.service
-#    state: restarted
+- name: Restart units
+  ansible.builtin.systemd:
+    name: "{{item}}"
+    state: restarted
+  loop:
+    - westmarches.service
+    - telegraf.service

@@ -70,16 +70,25 @@ resource "scaleway_instance_server" "main" {
   tags = ["foundry", "kanka"]
   additional_volume_ids = [scaleway_instance_volume.data.id]
   security_group_id = scaleway_instance_security_group.front.id
+}
+
+resource "null_resource" "ansible" {
+  depends_on = [
+    scaleway_instance_server.main,
+  ]
+
+  triggers = {
+    timestamp = timestamp()
+  }
 
   provisioner "local-exec" {
     command = "ansible-playbook -i inventory deploy.yml"
     working_dir = "${path.module}/ansible"
 
     environment = {
+      ANSIBLE_FORCE_COLOR="1"
       SCW_VOLUME_ID=element(split("/", scaleway_instance_volume.data.id), 1)
       FOUNDRY_HOSTNAME=var.host_name
-      OAUTH_CLIENT=var.host_name
-      OAUTH_SECRET=var.host_name
     }
   }
 }

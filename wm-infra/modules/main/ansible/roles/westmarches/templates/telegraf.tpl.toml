@@ -1,0 +1,19 @@
+[[outputs.influxdb_v2]]
+    urls = ["http://127.0.0.1:8086"]
+
+    ## Token for authentication.
+    token = "{{ INFLUXDB_ADMIN_TOKEN }}"
+    organization = "westmarchesdelacave"
+    bucket = "bucket0"
+
+[[inputs.linux_sysctl_fs]]
+[[inputs.interrupts]]
+[[inputs.conntrack]]
+[[inputs.netstat]]
+[[inputs.nstat]]
+[[inputs.net]]
+[[inputs.internal]]
+#[[inputs.procstat]]
+
+[[inputs.nginx]]
+urls = ["http://127.0.0.1:8080/status"]

@@ -1,0 +1,53 @@
+
+- name: "Debian | Ensure the system can use the HTTPS transport for APT"
+  stat:
+    path: /usr/lib/apt/methods/https
+  register: apt_https_transport
+
+- name: "Debian | Install APT HTTPS transport"
+  apt:
+    name: "apt-transport-https"
+    state: present
+  register: are_telegraf_dependencies_packages_installed
+  until: are_telegraf_dependencies_packages_installed is succeeded
+  when:
+    - not apt_https_transport.stat.exists
+  become: yes
+  
+- name: "Debian | Download Telegraf apt key"
+  apt_key:
+    url: "https://repos.influxdata.com/influxdb.key"
+    id: 2582E0C5
+    state: present
+  register: are_telegraf_dependencies_keys_installed
+  until: are_telegraf_dependencies_keys_installed is succeeded
+  become: yes
+
+- name: "Debian | Add Telegraf repository (using LSB)"
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/{{ ansible_distribution|lower }} {{ ansible_lsb.codename }} stable"
+    filename: "telegraf"
+    state: present
+  become: yes
+  when:
+    - ansible_lsb is defined
+    - ansible_lsb.codename is defined
+
+- name: "Debian | Install Telegraf package (repo)"
+  apt:
+    name: telegraf
+    state: present
+    update_cache: yes
+  register: is_telegraf_package_installed
+  until: is_telegraf_package_installed is succeeded
+  notify: "Restart Telegraf"
+  become: yes
+
+- name: Replace a localhost entry searching for a literal string to avoid escaping
+  ansible.builtin.lineinfile:
+    path: /etc/telegraf/telegraf.conf
+    regexp: '\[\[outputs.influxdb\]\]'
+    line: '#[[outputs.influxdb]]'
+    owner: root
+    group: root
+    mode: '0644'

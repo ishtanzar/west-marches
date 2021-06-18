@@ -1,4 +1,4 @@
 all:
   vars:
     ansible_ssh_user: root
-    node_exporter_web_listen_address: "{{ ansible_facts.docker0.ipv4.address }}:9100"
+    telegraf_agent_version: 2.0.7

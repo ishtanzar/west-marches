@@ -2,20 +2,33 @@
 version: "3.8"
 
 services:
-  prometheus:
-    image: prom/prometheus
-    restart: "unless-stopped"
-    volumes:
-      - "prometheus-v2:/prometheus"
-      - "{{ westmarches_data_path }}/prometheus.yml:/etc/prometheus/prometheus.yml"
+  influxdb:
+    image: influxdb:latest
     ports:
-      - 9090
+      - "8086:8086"
+    volumes:
+      - "{{ westmarches_data_path }}/influxdb/data:/var/lib/influxdb2"
+      - "{{ westmarches_data_path }}/influxdb/config:/etc/influxdb2"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - "DOCKER_INFLUXDB_INIT_PASSWORD={{ INFLUXDB_ADMIN_SECRET }}"
+      - DOCKER_INFLUXDB_INIT_ORG=westmarchesdelacave
+      - DOCKER_INFLUXDB_INIT_BUCKET=bucket0
+      - "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN={{ INFLUXDB_ADMIN_TOKEN }}"
+    healthcheck:
+      test: curl localhost:8086/health || exit -1
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
   grafana:
     image: grafana/grafana
     restart: "unless-stopped"
     volumes:
-      - "grafana:/var/lib/grafana"
-      - "{{ westmarches_data_path }}/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
+      - "{{ westmarches_data_path }}/grafana/storage:/var/lib/grafana"
+      - "{{ westmarches_data_path }}/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
+      - "{{ westmarches_data_path }}/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml"
     environment:
       - "GF_SERVER_DOMAIN={{ foundry_fqdn }}"
       - "GF_SERVER_ROOT_URL=https://{{ foundry_fqdn }}/monitoring"
@@ -31,9 +44,15 @@ services:
       - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false
       - GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE=false
     links:
-      - prometheus
+      - influxdb
     ports:
       - 3000
+    healthcheck:
+      test: wget -qO - http://localhost:3000/api/health || exit -1
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
   proxy:
     image: nginx
     restart: "unless-stopped"
@@ -42,7 +61,7 @@ services:
       - "{{ westmarches_data_path }}/nginx-ssl.conf:/etc/nginx/02-ssl.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-entrypoint.sh:/docker-entrypoint.d/ssl-config.sh:ro"
       - "/etc/letsencrypt:/etc/letsencrypt:ro"
-      - "/opt/data/www:/usr/share/nginx/html:ro"
+      - "/opt/data/www:/usr/share/nginx/html:rw"
     links:
       - foundry
       - grafana
@@ -50,6 +69,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "127.0.0.1:8080:8080"
   manager_api:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
@@ -80,4 +100,3 @@ services:
 
 volumes:
   prometheus-v2:
-  grafana:

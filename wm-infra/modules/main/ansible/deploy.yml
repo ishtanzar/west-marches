@@ -12,10 +12,12 @@
           - lookup('env', 'OAUTH_CLIENT')
           - lookup('env', 'OAUTH_SECRET')
           - lookup('env', 'DISCORD_BOT_SECRET')
+          - lookup('env', 'INFLUXDB_ADMIN_SECRET')
+          - lookup('env', 'INFLUXDB_ADMIN_TOKEN')
   roles:
     - base-system
     - docker
-    - cloudalchemy.node_exporter
+    - telegraf
   post_tasks:
     - ansible.builtin.set_fact:
         SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
@@ -26,6 +28,8 @@
         OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
         DISCORD_BOT_SECRET: "{{ lookup('env', 'DISCORD_BOT_SECRET') }}"
+        INFLUXDB_ADMIN_SECRET: "{{ lookup('env', 'INFLUXDB_ADMIN_SECRET') }}"
+        INFLUXDB_ADMIN_TOKEN: "{{ lookup('env', 'INFLUXDB_ADMIN_TOKEN') }}"
         manager_api_secret: "{{ lookup('password', '/dev/null') }}"
 
     - name: AWS config
