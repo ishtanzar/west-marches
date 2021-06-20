@@ -24,7 +24,7 @@ services:
       - FOUNDRY_PROXY_PORT=443
       - FOUNDRY_PROXY_SSL=true
     healthcheck:
-      test: nc -z localhost 30000 || exit -1
+      test: curl localhost:30000/api/status || exit -1
       interval: 10s
       timeout: 2s
       retries: 3

@@ -5,6 +5,9 @@ log_format nginx '\$remote_addr - \$remote_user [\$time_local] '
 
 access_log /var/log/nginx/access.log;
 
+proxy_cache_path /var/cache/nginx/proxy_cache levels=1:2 keys_zone=wm_cache:10m max_size=1g;
+proxy_cache_valid 5m;
+
 server {
   listen 8080;
   access_log off;
@@ -79,16 +82,22 @@ server {
   location / {
 #    auth_request /validate;
 
+    proxy_pass http://foundry:30000;
+
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-
-    # These are important to support WebSockets
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "Upgrade";
 
-    # Make sure to set your Foundry VTT port number
-    proxy_pass http://foundry:30000;
+    proxy_ignore_headers Cache-Control;
+    proxy_hide_header Cache-Control;
+    proxy_cache wm_cache;
+
+    add_header Cache-Control "public";
+    add_header X-Cache-Status $upstream_cache_status;
+
+    expires 1d;
 #
 #    auth_request_set $auth_resp_x_vouch_user $upstream_http_x_vouch_user;
 #    proxy_set_header X-Vouch-User $auth_resp_x_vouch_user;
