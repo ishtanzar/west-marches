@@ -17,3 +17,6 @@
 
 [[inputs.nginx]]
 urls = ["http://127.0.0.1:8080/status"]
+
+[[inputs.prometheus]]
+urls = ["http://127.0.0.1:8080/foundry_metrics"]

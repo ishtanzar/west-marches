@@ -26,6 +26,13 @@
     dest: "{{ westmarches_data_path }}/.env"
     content: "COMPOSE_PROJECT_NAME=west-marches"
 
+- name: Upload backend-plugin
+  ansible.posix.synchronize:
+    src: "{{ playbook_dir }}/../../../../wm-backend-plugin/"
+    dest: "{{ westmarches_data_path }}/wm-backend-plugin"
+    rsync_opts:
+      - "--exclude=wm-backend-plugin/node_modules/* --exclude=wm-backend-plugin/package-lock.json"
+
 - name: Upload grafana dashboards
   ansible.builtin.copy:
     src: grafana-dashboards

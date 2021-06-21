@@ -773,65 +773,7 @@
     "nodejs"
   ],
   "templating": {
-    "list": [
-      {
-        "allValue": null,
-        "current": {
-          "text": [
-            null
-          ],
-          "value": [
-            null
-          ]
-        },
-        "datasource": "Prometheus",
-        "definition": "label_values(nodejs_version_info, instance)",
-        "description": null,
-        "error": {
-          "config": {
-            "data": {
-              "end": "1624263989",
-              "match[]": "nodejs_version_info",
-              "start": "1624260389"
-            },
-            "headers": {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "X-Grafana-Org-Id": 1
-            },
-            "hideFromInspector": true,
-            "method": "POST",
-            "retry": 0,
-            "url": "api/datasources/proxy/2/api/v1/series"
-          },
-          "data": {
-            "error": "Bad Gateway",
-            "message": "Bad Gateway",
-            "response": ""
-          },
-          "message": "Bad Gateway",
-          "status": 502,
-          "statusText": "Bad Gateway"
-        },
-        "hide": 0,
-        "includeAll": true,
-        "label": "instance",
-        "multi": true,
-        "name": "instance",
-        "options": [],
-        "query": {
-          "query": "label_values(nodejs_version_info, instance)",
-          "refId": "Prometheus-instance-Variable-Query"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-1h",

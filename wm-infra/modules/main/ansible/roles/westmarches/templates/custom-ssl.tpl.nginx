@@ -16,6 +16,13 @@ server {
     stub_status;
     server_tokens on;
   }
+
+  location = /foundry_metrics {
+    proxy_pass http://foundry:30000/metrics;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
 }
 
 server {
@@ -40,6 +47,10 @@ server {
   ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}/chain.pem";
 
   location /.well-known {}
+
+  location /metrics {
+    return 404;
+  }
 
   location /monitoring {
     proxy_set_header Host $host;

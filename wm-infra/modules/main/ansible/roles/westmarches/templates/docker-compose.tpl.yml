@@ -73,6 +73,10 @@ services:
   manager_api:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
+  foundry:
+    volumes:
+      - "{{ westmarches_data_path }}/wm-backend-plugin:/home/foundry/resources/wm-backend-plugin"
+    command: [ "--require", "/home/foundry/resources/wm-backend-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data" ]
   discordbot:
     links:
       - manager_api
