@@ -7,7 +7,7 @@ secrets:
 
 services:
   foundry:
-    image: felddy/foundryvtt:0.7.9
+    image: ishtanzar/wm-foundry:latest
     init: true
     restart: "unless-stopped"
     volumes:
@@ -34,6 +34,7 @@ services:
         target: config.json
     ports:
       - "30000"
+    command: ["--require", "/home/foundry/resources/wm-backend-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
   manager_api:
     image: ishtanzar/wm-manager-api:latest
     restart: "unless-stopped"
