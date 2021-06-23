@@ -2,23 +2,90 @@
 
 const prom = require('prom-client');
 
-(function init() {
-  setTimeout(function() {
-    /** @type e.Router */
-    const router = global.express && global.express.app && global.express.app._router;
-    if(router) {
-      const prefixPart = global.config.options.routePrefix ? `/${global.config.options.routePrefix}/` : "/";
-      router.get(`${prefixPart}metrics`, FoundryMetrics.get);
-
-      prom.collectDefaultMetrics();
-    } else {
-      init();
-    }
-  }, 1000);
-})();
-
 class FoundryMetrics {
-  static async get(req, res) {
+
+  constructor() {
+    this.gauges = []
+    this.metrics = [
+      {db: 'Actor', name: 'actors'},
+      {db: 'Item', name: 'items'},
+      {db: 'Scene', name: 'scenes'},
+      {db: 'JournalEntry', name: 'journals'},
+      {db: 'ChatMessage', name: 'chat_messages'},
+      {db: 'Macro', name: 'macros'},
+      {db: 'User', name: 'users'},
+    ];
+
+    for(let metric of this.metrics) {
+      this[metric.name] = 0;
+    }
+  }
+
+  setup() {
+    const foundry = this;
+
+    prom.collectDefaultMetrics();
+
+    this.gauges.push(new prom.Gauge({
+      name: 'foundry_users_active_total',
+      help: 'Currently active users',
+      collect() {
+        if(game && game.users) {
+          this.set(Object.values(game.users).filter(user => user.active).length)
+        }
+      }
+    }));
+
+    this.gauges.push(new prom.Gauge({
+      name: 'foundry_uptime',
+      help: 'Server Uptime',
+      collect() {
+        if(game && game.activity) {
+          this.set(game.activity.serverTime)
+        }
+      }
+    }));
+
+    for(let metric of this.metrics) {
+      this.gauges.push(new prom.Gauge({
+        name: 'foundry_db_{metric}_total'.replace("{metric}", metric.name),
+        help: 'Size of DB table for {metric} entity type'.replace("{metric}", metric.db),
+        collect() {
+          this.set(foundry[metric.name])
+        }
+      }));
+    }
+
+    return this;
+  }
+
+  update() {
+    if(game.active) {
+      for(let metric of this.metrics) {
+        if(db[metric.db].ds && db[metric.db].ds.connected) {
+          db[metric.db].db.count({}, function (err, count) {
+            this[metric.name] = count;
+          }.bind(this));
+        }
+      }
+    }
+
+    return this;
+  }
+
+  schedule() {
+    setTimeout(function () {
+      try {
+        this.update();
+      } catch (ex) {}
+
+      this.schedule();
+    }.bind(this), 60000);
+
+    return this;
+  }
+
+  async get(req, res) {
     try {
       res.set('Content-Type', prom.register.contentType)
       res.send(await prom.register.metrics());
@@ -28,3 +95,19 @@ class FoundryMetrics {
   }
 }
 
+const metrics = new FoundryMetrics();
+
+(function init() {
+  setTimeout(function() {
+    /** @type e.Router */
+    const router = global.express && global.express.app && global.express.app._router;
+    if(router) {
+      const prefixPart = global.config.options.routePrefix ? `/${global.config.options.routePrefix}/` : "/";
+
+      router.get(`${prefixPart}metrics`, metrics.get);
+      metrics.setup().update().schedule();
+    } else {
+      init();
+    }
+  }, 1000);
+})();
