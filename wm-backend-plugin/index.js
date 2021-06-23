@@ -30,8 +30,8 @@ class FoundryMetrics {
       name: 'foundry_users_active_total',
       help: 'Currently active users',
       collect() {
-        if(game && game.users) {
-          this.set(Object.values(game.users).filter(user => user.active).length)
+        if(game.activity && game.activity.users) {
+          this.set(Object.values(game.activity.users).filter(user => user.active).length)
         }
       }
     }));
@@ -46,15 +46,16 @@ class FoundryMetrics {
       }
     }));
 
-    for(let metric of this.metrics) {
-      this.gauges.push(new prom.Gauge({
-        name: 'foundry_db_{metric}_total'.replace("{metric}", metric.name),
-        help: 'Size of DB table for {metric} entity type'.replace("{metric}", metric.db),
-        collect() {
-          this.set(foundry[metric.name])
+    this.gauges.push(new prom.Gauge({
+      name: 'foundry_db_entities_total',
+      help: 'Size of DB table for each entity type',
+      labelNames: ['db'],
+      collect() {
+        for(let metric of foundry.metrics) {
+          this.set({ db: metric.db }, foundry[metric.name])
         }
-      }));
-    }
+      }
+    }));
 
     return this;
   }
