@@ -11,9 +11,7 @@ services:
     init: true
     restart: "unless-stopped"
     volumes:
-      - type: bind
-        source: "{{ foundry_data_path }}"
-        target: /data
+      - "{{ foundry_data_path }}:/data"
     environment:
       - CONTAINER_CACHE=/data/container_cache
       - CONTAINER_PATCHES=/data/container_patches
@@ -49,4 +47,3 @@ services:
     environment:
       - COMPOSE_DIR=/opt
       - HTPASSWD_PATH=/opt/.htpasswd
-  

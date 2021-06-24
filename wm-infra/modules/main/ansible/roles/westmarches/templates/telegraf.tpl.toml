@@ -1,10 +1,8 @@
 [[outputs.influxdb_v2]]
-    urls = ["http://127.0.0.1:8086"]
-
-    ## Token for authentication.
-    token = "{{ INFLUXDB_ADMIN_TOKEN }}"
-    organization = "westmarchesdelacave"
-    bucket = "bucket0"
+urls = ["http://127.0.0.1:8086"]
+token = "{{ INFLUXDB_ADMIN_TOKEN }}"
+organization = "westmarchesdelacave"
+bucket = "bucket0"
 
 [[inputs.linux_sysctl_fs]]
 [[inputs.interrupts]]
@@ -20,3 +18,13 @@ urls = ["http://127.0.0.1:8080/status"]
 
 [[inputs.prometheus]]
 urls = ["http://127.0.0.1:8080/foundry_metrics"]
+
+[[inputs.tail]]
+files = ["{{ foundry_data_path }}/Logs/debug.log"]
+data_format = "json"
+json_time_key = "timestamp"
+json_time_format = "2006-01-02 15:04:05"
+json_timezone = "UTC"
+json_string_fields = ["message"]
+tag_keys = ["level"]
+path_tag = "path"

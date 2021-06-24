@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:2.0.7
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
@@ -11,7 +11,7 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=bucket0
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=t0ken
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:main
     volumes:
       - ./wm-infra/modules/main/ansible/roles/westmarches/templates/grafana-dashboards.tpl.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
       - ./wm-infra/deploy/local/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
@@ -21,9 +21,10 @@ services:
     ports:
       - "3000:3000"
   telegraf:
-    image: telegraf:latest
+    image: telegraf:1.18.3
     volumes:
-    - ./wm-infra/deploy/local/telegraf.toml:/etc/telegraf/telegraf.conf:ro
+      - ./wm-infra/deploy/local/telegraf.toml:/etc/telegraf/telegraf.conf:ro
+      - foundry-logs:/logs/foundry
     links:
       - influxdb
   foundry:
@@ -31,6 +32,9 @@ services:
       context: wm-infra/docker/foundry
     volumes:
       - /home/pgmillon/workspace/FoundryVTT/app:/home/foundry/resources/app
+      - ./wm-infra/docker/foundry/data/Data:/data/Data
+      - ./wm-infra/docker/foundry/data/Config:/data/Config
+      - foundry-logs:/data/Logs
       - ./wm-infra/docker/foundry/data:/data
       - ./wm-backend-plugin:/home/foundry/resources/wm-backend-plugin
     command: ["--require", "/home/foundry/resources/wm-backend-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
@@ -63,3 +67,6 @@ services:
       - MANAGER_API_SECRET=changeme
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
     command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH"]
+    
+volumes:
+  foundry-logs:

@@ -7864,7 +7864,7 @@
 
 
 # # Parse the new lines appended to a file
-# [[inputs.tail]]
+[[inputs.tail]]
 #   ## File names or a pattern to tail.
 #   ## These accept standard unix glob matching rules, but with the addition of
 #   ## ** as a "super asterisk". ie:
@@ -7875,7 +7875,7 @@
 #   ##   "/var/log/log[^1-2]*  -> identical behavior as above
 #   ## See https://github.com/gobwas/glob for more examples
 #   ##
-#   files = ["/var/mymetrics.out"]
+  files = ["/logs/foundry/debug.log"]
 #
 #   ## Read file from beginning.
 #   # from_beginning = false
@@ -7904,10 +7904,15 @@
 #   ## Each data format has its own unique set of configuration options, read
 #   ## more about them here:
 #   ## https://github.com/influxdata/telegraf/blob/master/docs/DATA_FORMATS_INPUT.md
-#   data_format = "influx"
-#
+  data_format = "json"
+  json_time_key = "timestamp"
+  json_time_format = "2006-01-02 15:04:05"
+  json_timezone = "UTC"
+  json_string_fields = ["message"]
+  tag_keys = ["level"]
+
 #   ## Set the tag that will contain the path of the tailed file. If you don't want this tag, set it to an empty string.
-#   # path_tag = "path"
+  path_tag = "path"
 #
 #   ## multiline parser/codec
 #   ## https://www.elastic.co/guide/en/logstash/2.4/plugins-filters-multiline.html

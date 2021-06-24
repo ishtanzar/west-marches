@@ -3,7 +3,7 @@ version: "3.8"
 
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:2.0.7
     ports:
       - "8086:8086"
     volumes:
@@ -23,7 +23,7 @@ services:
       retries: 3
       start_period: 10s
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:8.0.3
     restart: "unless-stopped"
     volumes:
       - "{{ westmarches_data_path }}/grafana/storage:/var/lib/grafana"
@@ -54,7 +54,7 @@ services:
       retries: 3
       start_period: 10s
   proxy:
-    image: nginx
+    image: nginx:1.21.0
     restart: "unless-stopped"
     volumes:
       - "{{ westmarches_data_path }}/nginx-custom.conf:/etc/nginx/01-custom.conf.new:ro"
@@ -101,6 +101,3 @@ services:
 #      - OAUTH_CLIENT_SECRET=
 #      - "OAUTH_CALLBACK_URL=https://{{ foundry_hostname }}-vouch.{{ foundry_domain }}/auth"
 #      - OAUTH_SCOPES=identify, email
-
-volumes:
-  prometheus-v2:
