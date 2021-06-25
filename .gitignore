@@ -5,7 +5,7 @@ checkpoint
 .terraform.lock.hcl
 .envrc
 /wm-infra/modules/main/ansible/roles/.galaxy/
-wm-infra/docker/foundry/data/
+wm-infra/deploy/local/data/
 
 ### Node template
 # Logs

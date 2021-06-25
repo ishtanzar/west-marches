@@ -32,10 +32,9 @@ services:
       context: wm-infra/docker/foundry
     volumes:
       - /home/pgmillon/workspace/FoundryVTT/app:/home/foundry/resources/app
-      - ./wm-infra/docker/foundry/data/Data:/data/Data
-      - ./wm-infra/docker/foundry/data/Config:/data/Config
+      - ./wm-infra/deploy/local/data/Data:/data/Data
+      - ./wm-infra/deploy/local/data/Config:/data/Config
       - foundry-logs:/data/Logs
-      - ./wm-infra/docker/foundry/data:/data
       - ./wm-backend-plugin:/home/foundry/resources/wm-backend-plugin
     command: ["--require", "/home/foundry/resources/wm-backend-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
     ports:
