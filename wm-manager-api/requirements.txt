@@ -1,5 +1,9 @@
-Flask
-flask-htpasswd
-bjoern
-docker
-docker-compose
+flask==2.0.1
+flask-htpasswd==0.4.0
+bjoern==3.1.0
+docker-compose==1.29.2
+
+# AWS & smart_open
+boto3==1.17.101
+pyboto3==1.13.18
+smart_open==5.1.0

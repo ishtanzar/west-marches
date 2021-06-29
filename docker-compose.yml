@@ -27,6 +27,12 @@ services:
       - foundry-logs:/logs/foundry
     links:
       - influxdb
+  minio:
+    image: minio/minio:latest
+    environment:
+      - MINIO_ROOT_USER=BUH8JVS2CJYK8HH22UI6-XIP
+      - MINIO_ROOT_PASSWORD=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
+    command: server /data
   foundry:
     build:
       context: wm-infra/docker/foundry
@@ -42,15 +48,24 @@ services:
   manager_api:
     build:
       context: wm-manager-api/
+      dockerfile: dev.Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./wm-infra/deploy/local/data/Data:/data/foundry
       - ./:/opt
     command: ["python", "/opt/wm-manager-api/src/__main__.py"]
     ports:
       - "5000:5000"
     environment:
       - COMPOSE_DIR=/opt
-      - HTPASSWD_PATH=/opt/tests/resources/.htpasswd
+      - HTPASSWD_PATH=/opt/wm-manager-api/test/resources/.htpasswd
+      - FOUNDRY_DATA_PATH=/data/foundry
+      - BACKUP_S3_BUCKET=backups
+      - BACKUP_S3_ENDPOINT=http://minio:9000/
+      - AWS_ACCESS_KEY_ID=BUH8JVS2CJYK8HH22UI6-XIP
+      - AWS_SECRET_ACCESS_KEY=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
+    links:
+      - minio
   discordbot:
     build:
       context: wm-discord-speaker/

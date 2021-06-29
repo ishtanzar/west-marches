@@ -1,0 +1,14 @@
+-r requirements.txt
+
+# localstack
+# check deps at https://github.com/localstack/localstack/blob/v0.12.13/requirements.txt
+localstack==0.12.13.1
+moto-ext[all]==2.0.3.31
+Flask-Cors==3.0.10
+h11==0.12.0
+Quart==0.15.1
+amazon_kclpy-ext==1.5.1
+cbor2==5.4.0
+cachetools==3.1.1
+crontab==0.23.0
+pyOpenSSL==17.5.0
