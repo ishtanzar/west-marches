@@ -7,7 +7,7 @@ secrets:
 
 services:
   foundry:
-    image: ishtanzar/wm-foundry:latest
+    image: "{{ foundry_docker_image }}"
     init: true
     restart: "unless-stopped"
     volumes:
@@ -33,7 +33,7 @@ services:
     ports:
       - "30000"
   manager_api:
-    image: ishtanzar/wm-manager-api:latest
+    image: "{{ manager_api_docker_image }}"
     restart: "unless-stopped"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"

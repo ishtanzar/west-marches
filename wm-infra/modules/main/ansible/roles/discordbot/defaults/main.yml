@@ -1,1 +1,2 @@
 discordbot_data_path: /opt/data/discordbot
+discordbot_docker_image: ishtanzar/wm-discord-speaker:latest

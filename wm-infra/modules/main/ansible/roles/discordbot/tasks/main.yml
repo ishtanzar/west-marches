@@ -9,6 +9,12 @@
     src: default-intents.json
     dest: "{{ discordbot_data_path }}/default-intents.json"
 
+- name: Pull Docker image
+  community.docker.docker_image:
+    name: "{{ discordbot_docker_image }}"
+    source: pull
+    force_source: true
+
 - name: Template config files
   ansible.builtin.template:
     src: "{{item.src}}"

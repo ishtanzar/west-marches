@@ -6,8 +6,10 @@ foundry_world: west-marches-de-la-cave
 foundry_hostname: westmarchesdelacave
 foundry_domain: ishtanzar.net
 foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
+foundry_docker_image: ishtanzar/wm-foundry:latest
 
 manager_api_secret: changeme
+manager_api_docker_image: ishtanzar/wm-manager-api:latest
 
 foundry_s3_bucket: caveduroliste-westmarches
 FOUNDRY_BUCKET_ACCESS_KEY_ID: ''
