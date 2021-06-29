@@ -12,6 +12,7 @@
           - lookup('env', 'OAUTH_CLIENT')
           - lookup('env', 'OAUTH_SECRET')
           - lookup('env', 'DISCORD_BOT_SECRET')
+          - lookup('env', 'DISCORD_OWNER_ID')
           - lookup('env', 'INFLUXDB_ADMIN_SECRET')
           - lookup('env', 'INFLUXDB_ADMIN_TOKEN')
   roles:
@@ -28,6 +29,7 @@
         OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
         DISCORD_BOT_SECRET: "{{ lookup('env', 'DISCORD_BOT_SECRET') }}"
+        DISCORD_OWNER_ID: "{{ lookup('env', 'DISCORD_OWNER_ID') }}"
         INFLUXDB_ADMIN_SECRET: "{{ lookup('env', 'INFLUXDB_ADMIN_SECRET') }}"
         INFLUXDB_ADMIN_TOKEN: "{{ lookup('env', 'INFLUXDB_ADMIN_TOKEN') }}"
         manager_api_secret: "{{ lookup('password', '/dev/null') }}"

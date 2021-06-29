@@ -8,6 +8,5 @@ services:
     volumes:
       - "{{ discordbot_data_path }}:/opt/redbot/data"
     environment:
-      - "DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}"
       - "DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json"
-    command: redbot westmarches --mentionable --token=${DISCORD_BOT_SECRET} --prefix=YVwWFZyjiFQH
+    command: redbot westmarches --mentionable --token=${DISCORD_BOT_SECRET} --prefix=YVwWFZyjiFQH --owner=${DISCORD_OWNER_ID}

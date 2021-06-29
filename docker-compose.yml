@@ -80,7 +80,7 @@ services:
       - FOUNDRY_HOST=manager_api
       - MANAGER_API_SECRET=changeme
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
-    command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH"]
+    command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH", "--owner=${DISCORD_OWNER_ID}"]
     
 volumes:
   foundry-logs:

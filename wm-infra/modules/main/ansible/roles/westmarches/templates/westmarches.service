@@ -7,6 +7,8 @@ Requires=docker.service
 [Service]
 TimeoutStartSec=0
 Environment=COMPOSE_PROJECT_NAME=west-marches
+Environment=DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
+Environment=DISCORD_OWNER_ID={{ DISCORD_OWNER_ID }}
 ExecStartPre=-/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} kill
 ExecStartPre=-/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} rm
 ExecStart=/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} up
