@@ -2,9 +2,17 @@ terraform {
   required_providers {
     scaleway = {
       source = "scaleway/scaleway"
+      version = "2.1.0"
     }
+
     restapi = {
       source = "fmontezuma/restapi"
+      version = "1.14.1"
+    }
+
+    null = {
+      source = "hashicorp/null"
+      version = "3.1.0"
     }
   }
 }
@@ -13,6 +21,10 @@ variable "gandi_key" {}
 
 variable "host_name" {
   default = "westmarchesdelacave"
+}
+
+variable "backup_bucket" {
+  default = "westmarches-infra-backups"
 }
 
 variable "ssh_key_id" {
@@ -72,6 +84,10 @@ resource "scaleway_instance_server" "main" {
   security_group_id = scaleway_instance_security_group.front.id
 }
 
+resource "scaleway_object_bucket" "backups" {
+  name = var.backup_bucket
+}
+
 resource "null_resource" "ansible" {
   depends_on = [
     scaleway_instance_server.main,
@@ -88,6 +104,7 @@ resource "null_resource" "ansible" {
     environment = {
       ANSIBLE_FORCE_COLOR="1"
       SCW_VOLUME_ID=element(split("/", scaleway_instance_volume.data.id), 1)
+      BACKUP_S3_BUCKET=var.backup_bucket
       FOUNDRY_HOSTNAME=var.host_name
     }
   }

@@ -7,6 +7,7 @@
           - lookup('env', 'SCW_VOLUME_ID')
           - lookup('env', 'SCW_ACCESS_KEY')
           - lookup('env', 'SCW_SECRET_KEY')
+          - lookup('env', 'SCW_REGION')
           - lookup('env', 'FOUNDRY_BUCKET_ACCESS_KEY_ID')
           - lookup('env', 'FOUNDRY_BUCKET_SECRET_ACCESS_KEY')
           - lookup('env', 'OAUTH_CLIENT')
@@ -15,6 +16,9 @@
           - lookup('env', 'DISCORD_OWNER_ID')
           - lookup('env', 'INFLUXDB_ADMIN_SECRET')
           - lookup('env', 'INFLUXDB_ADMIN_TOKEN')
+          - lookup('env', 'BACKUP_S3_BUCKET')
+          - lookup('env', 'BACKUP_S3_ENDPOINT')
+          - lookup('env', 'FOUNDRY_ADMIN_KEY')
   roles:
     - base-system
     - docker
@@ -23,6 +27,7 @@
     - ansible.builtin.set_fact:
         SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
         SCW_SECRET_KEY: "{{ lookup('env', 'SCW_SECRET_KEY') }}"
+        SCW_REGION: "{{ lookup('env', 'SCW_REGION') }}"
         FOUNDRY_BUCKET_ACCESS_KEY_ID: "{{ lookup('env', 'FOUNDRY_BUCKET_ACCESS_KEY_ID') }}"
         FOUNDRY_BUCKET_SECRET_ACCESS_KEY: "{{ lookup('env', 'FOUNDRY_BUCKET_SECRET_ACCESS_KEY') }}"
         SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
@@ -32,6 +37,9 @@
         DISCORD_OWNER_ID: "{{ lookup('env', 'DISCORD_OWNER_ID') }}"
         INFLUXDB_ADMIN_SECRET: "{{ lookup('env', 'INFLUXDB_ADMIN_SECRET') }}"
         INFLUXDB_ADMIN_TOKEN: "{{ lookup('env', 'INFLUXDB_ADMIN_TOKEN') }}"
+        BACKUP_S3_BUCKET: "{{ lookup('env', 'BACKUP_S3_BUCKET') }}"
+        BACKUP_S3_ENDPOINT: "{{ lookup('env', 'BACKUP_S3_ENDPOINT') }}"
+        FOUNDRY_ADMIN_KEY: "{{ lookup('env', 'FOUNDRY_ADMIN_KEY') }}"
         manager_api_secret: "{{ lookup('password', '/dev/null') }}"
 
     - name: AWS config

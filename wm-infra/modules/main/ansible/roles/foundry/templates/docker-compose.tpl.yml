@@ -39,6 +39,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "{{ foundry_data_path }}-compose.yml:/opt/docker-compose.yml"
       - "{{ foundry_data_path }}/.htpasswd:/opt/.htpasswd"
+      - "{{ foundry_data_path }}/Data:/data/foundry"
     secrets:
       - source: config_json
         target: /opt/data/foundry/secrets.json
@@ -47,3 +48,5 @@ services:
     environment:
       - COMPOSE_DIR=/opt
       - HTPASSWD_PATH=/opt/.htpasswd
+      - FOUNDRY_DATA_PATH=/data/foundry
+      - "BACKUP_S3_BUCKET={{ BACKUP_S3_BUCKET }}"

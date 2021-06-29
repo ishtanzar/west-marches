@@ -14,3 +14,5 @@ manager_api_docker_image: ishtanzar/wm-manager-api:latest
 foundry_s3_bucket: caveduroliste-westmarches
 FOUNDRY_BUCKET_ACCESS_KEY_ID: ''
 FOUNDRY_BUCKET_SECRET_ACCESS_KEY: ''
+BACKUP_S3_BUCKET: 'backups'
+BACKUP_S3_ENDPOINT: ''

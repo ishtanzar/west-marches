@@ -11,7 +11,7 @@ from docker_service import FoundryProject
 project_path = os.environ['COMPOSE_DIR']
 foundry_data_path = os.environ['FOUNDRY_DATA_PATH']
 backup_bucket = os.environ['BACKUP_S3_BUCKET']
-s3_endpoint = os.environ['BACKUP_S3_ENDPOINT']
+s3_endpoint = os.environ['BACKUP_S3_ENDPOINT'] if 'BACKUP_S3_ENDPOINT' in os.environ.keys() else None
 
 app = Flask(__name__)
 app.config['FLASK_HTPASSWD_PATH'] = os.environ['HTPASSWD_PATH']

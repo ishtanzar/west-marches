@@ -73,6 +73,11 @@ services:
   manager_api:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
+    environment:
+      - "BACKUP_S3_ENDPOINT={{ BACKUP_S3_ENDPOINT }}"
+      - "AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}"
+      - "AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}"
+      - "AWS_DEFAULT_REGION={{ SCW_REGION }}"
   foundry:
     volumes:
       - "{{ westmarches_data_path }}/wm-backend-plugin:/home/foundry/resources/wm-backend-plugin"

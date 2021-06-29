@@ -61,11 +61,6 @@
     src: patches/custom.sh
     dest: "{{ foundry_data_path }}/container_patches/"
 
-- name: Upload secrets file
-  ansible.builtin.copy:
-    src: secrets.json
-    dest: "{{ foundry_data_path }}/secrets.json"
-
 - name: Manager API htpasswd file
   community.general.htpasswd:
     name: foundry_manager
@@ -83,5 +78,8 @@
 
 - name: Template docker-compose file
   ansible.builtin.template:
-    src: docker-compose.tpl.yml
-    dest: "{{ foundry_data_path }}-compose.yml"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: docker-compose.tpl.yml, dest: "{{ foundry_data_path }}-compose.yml" }
+    - { src: secrets.tpl.json, dest: "{{ foundry_data_path }}/secrets.json" }
