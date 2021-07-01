@@ -3,9 +3,8 @@ import os
 
 import requests
 from redbot.core import commands, checks
-from redbot.core.commands import PrivilegeLevel, Requires
 
-from westmarches.utils import CompositeMetaClass, MixinMeta
+from westmarches.utils import CompositeMetaClass, MixinMeta, DiscordProgress
 
 log = logging.getLogger("red.westmarches.foundry")
 
@@ -17,7 +16,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @property
     def foundry_url(self):
-        return 'http://{}:5000'.format(os.environ['FOUNDRY_HOST'])
+        return 'http://%s:5000' % os.environ['FOUNDRY_HOST']
 
     @property
     def foundry_auth(self):
@@ -31,7 +30,11 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):
         """Restart FoundryVTT"""
-        await ctx.send("Krusk, ça sent encore le cramé; ouvre la fenêtre !")
-        log.warning({"who": str(ctx.message.author), "what": "foundry.restart"})
-        requests.post(self.foundry_url + '/container/restart/foundry', auth=self.foundry_auth)
-        await ctx.send('Merci')
+        async with DiscordProgress(ctx, self.config, "foundry.restart"):
+            requests.post(self.foundry_url + '/container/restart/foundry', auth=self.foundry_auth)
+
+    @command_foundry.command(name="backup")
+    async def foundry_backup(self, ctx: commands.Context):
+        """Perform a backup of FoundryVTT. Beware that Foundry WILL BE STOPPED"""
+        async with DiscordProgress(ctx, self.config, "foundry.backup"):
+            requests.post(self.foundry_url + '/backup/perform', auth=self.foundry_auth)

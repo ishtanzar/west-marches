@@ -14,7 +14,13 @@ class WestMarchesCog(commands.Commands,
     default_guild_settings = {
         "rumors": [],
         "intents": [],
-        "taverns": []
+        "taverns": [],
+        "messages": {
+            "foundry.backup.started": "Bon allez, tout le monde dehors, on ferme la taverne pour ce soir.",
+            "foundry.backup.done": "C'est bon, on a pu ranger la réserve, on peut ouvrir pour la journée !",
+            "foundry.restart.started": "Krusk, ça sent encore le cramé; ouvre la fenêtre !",
+            "foundry.restart.done": "Merci",
+        }
     }
 
     def __init__(self, bot: Red):

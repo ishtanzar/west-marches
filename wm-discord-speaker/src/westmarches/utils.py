@@ -12,7 +12,7 @@ log = logging.getLogger("red.westmarches")
 
 def log_message(ctx: Context):
     log.info(json.dumps({
-        "user": '{}#{}'.format(ctx.author.name, ctx.author.id),
+        "user": '%s#%s' % (ctx.author.name, ctx.author.id),
         "command": ctx.command.qualified_name,
         "data": {
             "guild": '{}#{}'.format(ctx.guild.name, ctx.guild.id),
@@ -20,6 +20,24 @@ def log_message(ctx: Context):
             "_raw": str(ctx.message)
         },
     }))
+
+
+class DiscordProgress:
+
+    def __init__(self, ctx, config: Config, key_prefix) -> None:
+        self.ctx = ctx
+        self.config = config
+        self.key_prefix = key_prefix
+
+    async def __aenter__(self):
+        log_message(self.ctx)
+
+        async with self.config.messages() as messages:
+            await self.ctx.send(messages[self.key_prefix + '.started'])
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        async with self.config.messages() as messages:
+            await self.ctx.send(messages[self.key_prefix + '.done'])
 
 
 class MixinMeta(ABC):

@@ -33,13 +33,15 @@ services:
       - MINIO_ROOT_USER=BUH8JVS2CJYK8HH22UI6-XIP
       - MINIO_ROOT_PASSWORD=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
     command: server /data
+    ports:
+      - "9000:9000"
   foundry:
     build:
       context: wm-infra/docker/foundry
     volumes:
       - /home/pgmillon/workspace/FoundryVTT/app:/home/foundry/resources/app
-      - ./wm-infra/deploy/local/data/Data:/data/Data
-      - ./wm-infra/deploy/local/data/Config:/data/Config
+      - ./wm-infra/deploy/local/data/foundry/Data:/data/Data
+      - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
       - foundry-logs:/data/Logs
       - ./wm-backend-plugin:/home/foundry/resources/wm-backend-plugin
     command: ["--require", "/home/foundry/resources/wm-backend-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
@@ -51,7 +53,7 @@ services:
       dockerfile: dev.Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./wm-infra/deploy/local/data/Data:/data/foundry
+      - ./wm-infra/deploy/local/data/foundry/Data:/data/foundry
       - ./:/opt
     command: ["python", "/opt/wm-manager-api/src/__main__.py"]
     ports:
@@ -74,6 +76,7 @@ services:
     volumes:
       - ./wm-discord-speaker/src:/opt/wm-discord-speaker
       - ./wm-discord-speaker/data:/opt/redbot/data
+      - ./wm-infra/deploy/local/data/discord:/opt/redbot/data
       - ./tests/resources/redbot-config.json:/root/.config/Red-DiscordBot/config.json
       - ./wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json:/opt/default-intents.json
     environment:

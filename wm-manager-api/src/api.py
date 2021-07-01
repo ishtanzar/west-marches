@@ -43,15 +43,24 @@ def backup_perform(user):
     service_name = 'foundry'
     foundry_project = FoundryProject(project_path)
     backup_service = BackupService(foundry_data_path, backup_bucket, s3=s3)
+    error = None
 
     try:
         foundry_project.stop(service_name)
 
-        for schema in ['worlds', 'systems', 'modules']:
-            backup_service.perform(schema)
+        try:
+            for schema in ['worlds', 'systems', 'modules']:
+                backup_service.perform(schema)
+        except Exception as nse:
+            error = nse
 
         foundry_project.restart(service_name)
+
+        if error:
+            raise error
     except NoSuchService as nse:
         return nse.msg, 404
+    except Exception as nse:
+        return str(nse), 500
 
     return 'Done', 204
