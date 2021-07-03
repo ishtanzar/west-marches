@@ -1,10 +1,15 @@
+import logging.config
+import os
+
 import spacy
+import yaml
 from discord.ext.commands import Context
 from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import Cog
 
 from . import commands
+from .api import WestMarchesApiClient, BasicAuth, HTTPException
 from .utils import CompositeMetaClass, log_message
 
 
@@ -17,6 +22,7 @@ class WestMarchesCog(commands.Commands,
         "taverns": [],
         "messages": {
             "foundry.backup.started": "Bon allez, tout le monde dehors, on ferme la taverne pour ce soir.",
+            "foundry.backup.failed": "La porte de la réserve est restée coincée, on a pas rangé la dernière livraison",
             "foundry.backup.done": "C'est bon, on a pu ranger la réserve, on peut ouvrir pour la journée !",
             "foundry.restart.started": "Krusk, ça sent encore le cramé; ouvre la fenêtre !",
             "foundry.restart.done": "Merci",
@@ -32,7 +38,31 @@ class WestMarchesCog(commands.Commands,
         self.config = Config.get_conf(self, identifier=567346224)
         self.config.register_global(**self.default_guild_settings)
 
+        if 'LOGGING_CONFIG' in os.environ.keys():
+            self.setup_logging()
+
+        api_auth = BasicAuth('foundry_manager', os.environ['WM_API_SECRET'])
+        self.api_client = WestMarchesApiClient(api_auth, os.environ['WM_API_ENDPOINT'])
         self.nlp = spacy.load('fr_core_news_sm')
+
+    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
+        async with self.config.messages() as _messages:
+            messages = _messages
+
+        try:
+            await ctx.send(messages[messages_key + '.started'])
+            f()
+            await ctx.send(messages[messages_key + '.done'])
+        except HTTPException:
+            await ctx.send(messages[messages_key + '.failed'])
+
+    @staticmethod
+    def setup_logging():
+        config = {}
+        with open(os.environ['LOGGING_CONFIG']) as fd:
+            config = yaml.safe_load(fd.read())
+
+        logging.config.dictConfig(config)
 
     def setup_events(self):
         @self.bot.event

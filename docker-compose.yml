@@ -75,13 +75,14 @@ services:
       - manager_api
     volumes:
       - ./wm-discord-speaker/src:/opt/wm-discord-speaker
-      - ./wm-discord-speaker/data:/opt/redbot/data
       - ./wm-infra/deploy/local/data/discord:/opt/redbot/data
-      - ./tests/resources/redbot-config.json:/root/.config/Red-DiscordBot/config.json
+      - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json
+      - ./wm-infra/deploy/local/discordbot-logging.yml:/opt/discordbot-logging.yml
       - ./wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json:/opt/default-intents.json
     environment:
-      - FOUNDRY_HOST=manager_api
-      - MANAGER_API_SECRET=changeme
+      - WM_API_SECRET=changeme
+      - WM_API_ENDPOINT=http://manager_api:5000
+      - LOGGING_CONFIG=/opt/discordbot-logging.yml
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
     command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH", "--owner=${DISCORD_OWNER_ID}"]
     

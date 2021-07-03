@@ -8,5 +8,6 @@ services:
     volumes:
       - "{{ discordbot_data_path }}:/opt/redbot/data"
     environment:
-      - "DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json"
+      - DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json
+      - LOGGING_CONFIG=/opt/redbot/data/discordbot-logging.yml
     command: redbot westmarches --mentionable --token=${DISCORD_BOT_SECRET} --prefix=YVwWFZyjiFQH --owner=${DISCORD_OWNER_ID}

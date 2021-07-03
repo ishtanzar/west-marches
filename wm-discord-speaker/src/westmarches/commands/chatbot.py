@@ -15,7 +15,7 @@ from spacy.lang.fr.stop_words import STOP_WORDS
 from spacy.tokens.token import Token
 from tflearn import DNN
 
-from westmarches.utils import CompositeMetaClass, MixinMeta
+from westmarches.utils import CompositeMetaClass, MixinMeta, log_message
 
 PUNCTUATION = list("?:!.,;")
 log = logging.getLogger("red.westmarches.chatbot")
@@ -37,6 +37,7 @@ class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
         ctx = await self.bot.get_context(message)  # type: commands.Context
 
         if str(self.bot.user.id) in message.content:
+            log_message(ctx)
             clean_message = re.sub('<@!?([0-9]*)>', '', message.content)
             intent = self._predict(clean_message)
 

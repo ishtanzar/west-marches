@@ -22,3 +22,4 @@
   loop:
     - {src: docker-compose.tpl.yml, dest: "{{ discordbot_data_path }}-compose.yml"}
     - {src: redbot-config.tpl.json, dest: "{{ discordbot_data_path }}/redbot-config.json"}
+    - {src: discordbot-logging.tpl.yml, dest: "{{ discordbot_data_path }}/discordbot-logging.yml"}

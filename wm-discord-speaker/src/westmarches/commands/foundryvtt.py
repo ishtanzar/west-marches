@@ -1,10 +1,12 @@
+import json
 import logging
 import os
 
 import requests
 from redbot.core import commands, checks
 
-from westmarches.utils import CompositeMetaClass, MixinMeta, DiscordProgress
+from westmarches.api import ServerException
+from westmarches.utils import CompositeMetaClass, MixinMeta, DiscordProgress, log_message
 
 log = logging.getLogger("red.westmarches.foundry")
 
@@ -30,11 +32,9 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):
         """Restart FoundryVTT"""
-        async with DiscordProgress(ctx, self.config, "foundry.restart"):
-            requests.post(self.foundry_url + '/container/restart/foundry', auth=self.foundry_auth)
+        await self.discord_api_wrapper(ctx, 'foundry.restart', lambda: self.api_client.foundry.restart())
 
     @command_foundry.command(name="backup")
     async def foundry_backup(self, ctx: commands.Context):
         """Perform a backup of FoundryVTT. Beware that Foundry WILL BE STOPPED"""
-        async with DiscordProgress(ctx, self.config, "foundry.backup"):
-            requests.post(self.foundry_url + '/backup/perform', auth=self.foundry_auth)
+        await self.discord_api_wrapper(ctx, 'foundry.backup', lambda: self.api_client.foundry.backup())

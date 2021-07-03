@@ -1,25 +1,34 @@
-import json
 import logging
-from abc import ABC
+from abc import ABC, abstractmethod
 
+from discord.channel import DMChannel, TextChannel
 from discord.ext.commands import Context
+from discord.message import Message
 from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import commands
+
+from westmarches.api import WestMarchesApiClient
 
 log = logging.getLogger("red.westmarches")
 
 
 def log_message(ctx: Context):
-    log.info(json.dumps({
-        "user": '%s#%s' % (ctx.author.name, ctx.author.id),
-        "command": ctx.command.qualified_name,
-        "data": {
-            "guild": '{}#{}'.format(ctx.guild.name, ctx.guild.id),
-            "channel": '{}#{}'.format(ctx.channel.name, ctx.channel.id),
-            "_raw": str(ctx.message)
-        },
-    }))
+    data = {
+        'discord': {
+            'message': {
+                'id': ctx.message.id,
+                'channel': ctx.message.channel,
+                'content': ctx.message.content,
+                'author': ctx.message.author,
+                'guild': ctx.message.guild,
+            },
+            'prefix': ctx.prefix,
+            'command': ctx.command,
+            'command_failed': ctx.command_failed,
+        }
+    }
+    log.info('%s#%d: %s', ctx.author.name, ctx.author.id, ctx.message.content, extra=data)
 
 
 class DiscordProgress:
@@ -43,6 +52,11 @@ class DiscordProgress:
 class MixinMeta(ABC):
     bot: Red
     config: Config
+    api_client: WestMarchesApiClient
+
+    @abstractmethod
+    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
+        pass
 
 
 class CompositeMetaClass(type(commands.Cog), type(ABC)):
