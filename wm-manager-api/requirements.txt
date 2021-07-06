@@ -2,6 +2,8 @@ flask==2.0.1
 flask-htpasswd==0.4.0
 bjoern==3.1.0
 docker-compose==1.29.2
+logging-utilities==1.2.2
+montydb[lmdb]==2.3.11
 
 # AWS & smart_open
 boto3==1.17.101
