@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import requests
 
@@ -64,11 +65,18 @@ class AbstractApi(ABC):
 
 class FoundryApi(AbstractApi):
 
-    def backup(self):
-        self._client.post('/backup/perform')
+    async def backup(self) -> None:
+        await self._client.post('/backup/perform')
 
-    def restart(self):
-        self._client.post('/container/restart/foundry')
+    async def list_backups(self) -> dict:
+        resp = await self._client.get('/backup/list')
+        return resp.json()
+
+    async def restore(self, backup_id: str) -> None:
+        await self._client.post('/backup/restore/%s' % backup_id)
+
+    async def restart(self) -> None:
+        await self._client.post('/container/restart/foundry')
 
 
 class WestMarchesApiClient:
@@ -79,9 +87,19 @@ class WestMarchesApiClient:
 
         self._foundry = FoundryApi(self)
 
-    def post(self, path: str):
-        ex = None  # type: HTTPException
+    async def get(self, path: str):
+        resp = requests.get(self._endpoint + path, auth=self._auth())
+
+        return self.on_response(resp)
+
+    async def post(self, path: str):
         resp = requests.post(self._endpoint + path, auth=self._auth())
+
+        return self.on_response(resp)
+
+    @staticmethod
+    def on_response(resp: requests.Response) -> requests.Response:
+        ex: Optional[HTTPException] = None
 
         if 400 <= resp.status_code < 500:
             ex = ClientException(resp)

@@ -1,9 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from discord.channel import DMChannel, TextChannel
 from discord.ext.commands import Context
-from discord.message import Message
 from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import commands
