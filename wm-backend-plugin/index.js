@@ -91,12 +91,37 @@ class FoundryMetrics {
       res.set('Content-Type', prom.register.contentType)
       res.send(await prom.register.metrics());
     } catch (ex) {
-      res.status(500).end(ex);
+      res.status(500).end(ex.toString());
+    }
+  }
+}
+
+class Roster {
+  async get(req, res) {
+    try {
+      res.set('Content-Type', 'application/json');
+
+      const players = await db['User'].db.findMany({'role': { $lt: 4 }});
+      const users_ids = players.map(function(user) { return user._id });
+
+      const actors = await db['Actor'].db.findMany({ $where: function () {
+          const owners = Object.entries(this.permission)
+            .map(function([user, level]) { return level === 3 ? user : null })
+            .filter(function(user) {
+              return users_ids.indexOf(user) !== -1;
+            });
+          return owners.length > 0;
+        }});
+
+      res.send({'actors': actors});
+    } catch (ex) {
+      res.status(500).end(ex.toString());
     }
   }
 }
 
 const metrics = new FoundryMetrics();
+const roster = new Roster();
 
 (function init() {
   setTimeout(function() {
@@ -106,6 +131,8 @@ const metrics = new FoundryMetrics();
       const prefixPart = global.config.options.routePrefix ? `/${global.config.options.routePrefix}/` : "/";
 
       router.get(`${prefixPart}metrics`, metrics.get);
+      router.get(`${prefixPart}actors`, roster.get);
+
       metrics.setup().update().schedule();
     } else {
       init();

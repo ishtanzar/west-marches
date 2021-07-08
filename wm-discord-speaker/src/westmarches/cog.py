@@ -24,11 +24,18 @@ class WestMarchesCog(commands.Commands,
             "foundry.backup.started": "Bon allez, tout le monde dehors, on ferme la taverne pour ce soir.",
             "foundry.backup.failed": "La porte de la réserve est restée coincée, on a pas rangé la dernière livraison",
             "foundry.backup.done": "C'est bon, on a pu ranger la réserve, on peut ouvrir pour la journée !",
+
             "foundry.restart.started": "Krusk, ça sent encore le cramé; ouvre la fenêtre !",
             "foundry.restart.done": "Merci",
-            "foundry.backup_restore.started": "Ce tonneau de bière sent le rance, faut en prendre un autre dans la réserve",
+
+            "foundry.backup_restore.started": "Ce tonneau de bière sent le rance, "
+                                              "faut en prendre un autre dans la réserve",
             "foundry.backup_restore.failed": "Pas moyen de trouver un bon tonneau de secours.",
             "foundry.backup_restore.done": "Voilà, on a récupéré un bon tonneau; ça devrait aller mieux",
+
+            "foundry.roster.intro": "*%s déroule une feuille de parchemin vierge sur la table entre vous et pose une "
+                                    "pierre dont émane une étrange aura magique. Alors que la pierre touche le "
+                                    "parchemin, une étrange liste de noms apparaît.*",
         }
     }
 

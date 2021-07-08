@@ -8,6 +8,7 @@ from flask_htpasswd import HtPasswdAuth
 
 from services.backup import BackupService
 from services.docker import FoundryProject
+from services.foundryvtt import FoundryService
 
 
 class WestMarchesApi(Flask):
@@ -18,7 +19,8 @@ class WestMarchesApi(Flask):
     instance: "WestMarchesApi"
     log: Logger
 
-    def __init__(self, import_name: str, compose: FoundryProject, backup: BackupService) -> None:
+    def __init__(self, import_name: str, compose: FoundryProject, backup: BackupService, foundry: FoundryService) \
+            -> None:
         super().__init__(import_name)
         WestMarchesApi.instance = self
         WestMarchesApi.log = logging.getLogger(type(self).__name__)
@@ -27,6 +29,7 @@ class WestMarchesApi(Flask):
 
         self._compose = compose
         self._backup = backup
+        self._foundry = foundry
         self._auth = HtPasswdAuth(self)
 
         self.setup_routes()
@@ -45,6 +48,10 @@ class WestMarchesApi(Flask):
     @property
     def backup(self) -> BackupService:
         return self._backup
+
+    @property
+    def foundryvtt(self) -> FoundryService:
+        return self._foundry
 
     @staticmethod
     def setup_routes() -> None:

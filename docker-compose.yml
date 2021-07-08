@@ -38,6 +38,8 @@ services:
   foundry:
     build:
       context: wm-infra/docker/foundry
+    environment:
+      - FOUNDRY_WORLD=west-marches-de-la-cave
     volumes:
       - /home/pgmillon/workspace/FoundryVTT/app:/home/foundry/resources/app
       - ./wm-infra/deploy/local/data/foundry/Data:/data/Data
@@ -52,18 +54,19 @@ services:
       context: wm-manager-api/
       dockerfile: dev.Dockerfile
     volumes:
+      - ./:/opt/project
       - /var/run/docker.sock:/var/run/docker.sock
       - ./wm-infra/deploy/local/data/foundry/Data:/data/foundry
       - ./wm-infra/deploy/local/data/api:/data/api
       - ./wm-infra/deploy/local/api-logging.yml:/etc/logging.yml
-      - ./:/opt
-    command: ["python", "/opt/wm-manager-api/src/__main__.py"]
+    command: ["python", "/opt/project/wm-manager-api/src/__main__.py"]
     ports:
       - "5000:5000"
     environment:
-      - COMPOSE_DIR=/opt
+      - COMPOSE_DIR=/opt/project
       - HTPASSWD_PATH=/opt/wm-manager-api/test/resources/.htpasswd
       - FOUNDRY_DATA_PATH=/data/foundry
+      - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
       - BACKUP_S3_ENDPOINT=http://minio:9000/
       - DATABASE_ENDPOINT=lightning:///data/api/westmarches.db
@@ -72,13 +75,14 @@ services:
       - AWS_SECRET_ACCESS_KEY=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
     links:
       - minio
+      - foundry
   discordbot:
     build:
       context: wm-discord-speaker/
     links:
       - manager_api
     volumes:
-      - ./wm-discord-speaker/src:/opt/wm-discord-speaker
+      - ./:/opt/project
       - ./wm-infra/deploy/local/data/discord:/opt/redbot/data
       - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json
       - ./wm-infra/deploy/local/discordbot-logging.yml:/opt/discordbot-logging.yml
@@ -89,6 +93,6 @@ services:
       - LOGGING_CONFIG=/opt/discordbot-logging.yml
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
     command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH", "--owner=${DISCORD_OWNER_ID}"]
-    
+
 volumes:
   foundry-logs:

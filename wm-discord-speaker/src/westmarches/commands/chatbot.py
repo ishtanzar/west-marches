@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import re
+from abc import abstractmethod
 from typing import Mapping, List
 
 import discord
@@ -10,6 +11,7 @@ import numpy
 import spacy
 import tensorflow as tf
 import tflearn
+from discord.ext.commands import Context
 from redbot.core import commands, data_manager, checks
 from spacy.lang.fr.stop_words import STOP_WORDS
 from spacy.tokens.token import Token
@@ -22,6 +24,10 @@ log = logging.getLogger("red.westmarches.chatbot")
 
 
 class ChatbotCommands(MixinMeta, metaclass=CompositeMetaClass):
+
+    @abstractmethod
+    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
+        pass
 
     def __init__(self) -> None:
         super().__init__()

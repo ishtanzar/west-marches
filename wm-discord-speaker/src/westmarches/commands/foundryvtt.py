@@ -2,7 +2,9 @@ import datetime
 import logging
 import os
 from abc import abstractmethod
+from operator import itemgetter
 
+from discord import Embed
 from discord.ext.commands import Context
 from redbot.core import commands, checks
 
@@ -32,6 +34,34 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     @commands.group(name="foundry")
     async def command_foundry(self, ctx: commands.Context):
         """Foundry admin commands"""
+
+    @command_foundry.command(name="heroes")
+    async def heroes_list(self, ctx: commands.Context):
+        roster = await self.api_client.foundry.roster()
+        grouped_roster = {}
+
+        for heroe_dict in roster['heroes']:
+            pc_race = heroe_dict['data']['details']['race']
+            pc_classes = [(c['name'], c['data']['levels']) for c in heroe_dict['items'] if 'class' == c['type']]
+
+            pc = {
+                'name': heroe_dict['name'],
+                'race': pc_race.split(maxsplit=1)[0] if pc_race else '',
+                'class': max(pc_classes, key=itemgetter(1))[0] if pc_classes else '',
+            }
+
+            if pc['class']:
+                if pc['class'] not in grouped_roster:
+                    grouped_roster[pc['class']] = []
+
+                grouped_roster[pc['class']].append(pc)
+
+        async with self.config.messages() as messages:
+            await ctx.send(messages['foundry.roster.intro'] % self.bot.user.display_name.split(maxsplit=1)[0])
+
+        await ctx.send(embed=Embed(
+            description="\n".join(['• %s : %s' % (c, ', '.join([pc['name'] for pc in grouped_roster[c]])) for c in grouped_roster])
+        ))
 
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):

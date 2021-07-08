@@ -13,9 +13,11 @@ from api import WestMarchesApi
 from services.backup import BackupService
 from services.database import Engine
 from services.docker import FoundryProject
+from services.foundryvtt import FoundryService
 
 project_path = os.environ['COMPOSE_DIR']
 foundry_data_path = os.environ['FOUNDRY_DATA_PATH']
+foundry_endpoint = os.environ['FOUNDRY_ENDPOINT']
 backup_bucket = os.environ['BACKUP_S3_BUCKET']
 db_endpoint = os.environ['DATABASE_ENDPOINT']
 s3_endpoint = os.environ['BACKUP_S3_ENDPOINT'] if 'BACKUP_S3_ENDPOINT' in os.environ.keys() else None
@@ -33,7 +35,8 @@ Engine._client = MontyClient(db_url.path)
 app = WestMarchesApi(
     __name__,
     FoundryProject(project_path),
-    BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint))
+    BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint)),
+    FoundryService(foundry_endpoint)
 )
 
 

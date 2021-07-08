@@ -1,3 +1,6 @@
+from typing import Optional
+
+import requests
 from compose.project import NoSuchService
 
 from api import WestMarchesApi
@@ -34,7 +37,7 @@ def backup_list(user):
 @flask.auth.required
 def backup_perform(user):
     service_name = 'foundry'
-    error = None
+    error: Optional[Exception] = None
 
     try:
         flask.compose.stop(service_name)
@@ -60,14 +63,13 @@ def backup_perform(user):
 @flask.auth.required
 def backup_restore(user, backup_id):
     service_name = 'foundry'
-    error = None
+    error: Optional[Exception] = None
 
     try:
         flask.compose.stop(service_name)
 
         try:
             flask.backup.restore(backup_id)
-            return 'Done', 204
         except Exception as ex:
             error = ex
 
@@ -75,9 +77,15 @@ def backup_restore(user, backup_id):
 
         if error:
             raise error
+        return 'Done', 204
     except NoSuchService as nse:
         return nse.msg, 404
     except Exception as ex:
         return str(ex), 500
 
-    return 'Done', 204
+
+@flask.route('/roster')
+def foundry_roster():
+    return {
+        'heroes': flask.foundryvtt.find_actors()
+    }
