@@ -18,6 +18,13 @@ class WestMarchesCog(commands.Commands,
                      metaclass=CompositeMetaClass):
     default_guild_settings = {
         "rumors": [],
+        "rumors_idx": 0,
+        "rumors_triggers": {},
+        "rumors_cooldown_message": [
+            "On se calme, repasses plus tard.",
+            "Hey, je suis pas un robot.",
+            "J'ai d'autres choses à faire que de discuter."
+        ],
         "intents": [],
         "taverns": [],
         "messages": {
