@@ -19,12 +19,12 @@ handlers:
   jsonFile:
     class: logging.handlers.RotatingFileHandler
     formatter: json
-    filename: /data/api/api-json.log
+    filename: /opt/data/api/api-json.log
     backupCount: 1
     maxBytes: 1048576
     level: INFO
   
   console:
     class: logging.StreamHandler
-    formatter: json
     stream: ext://sys.stdout
+    level: INFO

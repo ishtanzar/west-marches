@@ -7,6 +7,7 @@ services:
     restart: "unless-stopped"
     volumes:
       - "{{ discordbot_data_path }}:/opt/redbot/data"
+      - "{{ discordbot_data_path }}/redbot-config.json:/root/.config/Red-DiscordBot/config.json"
     environment:
       - DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json
       - LOGGING_CONFIG=/opt/redbot/data/discordbot-logging.yml

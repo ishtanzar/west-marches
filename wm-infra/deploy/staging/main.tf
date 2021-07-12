@@ -25,5 +25,6 @@ module "main" {
 
   gandi_key = var.gandi_key
   host_name = "westmarchesdelacave-test"
+  backup_bucket = "westmarches-infra-test-backups"
   ssh_key_id = "5cff6783-ee69-4366-9ffe-4bafb9340e4d"
 }

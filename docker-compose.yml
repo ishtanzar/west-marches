@@ -56,21 +56,18 @@ services:
     volumes:
       - ./:/opt/project
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./wm-infra/deploy/local/data/foundry/Data:/data/foundry
-      - ./wm-infra/deploy/local/data/api:/data/api
-      - ./wm-infra/deploy/local/api-logging.yml:/etc/logging.yml
     command: ["python", "/opt/project/wm-manager-api/src/__main__.py"]
     ports:
       - "5000:5000"
     environment:
       - COMPOSE_DIR=/opt/project
-      - HTPASSWD_PATH=/opt/wm-manager-api/test/resources/.htpasswd
-      - FOUNDRY_DATA_PATH=/data/foundry
+      - HTPASSWD_PATH=/opt/project/wm-manager-api/test/resources/.htpasswd
+      - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
       - BACKUP_S3_ENDPOINT=http://minio:9000/
-      - DATABASE_ENDPOINT=lightning:///data/api/westmarches.db
-      - LOGGING_CONFIG=/etc/logging.yml
+      - DATABASE_ENDPOINT=lightning:///opt/project/wm-infra/deploy/local/data/api/westmarches.db
+      - LOGGING_CONFIG=/opt/project/wm-infra/modules/main/ansible/roles/foundry/templates/api-logging.yml
       - AWS_ACCESS_KEY_ID=BUH8JVS2CJYK8HH22UI6-XIP
       - AWS_SECRET_ACCESS_KEY=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
     links:

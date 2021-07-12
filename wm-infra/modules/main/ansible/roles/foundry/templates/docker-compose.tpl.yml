@@ -39,7 +39,9 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "{{ foundry_data_path }}-compose.yml:/opt/docker-compose.yml"
       - "{{ foundry_data_path }}/.htpasswd:/opt/.htpasswd"
-      - "{{ foundry_data_path }}/Data:/data/foundry"
+      - "{{ foundry_data_path }}/api-logging.yml:/opt/api-logging.yml"
+      - "{{ foundry_data_path }}/Data:/opt/data/foundry"
+      - "{{ foundry_data_path }}/api/data:/opt/data/api"
     secrets:
       - source: config_json
         target: /opt/data/foundry/secrets.json
@@ -48,5 +50,8 @@ services:
     environment:
       - COMPOSE_DIR=/opt
       - HTPASSWD_PATH=/opt/.htpasswd
-      - FOUNDRY_DATA_PATH=/data/foundry
+      - FOUNDRY_DATA_PATH=/opt/data/foundry
+      - LOGGING_CONFIG=/opt/api-logging.yml
+      - FOUNDRY_ENDPOINT=http://foundry:30000
+      - DATABASE_ENDPOINT=lightning:///opt/data/api/westmarches.db
       - "BACKUP_S3_BUCKET={{ BACKUP_S3_BUCKET }}"

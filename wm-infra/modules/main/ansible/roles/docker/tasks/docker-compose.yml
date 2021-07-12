@@ -6,7 +6,7 @@
   check_mode: no
 
 - set_fact:
-    docker_compose_current_version: "{{ docker_compose_vsn.stdout | regex_search('(\\d+(\\.\\d+)+)') }}"
+    docker_compose_current_version: "{{ docker_compose_vsn.stdout | regex_search('(\\d+(\\.\\d+)+)') or '0' }}"
   when:
     - docker_compose_vsn.stdout is defined
     
