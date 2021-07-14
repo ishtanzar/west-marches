@@ -83,12 +83,23 @@ class FoundryApi(AbstractApi):
         return resp.json()
 
 
+class SessionApi(AbstractApi):
+
+    async def schedule(self, date: str, message: dict) -> dict:
+        resp = await self._client.post('/session', json={
+            'date': date,
+            'message': message,
+        })
+        return resp.json()
+
+
 class WestMarchesApiClient:
 
     def __init__(self, auth: AbstractAuth, endpoint="manager_api") -> None:
         self._auth = auth
         self._endpoint = endpoint
 
+        self._sessions = SessionApi(self)
         self._foundry = FoundryApi(self)
 
     async def get(self, path: str):
@@ -96,8 +107,8 @@ class WestMarchesApiClient:
 
         return self.on_response(resp)
 
-    async def post(self, path: str):
-        resp = requests.post(self._endpoint + path, auth=self._auth())
+    async def post(self, path: str, *args, **kwargs):
+        resp = requests.post(self._endpoint + path, auth=self._auth(), *args, **kwargs)
 
         return self.on_response(resp)
 
@@ -120,3 +131,7 @@ class WestMarchesApiClient:
     @property
     def foundry(self) -> FoundryApi:
         return self._foundry
+
+    @property
+    def sessions(self) -> SessionApi:
+        return self._sessions

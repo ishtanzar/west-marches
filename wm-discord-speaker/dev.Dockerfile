@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.2
 FROM ubuntu:groovy
 
 WORKDIR /opt/redbot
@@ -8,8 +9,6 @@ RUN apt update && \
 RUN locale-gen fr_FR.UTF-8
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY src /opt/redbot/cogs
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
 CMD ["redbot"]

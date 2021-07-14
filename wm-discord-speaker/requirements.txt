@@ -3,5 +3,7 @@ tflearn==0.5.0
 tensorflow==2.5.0
 numpy==1.19.5
 logging-utilities==1.2.2
+dateparser==1.0.0
+validators==0.18.2
 
 https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.0.0/fr_core_news_sm-3.0.0-py3-none-any.whl
