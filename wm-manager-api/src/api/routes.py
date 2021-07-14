@@ -1,54 +1,59 @@
+import datetime
 from typing import Optional
 
-import requests
+import dateparser
+import discord
 from compose.project import NoSuchService
+from quart import request
 
 from api import WestMarchesApi
+from services.database import SessionScheduleDocument
+from services.kanka import KankaService
 
-flask = WestMarchesApi.instance
+app = WestMarchesApi.instance
 
 
-@flask.route('/')
-@flask.auth.required
-def index(user):
+@app.route('/')
+@app.auth.required
+async def index(user):
     return "Hello, {}!".format(user)
 
 
-@flask.route('/container/restart/<service_name>', methods=['POST'])
-@flask.auth.required
-def restart_container(service_name, user):
+@app.route('/container/restart/<service_name>', methods=['POST'])
+@app.auth.required
+async def restart_container(service_name, user):
     try:
-        flask.compose.restart(service_name)
+        app.compose.restart(service_name)
     except NoSuchService as nse:
         return nse.msg, 404
 
     return 'Done', 204
 
 
-@flask.route('/backup/list')
-@flask.auth.required
-def backup_list(user):
+@app.route('/backup/list')
+@app.auth.required
+async def backup_list(user):
     return {
-        'backups': [backup.asdict(serializable=True) for backup in flask.backup.list(sort=[('date', 1)])]
+        'backups': [backup.asdict(serializable=True) for backup in app.backup.list(sort=[('date', 1)])]
     }
 
 
-@flask.route('/backup/perform', methods=['POST'])
-@flask.auth.required
-def backup_perform(user):
+@app.route('/backup/perform', methods=['POST'])
+@app.auth.required
+async def backup_perform(user):
     service_name = 'foundry'
     error: Optional[Exception] = None
 
     try:
-        flask.compose.stop(service_name)
+        app.compose.stop(service_name)
 
         try:
             for schema in ['worlds', 'systems', 'modules']:
-                flask.backup.perform(schema)
+                app.backup.perform(schema)
         except Exception as nse:
             error = nse
 
-        flask.compose.restart(service_name)
+        app.compose.restart(service_name)
 
         if error:
             raise error
@@ -59,21 +64,21 @@ def backup_perform(user):
         return str(nse), 500
 
 
-@flask.route('/backup/restore/<backup_id>', methods=['POST'])
-@flask.auth.required
-def backup_restore(user, backup_id):
+@app.route('/backup/restore/<backup_id>', methods=['POST'])
+@app.auth.required
+async def backup_restore(user, backup_id):
     service_name = 'foundry'
     error: Optional[Exception] = None
 
     try:
-        flask.compose.stop(service_name)
+        app.compose.stop(service_name)
 
         try:
-            flask.backup.restore(backup_id)
+            app.backup.restore(backup_id)
         except Exception as ex:
             error = ex
 
-        flask.compose.restart(service_name)
+        app.compose.restart(service_name)
 
         if error:
             raise error
@@ -84,8 +89,53 @@ def backup_restore(user, backup_id):
         return str(ex), 500
 
 
-@flask.route('/roster')
-def foundry_roster():
+@app.route('/session', methods=['POST'])
+async def chatbot_parse_session_schedule():
+    """
+    {
+        "date": "",
+        "organizer: "<USER_ID>"
+        "message": {
+            "channel_id": "<DISCORD_CHANNEL_ID>",
+            "message_id": "<DISCORD_MESSAGE_ID>",
+        },
+    }
+    """
+    message: dict = {}
+    date: datetime.datetime
+    organizer_id: int
+    organizer: str
+
+    json_request = await request.json
+    message_in = json_request['message']
+    date_in = json_request['date']
+    organizer_id = json_request['organizer'] if 'organizer' in json_request else None
+    organizer = ''
+
+    date = dateparser.parse(date_in, locales=["fr"], settings={'PREFER_DATES_FROM': 'future'})
+
+    if type(message_in) is dict:
+        discord_msg: discord.Message = await app.discord.fetch_message(message_in['channel_id'],
+                                                                       message_in['message_id'])
+        message = {'channel_id': message_in['channel_id'], 'message_id': message_in['message_id']}
+        organizer_id = discord_msg.author.id
+        organizer = discord_msg.author.name
+
+    else:
+        # TODO: Create message
+        pass
+
+    session = SessionScheduleDocument(date, organizer_id, message)
+    session.journal_id = await app.kanka.create_journal('TODO - ' + organizer, 'Rapport', date)
+    session.insert()
+
+    return session.asdict(), 201
+    # session_date, announce = flask.agenda.parse_session_announce(request.json['message'])
+    # flask.agenda.schedule(session_date, request.json['user_id'], request.json['message_id'])
+
+
+@app.route('/roster')
+async def foundry_roster():
     return {
-        'heroes': flask.foundryvtt.find_actors()
+        'heroes': app.foundryvtt.find_actors()
     }

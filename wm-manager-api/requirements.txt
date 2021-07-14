@@ -1,11 +1,21 @@
-flask==2.0.1
-flask-htpasswd==0.4.0
-bjoern==3.1.0
-docker-compose==1.29.2
+passlib==1.7.4
+hypercorn==0.11.2
+Quart==0.15.1
 logging-utilities==1.2.2
+
+docker-compose==1.29.2
 montydb[lmdb]==2.3.11
+dateparser==1.0.0
+discord==1.7.3
+requests==2.25.1
 
 # AWS & smart_open
 boto3==1.17.101
 pyboto3==1.13.18
 smart_open==5.1.0
+
+# AI
+tflearn==0.5.0
+tensorflow==2.5.0
+numpy==1.19.5
+https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.0.0/fr_core_news_sm-3.0.0-py3-none-any.whl
