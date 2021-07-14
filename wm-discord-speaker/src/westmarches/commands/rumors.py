@@ -1,7 +1,7 @@
 import datetime
 import random
 
-from discord import ChannelType
+from discord import ChannelType, TextChannel
 from redbot.core import commands, checks
 
 from westmarches.utils import CompositeMetaClass, MixinMeta
@@ -41,6 +41,19 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
                 else:
                     async with self.config.rumors_cooldown_message() as messages:
                         await ctx.send(random.choice(messages))
+
+    @rumors.command("push")
+    async def push_rumor(self, ctx: commands.Context):
+        """Push current rumor to all taverns"""
+        async with self.config.taverns() as taverns, self.config.rumors() as rumors:
+            key = await self.config.rumors_idx()
+
+            for tavern in taverns:
+                channel: TextChannel = self.bot.get_channel(tavern)
+                if channel:
+                    await channel.send(rumors[key])
+
+            await self.config.rumors_idx.set(key - 1 if key >= 1 else len(rumors) - 1)
 
     @rumors.command("add")
     async def add_rumor(self, ctx: commands.Context, *new_rumor):
