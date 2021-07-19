@@ -2,10 +2,10 @@ import datetime
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
-from montydb import MontyClient, MontyCollection
+from montydb import MontyClient, MontyCollection, MontyCursor
 from montydb.results import InsertOneResult
 
 
@@ -15,11 +15,34 @@ class Engine:
 
     @classmethod
     def backups(cls) -> MontyCollection:
-        return cls._client[cls._database]['backups']
+        return cls.collection('backups')
 
     @classmethod
     def scheduled_sessions(cls) -> MontyCollection:
-        return cls._client[cls._database]['scheduled_sessions']
+        return cls.collection('scheduled_sessions')
+
+    @classmethod
+    def collection(cls, collection_name) -> MontyCollection:
+        return cls._client[cls._database][collection_name]
+
+    @classmethod
+    def collections(cls) -> []:
+        return cls._client[cls._database].collection_names()
+
+    @classmethod
+    def scan(cls, collection_name: str) -> MontyCursor:
+        return cls.collection(collection_name).find()
+
+    @classmethod
+    def create_collection(cls, collection_name: str, data: Optional[list] = []) -> MontyCollection:
+        _col = cls._client[cls._database].create_collection(collection_name)
+        if data:
+            _col.insert_many(data)
+        return _col
+
+    @classmethod
+    def drop_collection(cls, collection_name: str):
+        cls._client[cls._database].drop_collection(collection_name)
 
 
 class AbstractDocument(ABC):

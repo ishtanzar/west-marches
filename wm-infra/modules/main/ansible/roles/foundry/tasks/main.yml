@@ -61,6 +61,11 @@
     src: patches/custom.sh
     dest: "{{ foundry_data_path }}/container_patches/"
 
+- name: Upload default intents
+  ansible.builtin.copy:
+    src: default-intents.json
+    dest: "{{ foundry_data_path }}/default-intents.json"
+
 - name: Manager API htpasswd file
   community.general.htpasswd:
     name: foundry_manager

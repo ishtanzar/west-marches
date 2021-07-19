@@ -68,6 +68,7 @@ services:
       - BACKUP_S3_ENDPOINT=http://minio:9000/
       - DISCORD_SECRET=${DISCORD_BOT_SECRET}
       - DATABASE_ENDPOINT=lightning:///opt/project/wm-infra/deploy/local/data/api/westmarches.db
+      - INTENT_MODEL_DIR=/opt/project/wm-infra/deploy/local/data/api/intents
       - LOGGING_CONFIG=/opt/project/wm-infra/deploy/local/api-logging.yml
       - AWS_ACCESS_KEY_ID=BUH8JVS2CJYK8HH22UI6-XIP
       - AWS_SECRET_ACCESS_KEY=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra

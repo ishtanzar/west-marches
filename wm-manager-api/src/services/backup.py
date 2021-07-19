@@ -12,12 +12,13 @@ import boto3
 import smart_open
 
 from services.database import BackupDocument, BackupState
+from utils import get_logger
 
 
 class BackupService:
 
     def __init__(self, data_path: str, bucket: str, s3=None) -> None:
-        self.logger = logging.getLogger(type(self).__name__)
+        self.log = get_logger(self)
         self.data_dir = Path(data_path)
         self.bucket = bucket
         self._s3 = s3
@@ -38,21 +39,21 @@ class BackupService:
         cwd = Path.cwd()
         backup = BackupDocument(datetime.datetime.now(), schema)
 
-        self.logger.info('Started backup of %s', base_dir)
+        self.log.info('Started backup of %s', base_dir)
         try:
             if base_dir.exists():
                 transport_params = {'client': self.s3_client}
                 s3_url = "s3://%s/%s" % (self.bucket, backup.archive_name)
 
                 os.chdir(self.data_dir)
-                self.logger.info('Creating S3 object %s', s3_url)
+                self.log.info('Creating S3 object %s', s3_url)
                 with smart_open.open(s3_url, 'wb', transport_params=transport_params) as s3_object, \
                     zipfile.ZipFile(s3_object, 'w', compression=zipfile.ZIP_DEFLATED) as zf_file:
                     path = base_dir.relative_to(Path.cwd())
                     backup.state = BackupState.RUNNING
 
                     for item in path.glob('**/*'):
-                        self.logger.debug('Adding %s', item)
+                        self.log.debug('Adding %s', item)
                         if item.is_dir():
                             zf_file.write(item)
                         else:
@@ -62,10 +63,10 @@ class BackupService:
                 backup.state = BackupState.SUCCESS
                 return backup.archive_name
             else:
-                self.logger.warning('No such directory to backup %s', base_dir)
+                self.log.warning('No such directory to backup %s', base_dir)
         except Exception as ex:
             backup.state = BackupState.FAILED
-            self.logger.critical(ex)
+            self.log.critical(ex)
             raise ex
         finally:
             os.chdir(cwd)
@@ -74,7 +75,7 @@ class BackupService:
     def restore(self, backup_id: str):
         backup = BackupDocument.get({'_id': backup_id})
         if backup:
-            self.logger.info('Restoring %s', backup_id, extra=backup.asdict(True))
+            self.log.info('Restoring %s', backup_id, extra=backup.asdict(True))
 
             transport_params = {'client': self.s3_client}
             s3_url = "s3://%s/%s" % (self.bucket, backup.archive_name)
@@ -90,25 +91,25 @@ class BackupService:
                         tmp_dir = Path(tmpdir)
                         os.chdir(tmp_dir)
 
-                        self.logger.debug('Extracting into %s', tmp_dir)
+                        self.log.debug('Extracting into %s', tmp_dir)
                         zf_file.extractall()
 
                         fallback_name = dest_dir.with_name(dest_dir.name + '.bak')
                         if dest_dir.exists():
-                            self.logger.debug('Renaming destination for safety as %s', fallback_name)
+                            self.log.debug('Renaming destination for safety as %s', fallback_name)
                             fallback_dir = dest_dir.rename(fallback_name)
 
                         extracted = tmp_dir / backup.schema
-                        self.logger.debug('Moving extracted file %s to destination %s', extracted, dest_dir)
+                        self.log.debug('Moving extracted file %s to destination %s', extracted, dest_dir)
                         extracted.rename(dest_dir)
 
                         if fallback_name.exists():
-                            self.logger.debug('Releasing safety')
+                            self.log.debug('Releasing safety')
                             shutil.rmtree(fallback_dir)
 
-                    self.logger.info('Successfully restored %s to %s', backup_id, dest_dir)
+                    self.log.info('Successfully restored %s to %s', backup_id, dest_dir)
                 except Exception as ex:
-                    self.logger.critical(ex)
+                    self.log.critical(ex)
                     raise ex
                 finally:
                     os.chdir(cwd)
