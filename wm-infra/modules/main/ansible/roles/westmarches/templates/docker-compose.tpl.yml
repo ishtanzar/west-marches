@@ -78,6 +78,7 @@ services:
       - "AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}"
       - "AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}"
       - "AWS_DEFAULT_REGION={{ SCW_REGION }}"
+      - DISCORD_SECRET=${DISCORD_BOT_SECRET}
   foundry:
     volumes:
       - "{{ westmarches_data_path }}/wm-backend-plugin:/home/foundry/resources/wm-backend-plugin"

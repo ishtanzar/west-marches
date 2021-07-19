@@ -1,7 +1,6 @@
 import logging.config
 import os
 
-import spacy
 import yaml
 from discord.ext.commands import Context
 from redbot.core import Config
@@ -64,7 +63,6 @@ class WestMarchesCog(commands.Commands,
 
         api_auth = BasicAuth('foundry_manager', os.environ['WM_API_SECRET'])
         self.api_client = WestMarchesApiClient(api_auth, os.environ['WM_API_ENDPOINT'])
-        self.nlp = spacy.load('fr_core_news_sm')
 
     async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
         async with self.config.messages() as _messages:
