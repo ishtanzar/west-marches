@@ -12,7 +12,6 @@ from concurrent import futures
 from montydb import set_storage, MontyClient
 
 from api import WestMarchesApi
-from services.agenda import AgendaService
 from services.backup import BackupService
 from services.chatbot import IntentService
 from services.database import Engine

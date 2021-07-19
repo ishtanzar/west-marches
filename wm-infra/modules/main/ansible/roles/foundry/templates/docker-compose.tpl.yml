@@ -52,6 +52,7 @@ services:
       - HTPASSWD_PATH=/opt/.htpasswd
       - FOUNDRY_DATA_PATH=/opt/data/foundry
       - LOGGING_CONFIG=/opt/api-logging.yml
+      - INTENT_MODEL_DIR=/opt/data/api/intents
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - DATABASE_ENDPOINT=lightning:///opt/data/api/westmarches.db
       - "BACKUP_S3_BUCKET={{ BACKUP_S3_BUCKET }}"
