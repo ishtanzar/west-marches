@@ -28,7 +28,10 @@ class WestMarchesCog(commands.Commands,
         "intents": [],
         "taverns": [],
         "messages": {
+            "intents.learn.done": "On en apprend de belles tous les jours !",
+            "intents.train.done": "Rien de tel qu'une bonne scéance d'entraînement pour garder la forme.",
             "sessions.schedule.done": "Rapport créé : {}. Bonne partie !",
+
             "foundry.backup.started": "Bon allez, tout le monde dehors, on ferme la taverne pour ce soir.",
             "foundry.backup.failed": "La porte de la réserve est restée coincée, on a pas rangé la dernière livraison",
             "foundry.backup.done": "C'est bon, on a pu ranger la réserve, on peut ouvrir pour la journée !",

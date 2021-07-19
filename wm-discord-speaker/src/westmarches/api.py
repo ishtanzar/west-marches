@@ -76,10 +76,10 @@ class FoundryApi(AbstractApi):
         await self._client.post('/backup/restore/%s' % backup_id)
 
     async def restart(self) -> None:
-        await self._client.post('/container/restart/foundry')
+        await self._client.post('/foundry/restart')
 
     async def roster(self) -> dict:
-        resp = await self._client.get('/roster')
+        resp = await self._client.get('/foundry/roster')
         return resp.json()
 
 
@@ -93,6 +93,23 @@ class SessionApi(AbstractApi):
         return resp.json()
 
 
+class IntentsApi(AbstractApi):
+
+    async def add_pattern(self, intent, pattern) -> None:
+        await self._client.post('/intent/%s/pattern' % intent, json={
+            'pattern': pattern
+        })
+
+    async def train(self) -> None:
+        await self._client.post('/intent/train')
+
+    async def predict(self, message) -> dict:
+        resp = await self._client.post('/intent/predict', json={
+            'message': message
+        })
+        return resp.json()
+
+
 class WestMarchesApiClient:
 
     def __init__(self, auth: AbstractAuth, endpoint="manager_api") -> None:
@@ -101,6 +118,7 @@ class WestMarchesApiClient:
 
         self._sessions = SessionApi(self)
         self._foundry = FoundryApi(self)
+        self._intents = IntentsApi(self)
 
     async def get(self, path: str):
         resp = requests.get(self._endpoint + path, auth=self._auth())
@@ -135,3 +153,7 @@ class WestMarchesApiClient:
     @property
     def sessions(self) -> SessionApi:
         return self._sessions
+
+    @property
+    def intents(self):
+        return self._intents

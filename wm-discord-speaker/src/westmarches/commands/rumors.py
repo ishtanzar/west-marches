@@ -63,6 +63,19 @@ class RumorsCommands(MixinMeta, metaclass=CompositeMetaClass):
             await self.config.rumors_idx.set(len(rumors))
         await ctx.send("Nouvelle rumeur enregistrée, pointeur remis à zéro.")
 
+    @rumors.command("current")
+    async def current_rumor(self, ctx: commands.Context):
+        """Get the current rumor without updating the index"""
+        key = await self.config.rumors_idx()
+        async with self.config.rumors() as rumors:
+            await ctx.send('{}** - {}'.format(key, rumors[key]))
+
+    @rumors.command("set")
+    async def set_current_rumor(self, ctx: commands.Context, index):
+        """Set the rumor index"""
+        await self.config.rumors_idx.set(int(index))
+        await self.current_rumor(ctx)
+
     @rumors.command("list", aliases=["ls"])
     async def list_rumors(self, ctx: commands.Context):
         """List all rumors"""
