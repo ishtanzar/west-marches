@@ -2,3 +2,4 @@ Red-DiscordBot==3.4.12
 logging-utilities==1.2.2
 dateparser==1.0.0
 validators==0.18.2
+requests==2.25.1
