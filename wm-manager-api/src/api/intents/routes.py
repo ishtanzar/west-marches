@@ -1,8 +1,22 @@
+from pathlib import Path
+
 from quart import request
 
 from api import WestMarchesApi
 
 app = WestMarchesApi.instance
+
+
+@app.route('/intent/import', methods=['POST'])
+async def intent_import():
+    json_request = await request.json
+    app.intents.import_intents(Path(json_request['path']))
+
+
+@app.route('/intent/backup', methods=['POST'])
+async def intent_backup():
+    json_request = await request.json
+    app.intents.backup_intents(Path(json_request['path']))
 
 
 @app.route('/intent/predict', methods=['POST'])
