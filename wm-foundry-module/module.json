@@ -1,0 +1,19 @@
+{
+  "name": "wm-foundry-module",
+  "title": "WestMarches de la Cave",
+  "description": "A module dedicated to the West Marches campaign of la Cave du Rôliste",
+  "author": "ishtanzar",
+  "version": "0.1.0",
+  "minimumCoreVersion": "0.7.9",
+  "download": "https://github.com/ishtanzar/west-marches/archive/refs/tags/v0.1.0.zip",
+  "bugs": "https://github.com/ishtanzar/west-marches/issues",
+  "esmodules": ["scripts/init.js"],
+  "styles": ["styles/wm-player-journal.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "WestMarches": {
+    "Settings": {
+      "OAuthClientId": {
+        "Name": "OAuth Client ID"
+      },
+      "OAuthClientSecret": {
+        "Name": "OAuth Client Secret"
+      },
+      "OAuthRedirectUri": {
+        "Name": "OAuth Redirect URI"
+      }
+    }
+  }
+}
