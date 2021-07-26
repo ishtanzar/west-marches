@@ -54,3 +54,18 @@ async def chatbot_parse_session_schedule(user):
     return session.asdict(), 201
     # session_date, announce = flask.agenda.parse_session_announce(request.json['message'])
     # flask.agenda.schedule(session_date, request.json['user_id'], request.json['message_id'])
+
+
+@app.route('/session/<session_id>/characters', methods=['PATCH'])
+@app.auth.required
+async def set_session_players(user, session_id):
+    session = SessionScheduleDocument.find_one({'_id': session_id})
+    json_request = await request.json
+    tags = json_request['characters']
+
+    if session:
+        await app.kanka.set_journal_tags(session.journal_id, tags)
+
+    return session.asdict(), 201
+
+

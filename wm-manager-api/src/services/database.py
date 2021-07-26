@@ -106,14 +106,14 @@ class BackupDocument(AbstractDocument):
 
 
 class SessionScheduleDocument(AbstractDocument):
-    journal_id: int
-
-    def __init__(self, date: datetime.datetime, organizer: int, message: dict, doc_id: uuid.UUID = None) -> None:
+    def __init__(self, date: datetime.datetime, organizer: int, message: dict, journal_id: int = None,
+                 doc_id: uuid.UUID = None) -> None:
         super().__init__(Engine.scheduled_sessions(), doc_id)
 
         self.date: datetime.datetime = date
         self.organizer = organizer
         self.message = message
+        self.journal_id = journal_id
 
     def asdict(self, serializable=False) -> dict:
         return {
@@ -123,3 +123,15 @@ class SessionScheduleDocument(AbstractDocument):
             'message': self.message,
             'journal': self.journal_id
         }
+
+    @classmethod
+    def from_dict(cls, _in: dict) -> "SessionScheduleDocument":
+        return cls(_in['date'], _in['organizer'], _in['message'], _in['journal'], _in['_id'])
+
+    @classmethod
+    def find(cls, *args, **kwargs) -> List["SessionScheduleDocument"]:
+        return [cls.from_dict(x) for x in Engine.scheduled_sessions().find(*args, **kwargs)]
+
+    @classmethod
+    def find_one(cls, *args, **kwargs) -> "SessionScheduleDocument":
+        return cls.from_dict(Engine.scheduled_sessions().find_one(*args, **kwargs))
