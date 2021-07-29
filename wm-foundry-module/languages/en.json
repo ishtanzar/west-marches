@@ -10,6 +10,21 @@
       "OAuthRedirectUri": {
         "Name": "OAuth Redirect URI"
       }
+    },
+    "Controls": {
+      "Group": "WestMarches",
+      "TP_Group": "Pull group to scene"
+    },
+    "Group_Teleport": {
+      "Controls": {
+        "Pull_Button": "Pull Group to scene"
+      },
+      "Dialog": {
+        "Title": "Pull Group to Scene",
+        "Buttons": {
+          "Ok": "Pull"
+        }
+      }
     }
   }
 }

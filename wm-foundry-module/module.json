@@ -7,7 +7,13 @@
   "minimumCoreVersion": "0.7.9",
   "download": "https://github.com/ishtanzar/west-marches/archive/refs/tags/v0.1.0.zip",
   "bugs": "https://github.com/ishtanzar/west-marches/issues",
-  "esmodules": ["scripts/init.js"],
+  "esmodules": [
+    "./scripts/init.js",
+    "./scripts/ui.js",
+    "./scripts/controls.js",
+    "./scripts/discord.js",
+    "./scripts/kanka.js"
+  ],
   "styles": ["styles/wm-player-journal.css"],
   "languages": [
     {
