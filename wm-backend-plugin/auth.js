@@ -4,32 +4,33 @@ const fetch = require('node-fetch');
 
 class DiscordOAuth {
 
-  async fetch_setting(key) {
+  async fetch_setting(key, default_value = null) {
     const {db} = global;
-    return JSON.parse((await db['Setting'].findOne({'key': key})).value)
+    const json_value = await db['Setting'].findOne({'key': key});
+
+    return json_value ? JSON.parse(json_value.value) : default_value;
   }
 
   async client_id() {
-    return await this.fetch_setting('wm-cave-du-roliste.oauthClientId');
+    return this.fetch_setting('wm-foundry-module.oauthClientId');
   }
 
   async client_secret() {
-    return await this.fetch_setting('wm-cave-du-roliste.oauthClientSecret');
+    return this.fetch_setting('wm-foundry-module.oauthClientSecret');
   }
 
   async redirect_uri() {
-    return await this.fetch_setting('wm-cave-du-roliste.oauthRedirectUri');
+    return this.fetch_setting('wm-foundry-module.oauthRedirectUri');
   }
 
   replaceJoinRoute(expressRouter, prefix='/') {
-    const foundryStack = expressRouter.stack.find(layer => layer.name == 'router').handle.stack;
+    const foundryStack = expressRouter.stack.find(layer => layer.name === 'router').handle.stack;
 
     foundryStack.splice(foundryStack.findIndex(
-      layer => layer.route && layer.route.path == '/join' && layer.route.methods['get'] == true
+      layer => layer.route && layer.route.path === '/join' && layer.route.methods['get'] === true
     ), 1);
 
     expressRouter.get(`${prefix}join`, this.login.bind(this));
-    // const stack = router.stack.find(layer => layer.name == 'router').handle.stack
   }
 
   async login(req, resp) {
@@ -72,7 +73,7 @@ class DiscordOAuth {
 
   async doLogin(req, resp) {
     const {db, game, paths} = global;
-    const code = req.query.code
+    const code = req.query.code;
     const auth = require(paths.code + '/auth');
 
     const oauthResult = await fetch('https://discord.com/api/oauth2/token', {
@@ -118,24 +119,6 @@ class DiscordOAuth {
 
     global.logger.info('User\x20authentication\x20successful\x20for\x20user\x20' + user.name);
     resp.redirect(req['baseUrl'] + '/game');
-    /**
-     * {
-  id: '323793120787693569',
-  username: 'ishtanzar',
-  avatar: 'a15742db3af87d71a0bb06862434cc64',
-  discriminator: '9779',
-  public_flags: 0,
-  flags: 0,
-  banner: null,
-  banner_color: null,
-  accent_color: null,
-  locale: 'fr',
-  mfa_enabled: true,
-  email: 'pgmillon@gmail.com',
-  verified: true
-}
-
-     */
   }
 
 }

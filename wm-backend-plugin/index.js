@@ -10,6 +10,7 @@ const foundryRoster = new Roster();
 const discordAuth = new DiscordOAuth();
 
 console.log('WestMarches | init');
+
 (function init() {
   setTimeout(function() {
     /** @type e.Router */
