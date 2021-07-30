@@ -31,6 +31,10 @@ variable "ssh_key_id" {
   default = "def22f15-3be9-4fbc-ae46-49de416bd66a"
 }
 
+variable "instance_type" {
+  default = "DEV1-S"
+}
+
 provider "restapi" {
   uri = "https://api.gandi.net/v5/livedns"
   id_attribute = "rrset_name"
@@ -76,7 +80,7 @@ resource "scaleway_instance_security_group" "front" {
 }
 
 resource "scaleway_instance_server" "main" {
-  type = "DEV1-S"
+  type = var.instance_type
   image = "ubuntu_focal"
   ip_id = scaleway_instance_ip.public_ip.id
   tags = ["foundry", "kanka"]
