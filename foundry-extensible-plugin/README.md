@@ -67,3 +67,7 @@ class MyPlugin {
 
 module.exports = MyPlugin;
 ```
+
+## Licensing
+
+This plugin, along with all the West Marches projects, is under GPLv3
