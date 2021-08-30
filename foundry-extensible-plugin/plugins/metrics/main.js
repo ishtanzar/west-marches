@@ -1,10 +1,15 @@
 'use strict';
-const prom = require('prom-client');
 
-class FoundryMetrics {
+const prom = require("prom-client");
 
-  constructor() {
-    this.gauges = []
+class MetricsPlugin {
+
+  /**
+   *
+   * @param {ExtensibleFoundryPlugin} base
+   */
+  constructor(base) {
+    this.gauges = [];
     this.metrics = [
       {db: 'Actor', name: 'actors'},
       {db: 'Item', name: 'items'},
@@ -18,10 +23,14 @@ class FoundryMetrics {
     for(let metric of this.metrics) {
       this[metric.name] = 0;
     }
+
+    base.hooks.on('pre.express.defineRoutes', router => router.get('/metrics', this.get));
+    this.setup().update().schedule();
   }
 
   setup() {
-    const foundry = this;
+    const self = this;
+    const {game} = global;
 
     prom.collectDefaultMetrics();
 
@@ -50,8 +59,8 @@ class FoundryMetrics {
       help: 'Size of DB table for each entity type',
       labelNames: ['db'],
       collect() {
-        for(let metric of foundry.metrics) {
-          this.set({ db: metric.db }, foundry[metric.name])
+        for(let metric of self.metrics) {
+          this.set({ db: metric.db }, self[metric.name])
         }
       }
     }));
@@ -60,6 +69,8 @@ class FoundryMetrics {
   }
 
   update() {
+    const {db, game} = global;
+
     if(game.active) {
       for(let metric of this.metrics) {
         if(db[metric.db].ds && db[metric.db].ds.connected) {
@@ -95,4 +106,4 @@ class FoundryMetrics {
   }
 }
 
-module.exports = FoundryMetrics;
+module.exports = MetricsPlugin;

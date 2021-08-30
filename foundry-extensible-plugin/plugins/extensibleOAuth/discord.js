@@ -23,17 +23,7 @@ class DiscordOAuth {
     return this.fetch_setting('wm-foundry-module.oauthRedirectUri');
   }
 
-  replaceJoinRoute(expressRouter, prefix='/') {
-    const foundryStack = expressRouter.stack.find(layer => layer.name === 'router').handle.stack;
-
-    foundryStack.splice(foundryStack.findIndex(
-      layer => layer.route && layer.route.path === '/join' && layer.route.methods['get'] === true
-    ), 1);
-
-    expressRouter.get(`${prefix}join`, this.login.bind(this));
-  }
-
-  async login(req, resp) {
+  async join(req, resp) {
     const {db, game, paths} = global;
     const Views = require(paths.code + '/views');
     const auth = require(paths.code + '/auth');
@@ -54,7 +44,7 @@ class DiscordOAuth {
       }
     };
 
-    auths['oauth'] = {
+    auths['oauth_discord'] = {
       'enabled': true,
       'client_id': await this.client_id(),
       'redirect_uri': await this.redirect_uri(),
@@ -98,10 +88,10 @@ class DiscordOAuth {
       },
     });
 
-    const userData = await userResult.json();
-    const user = await db["User"].findOne({'name': userData['username']});
+    const discord = await userResult.json();
+    const user = await db.User.findOne({ $or: [{'name': discord.username}, {'discord.id': discord.id}] });
     if (user === null) {
-      resp.status = 403
+      resp.status(403);
       // return {'request': 'join', 'status': "failed", 'error': "The requested User ID " + userid + " does not exist."};
     }
     if (user.role === 0) {
@@ -113,14 +103,29 @@ class DiscordOAuth {
       // };
     }
 
+    user.update({
+      'discord': discord,
+      'auth': {
+        'discord': {
+          'access_token': oauthData.access_token,
+          'refresh_token': oauthData.refresh_token,
+          'expires_in': oauthData.expires_in,
+          'logging_date': Date.now()
+        }
+      }
+    }).save();
+
     auth.sessions.logoutWorld(req, resp);
     const session = auth.sessions.getOrCreate(req, resp);
-    session["worlds"][game.world.id] = user["_id"];
+    session['worlds'][game.world.id] = user['_id'];
 
     global.logger.info('User\x20authentication\x20successful\x20for\x20user\x20' + user.name);
-    resp.redirect(req['baseUrl'] + '/game');
+    resp.render('oauth-discord', {
+      'access_token': oauthData.access_token,
+      'refresh_token': oauthData.refresh_token,
+    });
   }
 
 }
 
-module.exports = DiscordOAuth;
+module.exports = {DiscordOAuth};

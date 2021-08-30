@@ -1,0 +1,20 @@
+<template id="notifications"></template>
+
+<section id="setup" class="join dark flexrow" style="height: 100%; width: 100%; position: unset;">
+    <header id="world-title" class="join-header app" style="flex: 0 0 auto">
+        <h1>Loading, please wait...</h1>
+    </header>
+</section>
+
+<script type="text/javascript">
+    (function () {
+        const access_token = localStorage.getItem('oauth.discord.access_token');
+        const refresh_token = localStorage.getItem('oauth.discord.refresh_token');
+
+        if (access_token && refresh_token) {
+            // TODO: verify token and refresh + redirect
+        }
+
+        window.location.href = getRoute("join");
+    })();
+</script>
