@@ -1,8 +1,6 @@
 
 const path = require('path');
-const {DiscordOAuth} = require('./discord');
-
-const discordAuth = new DiscordOAuth();
+const discordAuth = require('./discord');
 
 class ExtensibleOAuthFoundryPlugin {
 
@@ -16,8 +14,9 @@ class ExtensibleOAuthFoundryPlugin {
     });
 
     base.hooks.once('pre.express.defineRoutes', router => {
-      router.get('/join', discordAuth.join.bind(discordAuth));
-      router.get('/login/discord', discordAuth.doLogin.bind(discordAuth));
+      router.get('/join', discordAuth.join);
+      router.post('/discord/validate', discordAuth.validate);
+      router.get('/login/discord', discordAuth.doLogin);
     });
 
     base.hooks.once('user.schema', schema => {

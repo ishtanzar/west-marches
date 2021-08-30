@@ -7,14 +7,29 @@
 </section>
 
 <script type="text/javascript">
-    (function () {
+    (async function () {
         const access_token = localStorage.getItem('oauth.discord.access_token');
         const refresh_token = localStorage.getItem('oauth.discord.refresh_token');
 
         if (access_token && refresh_token) {
             // TODO: verify token and refresh + redirect
+            console.log('OAuth credentials detected');
+            const discord = await fetch(getRoute('discord/validate'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    access_token: access_token
+                })
+            });
+            if (discord.ok) {
+                console.debug('Valid credentials, joining game');
+                return window.location.href = getRoute('game');
+            }
         }
 
+        console.debug('No valid credentials found, redirecting to login form');
         window.location.href = getRoute("join");
     })();
 </script>

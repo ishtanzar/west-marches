@@ -99,6 +99,7 @@
             localStorage.setItem('oauth.discord.access_token', access_token);
             localStorage.setItem('oauth.discord.refresh_token', refresh_token);
             popup_window.close();
+            window.location.href = getRoute("game");
         });
 
         $('button[name="oauth_generic"]').click(function (event) {
@@ -112,14 +113,13 @@
             const screenWidth = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
             const screenHeight = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
 
-            const systemZoom = screenWidth / window.screen.availWidth;
-            const left = (screenWidth - width) / 2 / systemZoom + screenLeft
-            const top = (screenHeight - height) / 2 / systemZoom + screenTop
+            const left = (screenWidth - width) / 2 + screenLeft
+            const top = (screenHeight - height) / 2 + screenTop
 
             window.open(
                     "https://discord.com/api/oauth2/authorize?client_id={{auths.oauth_discord.client_id}}&redirect_uri={{auths.oauth_discord.redirect_uri}}&response_type=code&scope={{auths.oauth_discord.scopes}}",
                     "Authorization",
-                    `width=${width / systemZoom},height=${height / systemZoom},top=${top},left=${left}`
+                    `width=${width},height=${height},top=${top},left=${left}`
             );
         });
     })();
