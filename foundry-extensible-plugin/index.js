@@ -9,6 +9,7 @@ class RequireOverride {
     '^init$': 'init',
     '^\..*\/express$': 'express',
     '^\..*\/views': 'views',
+    '^\..*\/world': 'world',
     '^\..*\/entities/user': 'user',
   };
 

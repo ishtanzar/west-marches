@@ -15,7 +15,7 @@
                         <label><i class="fas fa-user"></i> Select Player</label>
                         <select name="userid" required>
                             <option value=""></option>
-                            {{#each users}}
+                            {{#each auths.access_key.users}}
                                 <option value="{{this._id}}" {{#if this.active}}disabled{{/if}}>{{this.name}}</option>
                             {{/each}}
                         </select>
@@ -31,8 +31,8 @@
                     </button>
                 {{/if}}
 
-                {{#if auths.oauth_discord.enabled}}
-                    <button type="button" name="oauth_generic">
+                {{#if auths.oauth.discord.enabled}}
+                    <button type="button" name="oauth-discord">
                         <i class="fab fa-discord"></i> Login with Discord
                     </button>
                 {{/if}}
@@ -102,7 +102,7 @@
             window.location.href = getRoute("game");
         });
 
-        $('button[name="oauth_generic"]').click(function (event) {
+        $('button[name="oauth-discord"]').click(function (event) {
             event.preventDefault();
 
             const width = 500;
@@ -117,7 +117,7 @@
             const top = (screenHeight - height) / 2 + screenTop
 
             window.open(
-                    "https://discord.com/api/oauth2/authorize?client_id={{auths.oauth_discord.client_id}}&redirect_uri={{auths.oauth_discord.redirect_uri}}&response_type=code&scope={{auths.oauth_discord.scopes}}",
+                    "https://discord.com/api/oauth2/authorize?client_id={{auths.oauth.discord.client_id}}&redirect_uri={{auths.oauth.discord.redirect_uri}}&response_type=code&scope={{auths.oauth.discord.scopes}}",
                     "Authorization",
                     `width=${width},height=${height},top=${top},left=${left}`
             );

@@ -109,6 +109,27 @@ class Hooks {
     return true;
   }
 
+  /**
+   * Call hook listeners in the order in which they were registered.
+   * Continue calling hooks until either all have been called or one returns `false`.
+   *
+   * Hook listeners which return `false` denote that the original event has been adequately handled and no further
+   * hooks should be called.
+   *
+   * @param {string} hook   The hook being triggered
+   * @param {...*} args      Arguments passed to the hook callback functions
+   */
+  static async callAsync(hook, ...args) {
+    logger.debug(`Calling ${hook} hook with args: ${args}`);
+    if ( !this._hooks.hasOwnProperty(hook) ) return;
+    const fns = new Array(...this._hooks[hook]);
+    for ( let fn of fns ) {
+      let callAdditional = await this._call(hook, fn, args);
+      if ( callAdditional === false ) return false;
+    }
+    return true;
+  }
+
   /* -------------------------------------------- */
 
   /**
@@ -137,7 +158,7 @@ class ExtensibleFoundryPlugin {
     const {overrideRequire} = global;
 
     // TODO: dynamic plugin list
-    for(let plugin of ['api', 'metrics', 'extensibleOAuth']) {
+    for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord']) {
       const cls = require(path.join(pluginsPath, plugin, 'main'));
       this._plugins.push(new cls(this._instance));
     }

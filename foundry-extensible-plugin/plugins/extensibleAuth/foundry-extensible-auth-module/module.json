@@ -1,0 +1,19 @@
+{
+  "name": "foundry-extensible-auth-module",
+  "title": "Foundry ExtensibleAuth Module",
+  "description": "A module that pairs with the ExtensibleAuth plugin",
+  "author": "ishtanzar",
+  "version": "0.0.1",
+  "minimumCoreVersion": "0.7.9",
+  "download": "https://github.com/ishtanzar/west-marches/releases/download/releases/wm-foundry-module/v0.4.5/wm-foundry-module-0.4.5.zip",
+  "esmodules": [
+    "./scripts/oauth-discord.js"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ]
+}
