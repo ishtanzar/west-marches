@@ -8,6 +8,7 @@ class RequireOverride {
   static _overrides = {
     '^init$': 'init',
     '^\..*\/express$': 'express',
+    '^express-handlebars$': 'express-handlebars',
     '^\..*\/views': 'views',
     '^\..*\/world': 'world',
     '^\..*\/entities/user': 'user',

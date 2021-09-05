@@ -1,49 +1,12 @@
 
 const path = require('path');
-const fetch = require('node-fetch');
 const express = require('express');
 
 let _extensiblePlugin;
 
-let _options = {
-  providers: {
-    access_key: {
-      enabled: true,
-    },
-    discord: {
-      enabled: true,
-    }
-  }
-};
-
-const _DEFAULTS = {
-  oauth: {
-    discord: {
-      redirect_uri: 'http://localhost:30000/oauth/authenticate/discord'
-    }
-  }
-}
-
 const scripts = [
   'init'
 ]
-
-class InvalidAccessTokenError extends Error {
-}
-
-async function _validateAccessToken(access_token) {
-  const userResult = await fetch('https://discord.com/api/users/@me', {
-    headers: {
-      authorization: `Bearer ${access_token}`,
-    },
-  });
-
-  if(userResult.status >= 400) {
-    throw new InvalidAccessTokenError();
-  }
-
-  return userResult.json();
-}
 
 async function route_settings(req, resp) {
   let settings = [{
@@ -80,8 +43,7 @@ async function route_join(req, resp) {
     'access_key': {
       'enabled': true,
       'users': users
-    },
-    'oauth': {}
+    }
   };
 
   await _extensiblePlugin.hooks.callAsync('extensibleAuth.route_join.auths', auths);
@@ -92,25 +54,16 @@ async function route_join(req, resp) {
     bodyClass: "vtt players " + (bgClass ? "background" : ''),
     bodyStyle: 'background-image:\x20url(\x27' + (bgClass || "ui/denim075.png") + '\x27)',
     messages: auth.sessions.getMessages(req),
-    auths: auths
+    auths: auths,
+    helpers: {
+      eq: (left, right) => left === right,
+      partial: service => service
+    },
   });
 }
 
 async function route_oauth_authenticate(req, resp) {
   _extensiblePlugin.hooks.call('extensibleAuth.route_oauth_authenticate', req, resp);
-}
-
-async function route_validate(req, resp) {
-  try {
-    const access_token = req.body.access_token;
-    if(access_token) {
-      await _validateAccessToken(access_token);
-    }
-    resp.sendStatus(204);
-  } catch (e) {
-    if(e instanceof InvalidAccessTokenError) return resp.sendStatus(401);
-    resp.sendStatus(500);
-  }
 }
 
 class ExtensibleAuthFoundryPlugin {
@@ -128,12 +81,15 @@ class ExtensibleAuthFoundryPlugin {
       app.set('views', [path.join(__dirname, 'templates', 'views')].concat(app.get('views')));
     });
 
+    base.hooks.on('pre.express-handlebars.config', config => {
+      config.partialsDir = (config.partialsDir || []).concat([path.join(__dirname, 'templates', 'views', 'partials')])
+    });
+
     _extensiblePlugin.hooks.once('pre.express.defineRoutes', router => {
       router.use('/modules/extensibleAuth', express.static(path.join(__dirname, 'foundry-extensible-auth-module'), {'redirect': false}));
       router.get('/extensibleAuth/settings', route_settings);
       router.get('/oauth/authenticate/:service', route_oauth_authenticate);
-      router.get('/join', route_join.bind(this));
-      router.post('/oauth/discord/authenticate', route_validate);
+      router.get('/join', route_join);
     });
 
     _extensiblePlugin.hooks.on('post.world.constructor', async world => {

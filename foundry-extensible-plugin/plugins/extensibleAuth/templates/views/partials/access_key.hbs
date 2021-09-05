@@ -1,0 +1,21 @@
+
+{{#if enabled}}
+    <div class="form-group split">
+        <label><i class="fas fa-user"></i> Select Player</label>
+        <select name="userid" required>
+            <option value=""></option>
+            {{#each users}}
+                <option value="{{this._id}}" {{#if this.active}}disabled{{/if}}>{{this.name}}</option>
+            {{/each}}
+        </select>
+    </div>
+
+    <div class="form-group split">
+        <label><i class="fas fa-key"></i> Access Key</label>
+        <input type="password" name="password" placeholder="Access Key" value="" autocomplete="off"/>
+    </div>
+
+    <button type="submit" name="submit" data-action="join" disabled>
+        <i class="fas fa-check"></i> Join Game Session
+    </button>
+{{/if}}

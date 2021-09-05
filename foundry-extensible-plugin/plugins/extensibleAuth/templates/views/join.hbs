@@ -9,33 +9,9 @@
         <div class="left flexcol">
             <form id="join-form" class="app" autocomplete="off">
                 <h1>Join Game Session</h1>
-
-                {{#if auths.access_key.enabled}}
-                    <div class="form-group split">
-                        <label><i class="fas fa-user"></i> Select Player</label>
-                        <select name="userid" required>
-                            <option value=""></option>
-                            {{#each auths.access_key.users}}
-                                <option value="{{this._id}}" {{#if this.active}}disabled{{/if}}>{{this.name}}</option>
-                            {{/each}}
-                        </select>
-                    </div>
-
-                    <div class="form-group split">
-                        <label><i class="fas fa-key"></i> Access Key</label>
-                        <input type="password" name="password" placeholder="Access Key" value="" autocomplete="off"/>
-                    </div>
-
-                    <button type="submit" name="submit" data-action="join" disabled>
-                        <i class="fas fa-check"></i> Join Game Session
-                    </button>
-                {{/if}}
-
-                {{#if auths.oauth.discord.enabled}}
-                    <button type="button" name="oauth-discord">
-                        <i class="fab fa-discord"></i> Login with Discord
-                    </button>
-                {{/if}}
+                {{#each auths}}
+                    {{> (partial @key) . }}
+                {{/each}}
             </form>
 
             <form id="shutdown" class="app" autocomplete="off">
@@ -94,33 +70,4 @@
         }
     }, {once: true, passive: true});
 
-    (function() {
-        Hooks.on('oauth-discord', async (access_token, refresh_token, popup_window) => {
-            localStorage.setItem('oauth.discord.access_token', access_token);
-            localStorage.setItem('oauth.discord.refresh_token', refresh_token);
-            popup_window.close();
-            window.location.href = getRoute("game");
-        });
-
-        $('button[name="oauth-discord"]').click(function (event) {
-            event.preventDefault();
-
-            const width = 500;
-            const height = 750;
-
-            const screenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
-            const screenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
-            const screenWidth = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
-            const screenHeight = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
-
-            const left = (screenWidth - width) / 2 + screenLeft
-            const top = (screenHeight - height) / 2 + screenTop
-
-            window.open(
-                    "https://discord.com/api/oauth2/authorize?client_id={{auths.oauth.discord.client_id}}&redirect_uri={{auths.oauth.discord.redirect_uri}}&response_type=code&scope={{auths.oauth.discord.scopes}}",
-                    "Authorization",
-                    `width=${width},height=${height},top=${top},left=${left}`
-            );
-        });
-    })();
 </script>

@@ -1,4 +1,6 @@
 const fetch = require("node-fetch");
+const path = require("path");
+const express = require("express");
 
 
 const _DEFAULTS = {
@@ -95,6 +97,19 @@ async function route_oauth_authenticate(req, resp) {
   }
 }
 
+async function route_validate(req, resp) {
+  try {
+    const access_token = req.body.access_token;
+    if(access_token) {
+      await _validateAccessToken(access_token);
+    }
+    resp.sendStatus(204);
+  } catch (e) {
+    if(e instanceof InvalidAccessTokenError) return resp.sendStatus(401);
+    resp.sendStatus(500);
+  }
+}
+
 class ExtensibleDiscordOAuthPlugin {
 
   /**
@@ -105,6 +120,18 @@ class ExtensibleDiscordOAuthPlugin {
     base.hooks.on('extensibleAuth.route_oauth_authenticate', route_oauth_authenticate);
     base.hooks.on('extensibleAuth.route_join.auths', this.configure);
     base.hooks.on('extensibleAuth.route_settings.settings', this.get_settings);
+
+    base.hooks.once('pre.express.defineRoutes', router => {
+      router.post('/oauth/discord/authenticate', route_validate);
+    });
+
+    base.hooks.once('post.express.createApp', app => {
+      app.set('views', [path.join(__dirname, 'templates', 'views')].concat(app.get('views')));
+    });
+
+    base.hooks.on('pre.express-handlebars.config', config => {
+      config.partialsDir = (config.partialsDir || []).concat([path.join(__dirname, 'templates', 'views', 'partials')])
+    });
 
     base.hooks.once('user.schema', schema => {
       schema['discord'] = {
@@ -136,7 +163,7 @@ class ExtensibleDiscordOAuthPlugin {
         redirect_uri = v ? v : _DEFAULTS.oauth.discord.redirect_uri;
       });
 
-      auths.oauth['discord'] = {
+      auths['oauth_discord'] = {
         enabled: true,
         client_id: client_id,
         redirect_uri: redirect_uri,
