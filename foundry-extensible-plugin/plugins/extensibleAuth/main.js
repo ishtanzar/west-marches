@@ -12,7 +12,7 @@ async function route_settings(req, resp) {
   let settings = [{
     module: 'foundry-extensible-auth-module',
     key: 'access_key.enabled',
-    name: 'ExtensibleAuth.AccessKkey.Enabled.Name',
+    name: 'ExtensibleAuth.AccessKey.Enabled.Name',
     scope: 'world',
     config: true,
     type: 'Boolean',
@@ -75,9 +75,9 @@ class ExtensibleAuthFoundryPlugin {
   constructor(base) {
     _extensiblePlugin = base;
 
-    _extensiblePlugin.hooks.call('pre.extensibleAuth.constructor', this);
+    base.hooks.call('pre.extensibleAuth.constructor', this);
 
-    _extensiblePlugin.hooks.once('post.express.createApp', app => {
+    base.hooks.once('post.express.createApp', app => {
       app.set('views', [path.join(__dirname, 'templates', 'views')].concat(app.get('views')));
     });
 
@@ -85,14 +85,14 @@ class ExtensibleAuthFoundryPlugin {
       config.partialsDir = (config.partialsDir || []).concat([path.join(__dirname, 'templates', 'views', 'partials')])
     });
 
-    _extensiblePlugin.hooks.once('pre.express.defineRoutes', router => {
+    base.hooks.once('pre.express.defineRoutes', router => {
       router.use('/modules/extensibleAuth', express.static(path.join(__dirname, 'foundry-extensible-auth-module'), {'redirect': false}));
       router.get('/extensibleAuth/settings', route_settings);
       router.get('/oauth/authenticate/:service', route_oauth_authenticate);
       router.get('/join', route_join);
     });
 
-    _extensiblePlugin.hooks.on('post.world.constructor', async world => {
+    base.hooks.on('post.world.constructor', async world => {
       world.modules.push({
         "data": {
           "name": "foundry-extensible-auth-module",
@@ -117,7 +117,7 @@ class ExtensibleAuthFoundryPlugin {
 
     });
 
-    _extensiblePlugin.hooks.once('post.world.setup', async world => {
+    base.hooks.once('post.world.setup', async world => {
       const {paths} = global;
       const {Setting} = require(path.join(paths.code, 'database', 'documents', 'settings'));
       const moduleConfiguration = await Setting.get('core.moduleConfiguration');
@@ -127,7 +127,7 @@ class ExtensibleAuthFoundryPlugin {
         await Setting.set('core.moduleConfiguration', moduleConfiguration);
       }
     });
-    _extensiblePlugin.hooks.call('post.extensibleAuth.constructor', this);
+    base.hooks.call('post.extensibleAuth.constructor', this);
   }
 }
 

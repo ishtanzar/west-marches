@@ -1,7 +1,5 @@
-const fetch = require("node-fetch");
-const path = require("path");
-const express = require("express");
-
+const fetch = require('node-fetch');
+const path = require('path');
 
 const _DEFAULTS = {
   oauth: {
@@ -70,13 +68,13 @@ async function route_oauth_authenticate(req, resp) {
       }
 
       user.update({
-        'discord': discord,
-        'auth': {
-          'discord': {
-            'access_token': oauthData.access_token,
-            'refresh_token': oauthData.refresh_token,
-            'expires_in': oauthData.expires_in,
-            'logging_date': Date.now()
+        discord: discord,
+        auth: {
+          discord: {
+            access_token: oauthData.access_token,
+            refresh_token: oauthData.refresh_token,
+            expires_in: oauthData.expires_in,
+            logging_date: Date.now()
           }
         }
       }).save();
@@ -87,26 +85,13 @@ async function route_oauth_authenticate(req, resp) {
 
       logger.info('User\x20authentication\x20successful\x20for\x20user\x20' + user.name);
       resp.render('oauth-discord', {
-        'access_token': oauthData.access_token,
-        'refresh_token': oauthData.refresh_token,
+        access_token: oauthData.access_token,
+        refresh_token: oauthData.refresh_token,
       });
     } else {
       logger.warn('Failed to authenticate user: ' + await oauthResult.text())
       resp.status(oauthResult.status).send('Failed to authenticate, please contact a site admin.');
     }
-  }
-}
-
-async function route_validate(req, resp) {
-  try {
-    const access_token = req.body.access_token;
-    if(access_token) {
-      await _validateAccessToken(access_token);
-    }
-    resp.sendStatus(204);
-  } catch (e) {
-    if(e instanceof InvalidAccessTokenError) return resp.sendStatus(401);
-    resp.sendStatus(500);
   }
 }
 
@@ -120,10 +105,6 @@ class ExtensibleDiscordOAuthPlugin {
     base.hooks.on('extensibleAuth.route_oauth_authenticate', route_oauth_authenticate);
     base.hooks.on('extensibleAuth.route_join.auths', this.configure);
     base.hooks.on('extensibleAuth.route_settings.settings', this.get_settings);
-
-    base.hooks.once('pre.express.defineRoutes', router => {
-      router.post('/oauth/discord/authenticate', route_validate);
-    });
 
     base.hooks.once('post.express.createApp', app => {
       app.set('views', [path.join(__dirname, 'templates', 'views')].concat(app.get('views')));

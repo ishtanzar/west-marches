@@ -158,7 +158,7 @@ class ExtensibleFoundryPlugin {
     const {overrideRequire} = global;
 
     // TODO: dynamic plugin list
-    for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord']) {
+    for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt']) {
       const cls = require(path.join(pluginsPath, plugin, 'main'));
       this._plugins.push(new cls(this._instance));
     }
@@ -181,7 +181,7 @@ function initialize(argv, paths, startupMessages) {
   logger = createVTTLogger(paths, []);
 
   //TODO: configuration file
-  ExtensibleFoundryPlugin.initialize(path.join('..', 'plugins'));
+  ExtensibleFoundryPlugin.initialize(path.join('..', '..', 'plugins'));
   foundry_init(argv, paths, startupMessages);
 }
 

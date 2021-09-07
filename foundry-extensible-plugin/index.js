@@ -6,12 +6,13 @@ const overrideRequire = require('override-require');
 class RequireOverride {
   static _path = path.join(__dirname, 'override');
   static _overrides = {
-    '^init$': 'init',
-    '^\..*\/express$': 'express',
+    '^init$': 'dist/init',
+    '^\..*\/express$': 'dist/express',
+    '^\..*\/auth': 'dist/auth',
+    '^\..*\/views': 'dist/views',
+    '^\..*\/world': 'dist/world',
+    '^\..*\/entities/user': 'dist/user',
     '^express-handlebars$': 'express-handlebars',
-    '^\..*\/views': 'views',
-    '^\..*\/world': 'world',
-    '^\..*\/entities/user': 'user',
   };
 
   static add_overrides(overrides) {
@@ -25,7 +26,9 @@ class RequireOverride {
   }
 
   static check(request, parent) {
-    return parent && ![__dirname, RequireOverride._path].includes(parent.path) &&
+    return parent &&
+      !parent.path.match(new RegExp(__dirname)) &&
+      !parent.path.match(new RegExp(RequireOverride._path)) &&
       !parent.path.match(/node_modules/) &&
       Object.keys(RequireOverride.overrides).find(override => RequireOverride.isOverrideRequestMatch(request, override));
   }
