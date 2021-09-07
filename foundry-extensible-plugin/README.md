@@ -3,15 +3,28 @@
 ### What's that about
 
 This extensible plugin aims at providing Foundry community a way to extend on the server side.
-Foundry has an awesome way of plugins to support many RPG systems, various modules, etc; but when it comes to server-side changes like authentication mecanisms, static pages, integrations, there's no documented API nor easy ways to do it.
+Foundry has an awesome way of plugins to support many RPG systems, various modules, etc; but when it comes to 
+server-side changes like authentication mecanisms, static pages, integrations, there's no documented API nor easy ways to do it.
 
 ### Usage
 
-This plugin leverages node's --require option to run at startup and the override-require package to override Foundry classes with hooks.
+This plugin leverages [node's --require](https://nodejs.org/api/cli.html#cli_r_require_module) option to run at startup 
+and the [override-require](https://www.npmjs.com/package/override-require) package to override Foundry classes with hooks.
 The base plugin comes with a set of basic plugins as examples (api, metrics, extensibleOAuth).
 
-Also, you need to install some NPM packages that or required for either the base plugin or the additional plugins.
-The easiest way to handle this is to use a Docker image
+Also, you need to install [some NPM packages](package.json) that or required for either the base plugin or the additional plugins.
+The easiest way to handle this is to use a Docker image:
+
+```dockerfile
+FROM felddy/foundryvtt:0.7.9
+
+RUN npm install \
+    prom-client@^13.1.0 \
+    override-require@^1.1.1 \
+    express-handlebars@^5.2.0 \
+    jsonwebtoken@^8.5.1 \
+    cookie@^0.4.1
+```
 
 ### Plugin development
 
@@ -67,6 +80,16 @@ class MyPlugin {
 
 module.exports = MyPlugin;
 ```
+
+Some available hooks:
+* post.auth.authenticateUser
+* post.express.createApp - used to add directories with views
+* pre.express.defineRoutes - used to define custom routes
+* post.user.schema
+* pre.views.home
+* post.views.home
+* post.world.constructor
+* post.world.setup
 
 ## Licensing
 
