@@ -1,0 +1,21 @@
+{
+  "name": "foundry-extensible-plugin",
+  "title": "Foundry Extensible Plugin",
+  "description": "This extensible plugin aims at providing Foundry community a way to extend on the server side",
+  "author": "ishtanzar",
+  "version": "1.0.0",
+  "url": "https://github.com/ishtanzar/west-marches/tree/main/foundry-extensible-plugin",
+  "license": "https://github.com/ishtanzar/west-marches/blob/main/foundry-extensible-plugin/LICENSE",
+  "readme": "https://github.com/ishtanzar/west-marches/blob/main/foundry-extensible-plugin/README.md",
+  "bugs": "https://github.com/ishtanzar/west-marches/issues",
+  "changelog": "https://github.com/ishtanzar/west-marches/blob/main/foundry-extensible-plugin/CHANGELOG.md",
+  "minimumCoreVersion": "0.7.9",
+  "compatibleCoreVersion": "0.7.9",
+  "scripts": [],
+  "esmodules": [],
+  "styles": [],
+  "languages": [],
+  "system": [],
+  "dependencies": [],
+  "packs": []
+}
