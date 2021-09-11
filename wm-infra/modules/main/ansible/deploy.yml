@@ -1,6 +1,7 @@
 
 - name: Pre-tasks
   hosts: all
+  gather_facts: no
   pre_tasks:
     - assert:
         that:
@@ -19,6 +20,12 @@
           - lookup('env', 'BACKUP_S3_BUCKET')
           - lookup('env', 'BACKUP_S3_ENDPOINT')
           - lookup('env', 'FOUNDRY_ADMIN_KEY')
+    - ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        delay: 10
+      delegate_to: localhost
+    - ansible.builtin.setup:
   roles:
     - base-system
     - docker
