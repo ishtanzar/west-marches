@@ -1,0 +1,76 @@
+name: wm-manager-api
+
+on:
+  push:
+    paths:
+      - .github/workflows/wm-manager-api.yml
+      - wm-manager-api/**
+    branches:
+      - main
+    tags:
+      - 'releases/wm-manager-api/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Docker tag
+        id: docker_tag
+        run: echo ::set-output name=DOCKER_TAG::${GITHUB_REF/refs\/tags\/releases\/wm-manager-api\/v/}
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        if: contains(github.ref, 'refs/tags')
+        with:
+          context: ./wm-manager-api
+          file: ./wm-manager-api/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-manager-api:${{ steps.docker_tag.outputs.DOCKER_TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+      
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        if: contains(github.ref, 'refs/heads') && !contains(github.ref, 'main')
+        with:
+          context: ./wm-manager-api
+          file: ./wm-manager-api/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-manager-api:${GITHUB_REF/refs\/heads\//}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+      
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        if: contains(github.ref, 'main')
+        with:
+          context: ./wm-manager-api
+          file: ./wm-manager-api/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-manager-api:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
