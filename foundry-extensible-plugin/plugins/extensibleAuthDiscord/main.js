@@ -55,16 +55,12 @@ async function route_oauth_authenticate(req, resp) {
 
       const user = await db.User.findOne({ $or: [{'name': discord.username}, {'discord.id': discord.id}] });
       if (user === null) {
-        resp.status(403);
-        // return {'request': 'join', 'status': "failed", 'error': "The requested User ID " + userid + " does not exist."};
+        logger.warn(`No such user: ${discord.username}/${discord.id}`)
+        return resp.status(403).send('Failed to authenticate, please contact a site admin.');
       }
       if (user.role === 0) {
-        resp.status(403);
-        // return {
-        //   'request': "join",
-        //   'status': "failed",
-        //   'error': "User " + user.name + " does not have permission to access this World."
-        // };
+        logger.warn(`User: ${discord.username}/${discord.id} does not have permission to access this World.`)
+        return resp.status(403).send('Failed to authenticate, please contact a site admin.');
       }
 
       user.update({
@@ -114,7 +110,7 @@ class ExtensibleDiscordOAuthPlugin {
       config.partialsDir = (config.partialsDir || []).concat([path.join(__dirname, 'templates', 'views', 'partials')])
     });
 
-    base.hooks.once('user.schema', schema => {
+    base.hooks.on('post.user.schema', schema => {
       schema['discord'] = {
         'type': Object,
         'required': !![],
@@ -138,16 +134,12 @@ class ExtensibleDiscordOAuthPlugin {
 
     if(await db.Setting.get('foundry-extensible-auth-module.oauth.discord.enabled')) {
       const client_id = await db.Setting.get('foundry-extensible-auth-module.oauth.discord.clientId');
-      let redirect_uri = null;
-
-      db.Setting.get('foundry-extensible-auth-module.oauth.discord.redirectUri').then(v => {
-        redirect_uri = v ? v : _DEFAULTS.oauth.discord.redirect_uri;
-      });
+      let redirect_uri = await db.Setting.get('foundry-extensible-auth-module.oauth.discord.redirectUri');
 
       auths['oauth_discord'] = {
         enabled: true,
         client_id: client_id,
-        redirect_uri: redirect_uri,
+        redirect_uri: redirect_uri ? redirect_uri : _DEFAULTS.oauth.discord.redirect_uri,
         scopes: 'identify',
       }
     }
