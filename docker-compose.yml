@@ -45,8 +45,9 @@ services:
       - ./wm-infra/deploy/local/data/foundry/Data:/data/Data
       - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
       - foundry-logs:/data/Logs
-      - ./wm-backend-plugin:/home/foundry/resources/wm-backend-plugin
-    command: ["--require", "/home/foundry/resources/wm-backend-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
+      - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin
+      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module
+    command: ["--require", "/home/foundry/resources/foundry-extensible-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
     ports:
       - "30000:30000"
   manager_api:

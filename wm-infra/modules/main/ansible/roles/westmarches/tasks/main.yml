@@ -28,10 +28,10 @@
 
 - name: Upload backend-plugin
   ansible.posix.synchronize:
-    src: "{{ playbook_dir }}/../../../../wm-backend-plugin/"
-    dest: "{{ westmarches_data_path }}/wm-backend-plugin"
+    src: "{{ playbook_dir }}/../../../../foundry-extensible-plugin/"
+    dest: "{{ westmarches_data_path }}/foundry-extensible-plugin"
     rsync_opts:
-      - "--exclude=wm-backend-plugin/node_modules/* --exclude=wm-backend-plugin/package-lock.json"
+      - "--exclude=foundry-extensible-plugin/node_modules/* --exclude=foundry-extensible-plugin/package-lock.json"
 
 - name: Upload grafana dashboards
   ansible.builtin.copy:
