@@ -1,20 +1,28 @@
 'use strict';
 
+const User = require('../../override/dist/user');
 
 class Users {
 
   async create(req, resp) {
-    const {paths} = global;
-    const User = require(paths.code + '/database/entities/user');
-
     const name = req.body.name;
     const role = req.body.role;
+    const {extensibleFoundry} = global;
 
     if(name) {
       try {
-        const user = await User.create({name: name, role: role ? role : 1});
-        await user.save();
-        resp.send({'user_id': user._id});
+        let user = await User.findOne({ name: name });
+        if(user) {
+          resp.send({'user_id': user._id});
+        } else {
+          const user_data = {name: name, role: role ? role : 1};
+          extensibleFoundry.hooks.call('pre.api.user.create', req, resp, user_data);
+
+          user = User.create(user_data);
+          await user.save();
+
+          resp.send({'user_id': user._id});
+        }
       } catch (ex) {
         resp.status(500).send(ex.toString());
       }
@@ -24,9 +32,6 @@ class Users {
   }
 
   async update(req, resp) {
-    const {paths} = global;
-    const User = require(paths.code + '/database/entities/user');
-
     const userId = req.params.userId;
 
     try {

@@ -127,6 +127,10 @@ class ExtensibleDiscordOAuthPlugin {
         'validationError': 'Invalid auth object structure'
       }
     });
+
+    base.hooks.on('pre.api.user.create', (req, resp, user_data) => {
+      user_data['discord'] = req.body.discord || {};
+    });
   }
 
   async configure(auths) {
