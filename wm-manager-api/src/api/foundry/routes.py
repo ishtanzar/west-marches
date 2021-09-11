@@ -27,7 +27,9 @@ async def foundry_actors():
 async def foundry_users_add(user):
     json_request = await request.json
     name = json_request['name']
-    user_id = app.foundryvtt.add_user(name)
+    discord = json_request['discord']
+
+    user_id = app.foundryvtt.add_user(name, discord)
 
     return {
         'user_id': user_id

@@ -21,9 +21,10 @@ class FoundryService:
         with smart_open.open('%s/api/actors' % self._endpoint) as fp:
             return json.load(fp)
 
-    def add_user(self, name: str):
+    def add_user(self, name: str, discord: Optional[object] = None):
         resp: requests.Response = requests.post('%s/api/users' % self._endpoint, json={
-            'name': name
+            'name': name,
+            'discord': discord
         })
 
         if resp.status_code >= 400:
