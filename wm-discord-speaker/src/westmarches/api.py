@@ -82,6 +82,27 @@ class FoundryApi(AbstractApi):
         resp = await self._client.get('/foundry/actors')
         return resp.json()
 
+    async def users(self, filter: Optional[object] = None):
+        resp = await self._client.get('/foundry/users', params=filter)
+        return resp.json()
+
+    async def users_add(self, name, discord: Optional[object] = None) -> str:
+        resp = await self._client.post('/foundry/users', json={
+            'name': name,
+            'discord': discord
+        })
+        return resp.json()
+
+    async def users_update(self, user_id, name: Optional[str] = None, role: Optional[int] = None) -> str:
+        body = {}
+        if name:
+            body['name'] = name
+        if role:
+            body['role'] = role
+
+        resp = await self._client.put('/foundry/users/%s' % user_id, json=body)
+        return resp.json()
+
 
 class SessionApi(AbstractApi):
 
@@ -120,15 +141,19 @@ class WestMarchesApiClient:
         self._foundry = FoundryApi(self)
         self._intents = IntentsApi(self)
 
-    async def get(self, path: str):
-        resp = requests.get(self._endpoint + path, auth=self._auth())
+    async def _request(self, method, *args, **kwargs):
+        resp = requests.request(method, auth=self._auth(), *args, **kwargs)
 
         return self.on_response(resp)
+
+    async def get(self, path: str, *args, **kwargs):
+        return await self._request('get', self._endpoint + path, *args, **kwargs)
 
     async def post(self, path: str, *args, **kwargs):
-        resp = requests.post(self._endpoint + path, auth=self._auth(), *args, **kwargs)
+        return await self._request('post', self._endpoint + path, *args, **kwargs)
 
-        return self.on_response(resp)
+    async def put(self, path: str, *args, **kwargs):
+        return await self._request('put', self._endpoint + path, *args, **kwargs)
 
     @staticmethod
     def on_response(resp: requests.Response) -> requests.Response:

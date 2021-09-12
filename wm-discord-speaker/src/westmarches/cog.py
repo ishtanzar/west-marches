@@ -46,6 +46,11 @@ class WestMarchesCog(commands.Commands,
             "foundry.roster.intro": "*%s déroule une feuille de parchemin vierge sur la table entre vous et pose une "
                                     "pierre dont émane une étrange aura magique. Alors que la pierre touche le "
                                     "parchemin, une étrange liste de noms apparaît.*",
+            "foundry.roster.search.class": "Parmis les aventuriers qui viennent ici, voici les %s que je connais : %s",
+
+            "foundry.player.add.done": "Bienvenue parmis nous %s. Puisses-tu survivre longtemps sur ces terres gelées.",
+            "foundry.player.toggle_gm.activate": "%s est maintenant MJ.",
+            "foundry.player.toggle_gm.deactivate": "%s n'est plus MJ.",
         }
     }
 
