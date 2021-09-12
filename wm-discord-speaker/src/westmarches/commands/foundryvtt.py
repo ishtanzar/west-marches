@@ -37,15 +37,15 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_foundry.command(name="heroes")
     async def heroes_list(self, ctx: commands.Context):
-        roster = await self.api_client.foundry.roster()
+        resp = await self.api_client.foundry.actors()
         grouped_roster = {}
 
-        for heroe_dict in roster['heroes']:
-            pc_race = heroe_dict['data']['details']['race']
-            pc_classes = [(c['name'], c['data']['levels']) for c in heroe_dict['items'] if 'class' == c['type']]
+        for actor in resp['actors']:
+            pc_race = actor['data']['details']['race']
+            pc_classes = [(c['name'], c['data']['levels']) for c in actor['items'] if 'class' == c['type']]
 
             pc = {
-                'name': heroe_dict['name'],
+                'name': actor['name'],
                 'race': pc_race.split(maxsplit=1)[0] if pc_race else '',
                 'class': max(pc_classes, key=itemgetter(1))[0] if pc_classes else '',
             }

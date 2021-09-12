@@ -78,8 +78,8 @@ class FoundryApi(AbstractApi):
     async def restart(self) -> None:
         await self._client.post('/foundry/restart')
 
-    async def roster(self) -> dict:
-        resp = await self._client.get('/foundry/roster')
+    async def actors(self) -> dict:
+        resp = await self._client.get('/foundry/actors')
         return resp.json()
 
 
