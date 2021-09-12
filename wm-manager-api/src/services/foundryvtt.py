@@ -1,8 +1,4 @@
-import json
-from typing import Optional
-
 import requests
-import smart_open
 
 from utils import get_logger
 
@@ -17,27 +13,20 @@ class FoundryService:
         self.log = get_logger(self)
         self._endpoint = endpoint
 
-    def find_actors(self):
-        with smart_open.open('%s/api/actors' % self._endpoint) as fp:
-            return json.load(fp)
-
-    def add_user(self, name: str, discord: Optional[object] = None):
-        resp: requests.Response = requests.post('%s/api/users' % self._endpoint, json={
-            'name': name,
-            'discord': discord
-        })
+    def _request(self, method, url, **kwargs) -> requests.Response:
+        resp: requests.Response = requests.request(method, url, **kwargs)
 
         if resp.status_code >= 400:
-            self.log.warning('Failed to create user', extra={'status_code': resp.status_code, 'response': resp})
+            self.log.warning('Failed to get %s', url,
+                             extra={'status_code': resp.status_code, 'response': resp})
 
-        resp_json = resp.json()
-        return resp_json['user_id']
+        return resp
 
-    def update_user(self, user_id: str, name: Optional[str] = None, role: Optional[int] = None):
-        resp: requests.Response = requests.put('%s/api/users/%s' % (self._endpoint, user_id), json={
-            'name': name,
-            'role': role
-        })
+    def get(self, path, **kwargs) -> requests.Response:
+        return self._request('get', self._endpoint + path, **kwargs)
 
-        if resp.status_code >= 400:
-            self.log.warning('Failed to update user', extra={'status_code': resp.status_code, 'response': resp})
+    def post(self, path, **kwargs) -> requests.Response:
+        return self._request('post', self._endpoint + path, **kwargs)
+
+    def put(self, path, **kwargs) -> requests.Response:
+        return self._request('put', self._endpoint + path, **kwargs)

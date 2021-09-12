@@ -19,30 +19,23 @@ async def restart(user):
 
 @app.route('/foundry/actors')
 async def foundry_actors():
-    return app.foundryvtt.find_actors()
+    return app.foundryvtt.get('/api/actors').json()
+
+
+@app.route('/foundry/users')
+@app.auth.required
+async def foundry_users(user):
+    return app.foundryvtt.get('/api/users', params=request.args).json()
 
 
 @app.route('/foundry/users', methods=['POST'])
 @app.auth.required
 async def foundry_users_add(user):
-    json_request = await request.json
-    name = json_request['name']
-    discord = json_request['discord']
-
-    user_id = app.foundryvtt.add_user(name, discord)
-
-    return {
-        'user_id': user_id
-    }
+    return app.foundryvtt.post('/api/users', json=await request.json).json()
 
 
 @app.route('/foundry/users/<user_id>', methods=['PUT'])
+@app.auth.required
 async def foundry_users_update(user, user_id):
-    json_request = await request.json
-
-    name = json_request['name'] if 'name' in json_request else None
-    role = json_request['role'] if 'role' in json_request else None
-
-    app.foundryvtt.update_user(user_id, name, role)
-
-    return 'Done', 204
+    body = await request.json
+    return app.foundryvtt.put('/api/users/%s' % user_id, json=body).json()
