@@ -3,3 +3,5 @@ all:
     ansible_ssh_user: root
     telegraf_agent_version: 2.0.7
     foundry_docker_image: ishtanzar/wm-docker-foundry:1.0.0
+    manager_api_docker_image: ishtanzar/wm-manager-api:0.6.0
+    foundry_extensible_plugin_version: 1.1.0
