@@ -17,7 +17,7 @@ class ApiPlugin {
       router.get('/api/actors', foundryActors.get);
       router.get('/api/users', foundryUsers.get);
       router.post('/api/users', foundryUsers.create);
-      router.put('api/users/:userId', foundryUsers.update);
+      router.put('/api/users/:userId', foundryUsers.update);
     });
   }
 }
