@@ -15,6 +15,7 @@ class ApiPlugin {
 
     base.hooks.on('pre.express.defineRoutes', router => {
       router.get('/api/actors', foundryActors.get);
+      router.get('/api/users', foundryUsers.get);
       router.post('/api/users', foundryUsers.create);
       router.put('api/users/:userId', foundryUsers.update);
     });

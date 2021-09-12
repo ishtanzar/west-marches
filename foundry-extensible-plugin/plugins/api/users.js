@@ -4,6 +4,31 @@ const User = require('../../override/dist/user');
 
 class Users {
 
+  async get(req, resp) {
+    const {extensibleFoundry} = global;
+    const vars = {
+      req: req,
+      resp: resp,
+      filter: req.query,
+      projection: { password: 0, auth: 0 },
+      users: []
+    };
+
+    await extensibleFoundry.hooks.callAsync('pre.api.user.get', vars);
+
+    // Foundry's Users.find doesn't consider projections so we need to tap in NeDB API
+    vars.users = await new Promise((resolve, reject) => {
+      User.db.find(vars.filter, vars.projection).exec((err, docs) => {
+        if(err) { reject(err) }
+        return resolve(docs);
+      });
+    })
+
+    await extensibleFoundry.hooks.callAsync('post.api.user.get', vars);
+
+    resp.send({ users: vars.users });
+  }
+
   async create(req, resp) {
     const name = req.body.name;
     const role = req.body.role;
