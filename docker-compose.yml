@@ -47,7 +47,7 @@ services:
       - foundry-logs:/data/Logs
       - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin
       - ./wm-foundry-module:/data/Data/modules/wm-foundry-module
-    command: ["--require", "/home/foundry/resources/foundry-extensible-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
+    command: ["--require=/home/foundry/resources/foundry-extensible-plugin", "--inspect=0.0.0.0:9229", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
     ports:
       - "30000:30000"
   manager_api:
@@ -94,6 +94,14 @@ services:
       - LOGGING_CONFIG=/opt/discordbot-logging.yml
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
     command: ["redbot", "westmarches", "--mentionable", "--token=${DISCORD_BOT_SECRET}", "--prefix=YVwWFZyjiFQH", "--owner=${DISCORD_OWNER_ID}"]
-
+  foundry_debugger:
+    image: alpine/socat
+    links:
+      - foundry
+    ports:
+      - "9229:9229"
+    command: tcp-listen:9229,fork,reuseaddr tcp-connect:foundry:9229
+    profiles:
+      - debug
 volumes:
   foundry-logs:
