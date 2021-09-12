@@ -128,6 +128,10 @@ class ExtensibleDiscordOAuthPlugin {
       }
     });
 
+    base.hooks.on('pre.api.user.get', params => {
+      params.projection['discord.email'] = 0;
+    });
+
     base.hooks.on('pre.api.user.create', (req, resp, user_data) => {
       user_data['discord'] = req.body.discord || {};
     });
