@@ -2,9 +2,7 @@
 function selectGroup() {
   let $dropdown = $('<select id="group_tp_id"></select>');
 
-  //TODO: Add setting for folder selection
-  //CIlYFrkfmjt42rWA
-  for (const actor of game.folders.find(folder => folder.id === "SLBsewQBhjQMKyZ2").children) {
+  for (const actor of game.folders.find(folder => folder.id === game.settings.get('wm-foundry-module', 'groups.baseFolder')).children) {
     $dropdown.append($('<option value="{{value}}">{{title}}</option>'
       .replace(/{{value}}/g, actor.id)
       .replace(/{{title}}/g, actor.name)));
