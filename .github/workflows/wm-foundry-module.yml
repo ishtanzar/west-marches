@@ -1,17 +1,27 @@
 name: wm-foundry-module
 
-on: push
+on:
+  push:
+    tags:
+      - 'releases/wm-foundry-module/*'
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/releases/wm-foundry-module')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
+      - name: Github tag
+        id: github_tag
+        run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/wm-foundry-module\/v/}
+
       - name: Build
-        run: zip -r wm-foundry-module-${GITHUB_REF/refs\/tags\/releases\/wm-foundry-module\/v/}.zip wm-foundry-module/ --exclude \*.iml
+        if: contains(github.ref, 'refs/tags')
+        run: zip -r wm-foundry-module-${{ steps.docker_tag.outputs.DOCKER_TAG }}.zip wm-foundry-module/ --exclude \*.iml
+        
       - name: Release
         uses: softprops/action-gh-release@v1
+        if: contains(github.ref, 'refs/tags')
         with:
           files: wm-foundry-module-*.zip
