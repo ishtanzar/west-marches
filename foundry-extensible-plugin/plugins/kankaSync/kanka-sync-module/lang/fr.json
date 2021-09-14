@@ -1,0 +1,12 @@
+{
+  "KankaSync.Settings.KankaClientId.Name": "OAuth Client ID",
+  "KankaSync.Settings.kankaClientSecret.Name": "OAuth Secret",
+  "KankaSync.Settings.kankaRedirectUri.Name": "OAuth Redirect URI",
+  "KankaSync.Settings.JoinUrl.Name": "Lien d'invitation à la campagne",
+  "KankaSync.Chat.LoginMessage.Title": "Connexion Kanka",
+  "KankaSync.Chat.LoginMessage.Content.1": "Nous utilisons la plateforme Kanka.io pour toute l'histoire du Cairne, avec une synchronisation entre Foundry et Kanka.<br/>Le bouton ci-dessous contient une invitation pour rejoindre la campagne West Marches de la Cave et vous créer un compte si vous n'en possédez pas déjà un.",
+  "KankaSync.Chat.LoginMessage.Content.2": "Une fois que vous avez rejoint la campagne, utilisez le bouton ci-dessous pour activer la synchronisation entre votre compte Foundry et Kanka.",
+  "KankaSync.Chat.LoginMessage.Button.Join": "Rejoindre la campagne",
+  "KankaSync.Chat.LoginMessage.Button.Login": "Connecter Foundry et Kanka",
+  "": ""
+}

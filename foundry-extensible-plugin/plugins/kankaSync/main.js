@@ -100,22 +100,26 @@ class KankaSyncPlugin {
 
     base.hooks.on('post.world.constructor', async world => {
       world.modules.push({
-        "data": {
-          "name": "kanka-sync-module",
-          "title": "KankaSync",
-          "description": "A module to sync data to Kanka",
-          "author": "ishtanzar",
-          "version": "0.0.1",
-          "minimumCoreVersion": "0.7.9",
-          "esmodules": [],
+        'data': {
+          'name': 'kanka-sync-module',
+          'title': 'KankaSync',
+          'description': 'A module to sync data to Kanka',
+          'author': 'ishtanzar',
+          'version': '0.0.1',
+          'minimumCoreVersion': '0.7.9',
+          'esmodules': [],
+          'languages': [],
           'packs': [],
           'styles': [],
           'scripts': scripts.map(item => { return `./scripts/${item}` })
         },
-        "id": "kanka-sync-module",
-        "path": path.join(__dirname, 'kanka-sync-module'),
-        "esmodules": [],
-        'languages': [],
+        'id': 'kanka-sync-module',
+        'path': path.join(__dirname, 'kanka-sync-module'),
+        'esmodules': [],
+        'languages': [
+          { 'lang': 'en', 'name': 'English', 'path': 'modules/kankaSync/lang/en.json' },
+          { 'lang': 'fr', 'name': 'Français (French)', 'path': 'modules/kankaSync/lang/fr.json' },
+        ],
         'packs': [],
         'styles': [],
         'scripts': scripts.map(item => { return `modules/kankaSync/scripts/${item}.js` })

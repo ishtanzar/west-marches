@@ -1,0 +1,12 @@
+{
+  "KankaSync.Settings.KankaClientId.Name": "OAuth Client ID",
+  "KankaSync.Settings.kankaClientSecret.Name": "OAuth Secret",
+  "KankaSync.Settings.kankaRedirectUri.Name": "OAuth Redirect URI",
+  "KankaSync.Settings.JoinUrl.Name": "Campaign invite link",
+  "KankaSync.Chat.LoginMessage.Title": "Kanka Login",
+  "KankaSync.Chat.LoginMessage.Content.1": "Click on the following button to join the campaign (and create an account if you don't already have one).",
+  "KankaSync.Chat.LoginMessage.Content.2": "Activate Foundry/Kanka sync.",
+  "KankaSync.Chat.LoginMessage.Button.Join": "Join the campaign",
+  "KankaSync.Chat.LoginMessage.Button.Login": "Login with Kanka",
+  "": ""
+}

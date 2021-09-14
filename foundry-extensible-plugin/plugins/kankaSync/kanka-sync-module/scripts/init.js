@@ -51,19 +51,32 @@ class Kanka {
 
   async sendLoginMessage() {
     const chatMessage = new ChatMessage({
-      speaker: {alias: 'Login to Kanka'},
-      content: '<p>In order to correctly sync your character sheet, journal and\n' +
-        '    fetch information from our Kanka campaign, please log in:</p>\n' +
-        '<div>\n' +
-        '    <button id="kanka-login">\n' +
-        '        <img src="modules/kankaSync/images/kanka.png" style="border: 0; width: auto; height: 1em; vertical-align: middle;"/>\n' +
-        '        Login with Kanka\n' +
-        '    </button>\n' +
+      speaker: {alias: ame.i18n.localize("KankaSync.Chat.LoginMessage.Title")},
+      content: `<p>${game.i18n.localize("KankaSync.Chat.LoginMessage.Content.1")}</p>` +
+        '<div>' +
+        '    <button id="kanka-join">' +
+        `        ${game.i18n.localize("KankaSync.Chat.LoginMessage.Button.Join")}` +
+        '    </button>' +
+        '</div>' +
+        `<p>${game.i18n.localize("KankaSync.Chat.LoginMessage.Content.2")}</p>` +
+        '<div>' +
+        '    <button id="kanka-login">' +
+        '        <img alt="kanka icon" src="modules/kankaSync/images/kanka.png" style="border: 0; width: auto; height: 1em; vertical-align: middle;"/>' +
+        `        ${game.i18n.localize("KankaSync.Chat.LoginMessage.Button.Login")}` +
+        '    </button>' +
         '</div>',
       whisper: [],
       timestamp: Date.now()
     });
     await ui.chat.postOne(chatMessage);
+
+    $('#kanka-join').click( event => {
+      event.preventDefault();
+      window.open(
+        game.settings.get('kanka-sync-module', 'url.invite'),
+        '_blank'
+      );
+    });
 
     $('#kanka-login').click( event => {
       event.preventDefault();
@@ -103,6 +116,10 @@ class Kanka {
         name: 'KankaSync.Settings.kankaRedirectUri.Name',
         value: 'oauth.redirectUri',
         default: 'http://localhost:30000/oauth/authenticate/kanka'
+      },
+      {
+        name: 'KankaSync.Settings.JoinUrl.Name',
+        value: 'url.invite',
       },
     ];
 
