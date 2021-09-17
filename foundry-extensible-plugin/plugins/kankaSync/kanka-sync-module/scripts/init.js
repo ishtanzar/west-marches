@@ -32,14 +32,17 @@ class Kanka {
   setupHooks() {
     Hooks.once('ready', async () => {
       const user = game.users.current;
-      _access_token = user.data.auth.kanka.access_token;
-      const _refresh_token = user.data.auth.kanka.refresh_token;
 
-      if(_access_token && await this.validateToken(_access_token, _refresh_token)) {
-        //TODO
-      } else {
-        await this.sendLoginMessage();
+      if(user.data.auth.kanka) {
+        _access_token = user.data.auth.kanka.access_token;
+        const _refresh_token = user.data.auth.kanka.refresh_token;
+        if(_access_token && await this.validateToken(_access_token, _refresh_token)) {
+          //TODO
+          return;
+        }
       }
+
+      await this.sendLoginMessage();
     });
 
     Hooks.on('kanka-oauth', async (access_token, popup_window) => {
@@ -51,7 +54,7 @@ class Kanka {
 
   async sendLoginMessage() {
     const chatMessage = new ChatMessage({
-      speaker: {alias: ame.i18n.localize("KankaSync.Chat.LoginMessage.Title")},
+      speaker: {alias: game.i18n.localize("KankaSync.Chat.LoginMessage.Title")},
       content: `<p>${game.i18n.localize("KankaSync.Chat.LoginMessage.Content.1")}</p>` +
         '<div>' +
         '    <button id="kanka-join">' +
