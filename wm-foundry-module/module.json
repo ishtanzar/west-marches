@@ -11,15 +11,11 @@
     "./scripts/init.js",
     "./scripts/ui.js",
     "./scripts/controls.js",
-    "./scripts/discord.js",
-    "./scripts/kanka.js"
+    "./scripts/settings.js"
   ],
   "styles": ["styles/wm-player-journal.css"],
   "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "languages/en.json"
-    }
+    { "lang": "en", "name": "English", "path": "languages/en.json" },
+    { "lang": "fr", "name": "Français (French)", "path": "languages/fr.json" }
   ]
 }
