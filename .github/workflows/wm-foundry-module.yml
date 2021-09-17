@@ -18,7 +18,7 @@ jobs:
 
       - name: Build
         if: contains(github.ref, 'refs/tags')
-        run: zip -r wm-foundry-module-${{ steps.docker_tag.outputs.DOCKER_TAG }}.zip wm-foundry-module/ --exclude \*.iml
+        run: zip -r wm-foundry-module-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip wm-foundry-module/ --exclude \*.iml
         
       - name: Release
         uses: softprops/action-gh-release@v1
