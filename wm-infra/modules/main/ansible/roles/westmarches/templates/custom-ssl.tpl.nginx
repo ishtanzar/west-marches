@@ -63,6 +63,10 @@ server {
     proxy_pass http://grafana:3000;
   }
 
+  location /5etools {
+    root /opt/data;
+  }
+
   location / {
     proxy_pass http://foundry:30000;
 

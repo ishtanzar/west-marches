@@ -61,6 +61,7 @@ services:
       - "{{ westmarches_data_path }}/nginx-ssl.conf:/etc/nginx/02-ssl.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-entrypoint.sh:/docker-entrypoint.d/ssl-config.sh:ro"
       - "/etc/letsencrypt:/etc/letsencrypt:ro"
+      - "/opt/data/5etools:/opt/data/5etools:ro"
       - "/opt/data/www:/usr/share/nginx/html:rw"
     links:
       - foundry
