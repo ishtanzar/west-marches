@@ -158,7 +158,7 @@ class ExtensibleFoundryPlugin {
     const {overrideRequire} = global;
 
     // TODO: dynamic plugin list
-    for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync']) {
+    for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
       const cls = require(path.join(pluginsPath, plugin, 'main'));
       this._plugins.push(new cls(this._instance));
     }
