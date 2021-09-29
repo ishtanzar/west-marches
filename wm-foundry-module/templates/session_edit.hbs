@@ -1,0 +1,44 @@
+<form autocomplete="off" class="flexcol">
+    <div class="flexrow" style="flex-grow: 20">
+        <div class="flex2 flexcol">
+            <div class="flex1">
+                <div class="form-group">
+                    <div class="form-fields">
+                        <input name="name" type="text" value="{{entity.name}}" placeholder="Entry Name"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-fields">
+                        <input name="date" class="flex1" type="date" value="{{entity.date}}" placeholder="Session date"/>
+                    </div>
+                </div>
+<!--                <div class="form-group">-->
+<!--                    <div class="form-fields">-->
+<!--                        <input name="game_date" class="flex1" type="text" value="{{entity.game_date}}" placeholder="In-Game starting date"/>-->
+<!--                        <input name="game_duration" class="flex1" type="text" value="{{entity.game_duration}}" placeholder="In-Game duration"/>-->
+<!--                    </div>-->
+<!--                </div>-->
+            </div>
+            <div style="flex-grow: 20">
+                {{editor content=entity.content target="content" button=true editable=true owner=true}}
+            </div>
+        </div>
+        <div class="flex1 sidebar-tab">
+            <ol class="directory-list" style="margin-left: 10px">
+                {{#each entity.actors}}
+                    <li class="directory-item entity actor flexrow" style="border: 0">
+                        <img class="profile actor-profile" title="{{this.name}}" src="{{this.img}}">
+                        <h4 class="entity-name"><a>{{this.name}}</a></h4>
+                    </li>
+                {{/each}}
+            </ol>
+        </div>
+    </div>
+    <div class="controls flexrow flex1" style="margin-top: 5px">
+        <button type="button" name="book" data-action="book"><i class="fas fa-feather-alt"></i>Réserver une table</button>
+        <button type="button" name="start" data-action="start"><i class="fas fa-feather-alt"></i>Démarrer la session</button>
+        <button type="button" name="end" data-action="end"><i class="fas fa-feather-alt"></i>Terminer la session</button>
+        <button type="button" name="free" data-action="free"><i class="fas fa-feather-alt"></i>Libérer la table</button>
+        <button type="submit" name="save" data-action="save"><i class="fas fa-feather-alt"></i>Enregistrer</button>
+    </div>
+</form>

@@ -1,20 +1,53 @@
 {
   "WestMarches": {
     "Settings": {
+      "Discord": {
+        "Token": "Discord auth token",
+        "Channels":  {
+          "Book": "Table-booking channel"
+        },
+        "Mentions": {
+          "Organizers": "Organizers mention"
+        }
+      },
+      "Folders": {
+        "Groups.Name": "Base folder of groups",
+        "PCs.Name": "Base folder of PCs"
+      }
     },
     "Controls": {
       "Journal": "My Journal",
       "Group": "WestMarches",
-      "TP_Group": "Pull group to scene"
+      "TP_Group": "Pull group to scene",
+      "Sessions_Manager": "Manage sessions"
     },
     "Group_Teleport": {
-      "Controls": {
-        "Pull_Button": "Pull Group to scene"
-      },
       "Dialog": {
         "Title": "Pull Group to Scene",
         "Buttons": {
           "Ok": "Pull"
+        }
+      }
+    },
+    "Session_Manager": {
+      "Dialogs": {
+        "Group_Dismiss": {
+          "Title": "Dismiss group",
+          "Buttons": {
+            "Ok": "Dismiss",
+            "Cancel": "Do not dismiss"
+          }
+        },
+        "Group_Select": {
+          "Buttons": {
+            "Ok": "Select"
+          }
+        },
+        "Message": {
+          "Title": "Send a discord message",
+          "Buttons": {
+            "Ok": "Send"
+          }
         }
       }
     }

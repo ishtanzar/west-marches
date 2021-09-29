@@ -1,3 +1,7 @@
 .player-journal .editor-content {
     min-height: 415px;
 }
+
+.session-editor form .editor,  .session-editor form .editor-content {
+    height: 100%;
+}

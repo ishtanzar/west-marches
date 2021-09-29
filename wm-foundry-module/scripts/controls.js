@@ -1,5 +1,5 @@
 
-import {PlayerJournal, dialogGroupTeleport} from "./ui.js";
+import {PlayerJournal, dialogGroupTeleport, SessionManager} from "./ui.js";
 
 class WestMarchesLayer extends CanvasLayer {
 
@@ -8,6 +8,7 @@ class WestMarchesLayer extends CanvasLayer {
 
     Hooks.on('getSceneControlButtons', controls => {
       const isGM = game.user.isGM;
+      const sessionManager = new SessionManager();
       wmLayer.deactivate();
 
       if(isGM) {
@@ -25,7 +26,14 @@ class WestMarchesLayer extends CanvasLayer {
                 icon: "fas fa-directions fa-fw",
                 button: true,
                 onClick: dialogGroupTeleport
-              }
+              },
+              {
+                name: "session_manager",
+                title: "WestMarches.Controls.Sessions_Manager",
+                icon: "fab fa-d-and-d",
+                button: true,
+                onClick: async => sessionManager.render(true)
+              },
             ]
           });
       }
