@@ -1,6 +1,6 @@
 'use strict';
 
-const User = require('../../override/dist/user');
+const User = require('../../override/dist/database/entities/user');
 
 class Users {
 

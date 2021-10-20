@@ -10,9 +10,10 @@ class RequireOverride {
     '^\..*\/express$': 'dist/express',
     '^\..*\/auth': 'dist/auth',
     '^\..*\/views': 'dist/views',
-    '^\..*\/world': 'dist/world',
     '^\.\/sockets': 'dist/sockets',
-    '^\..*\/entities/user': 'dist/user',
+    '^\..*\/world': 'dist/packages/world',
+    '^\..*\/entities/user': 'dist/database/entities/user',
+    '^\..*\/odm/document': 'dist/database/odm/document',
     '^express-handlebars$': 'express-handlebars',
   };
 
