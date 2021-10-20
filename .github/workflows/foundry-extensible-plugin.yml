@@ -24,17 +24,13 @@ jobs:
       - name: Build
         if: contains(github.ref, 'main')
         run: zip -r foundry-extensible-plugin-main.zip foundry-extensible-plugin/ --exclude \*.iml
-
-      - name: Build
-        if: contains(github.ref, 'refs/tags')
-        run: zip -r foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip foundry-extensible-plugin/ --exclude \*.iml
   
-      - name: 'Upload Artifact'
+      - name: Build
         uses: actions/upload-artifact@v2
         if: contains(github.ref, 'main')
         with:
           name: foundry-extensible-plugin-main.zip
-          path: foundry-extensible-plugin-main.zip
+          path: foundry-extensible-plugin
           
       - name: Release
         uses: softprops/action-gh-release@v1
