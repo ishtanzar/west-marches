@@ -1,0 +1,43 @@
+name: foundry-extensible-plugin
+
+on:
+  push:
+    paths:
+      - .github/workflows/foundry-extensible-plugin.yml
+      - foundry-extensible-plugin/*
+    branches:
+      - main
+    tags:
+      - 'releases/foundry-extensible-plugin/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Github tag
+        id: github_tag
+        run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/foundry-extensible-plugin\/v/}
+
+      - name: Build
+        if: contains(github.ref, 'main')
+        run: zip -r foundry-extensible-plugin-main.zip foundry-extensible-plugin/ --exclude \*.iml
+
+      - name: Build
+        if: contains(github.ref, 'refs/tags')
+        run: zip -r foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip foundry-extensible-plugin/ --exclude \*.iml
+  
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v2
+        if: contains(github.ref, 'main')
+        with:
+          name: foundry-extensible-plugin-main.zip
+          path: foundry-extensible-plugin-main.zip
+          
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: contains(github.ref, 'refs/tags')
+        with:
+          files: foundry-extensible-plugin-*.zip
