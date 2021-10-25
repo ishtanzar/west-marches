@@ -91,6 +91,12 @@ Some available hooks:
 * post.world.constructor
 * post.world.setup
 
+### Releasing
+
+```shell
+conventional-changelog --commit-path=foundry-extensible-plugin -p angular -t releases/foundry-extensible-plugin/v -k foundry-extensible-plugin/package.json -i foundry-extensible-plugin/CHANGELOG.md -s --config foundry-extensible-plugin/changelog-config.js
+```
+
 ## Licensing
 
 This plugin, along with all the West Marches projects, is under GPLv3

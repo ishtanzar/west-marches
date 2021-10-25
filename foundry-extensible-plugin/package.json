@@ -1,6 +1,6 @@
 {
   "name": "foundry-extensible-plugin",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "This extensible plugin aims at providing Foundry community a way to extend on the server side",
   "main": "index.js",
   "repository": {
