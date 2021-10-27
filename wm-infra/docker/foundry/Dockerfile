@@ -1,4 +1,4 @@
-FROM felddy/foundryvtt:0.7.9
+FROM felddy/foundryvtt:0.7.10_a
 
 RUN npm install \
     prom-client@^13.1.0 \
