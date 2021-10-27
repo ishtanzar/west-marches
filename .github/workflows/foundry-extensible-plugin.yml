@@ -22,9 +22,9 @@ jobs:
         run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/foundry-extensible-plugin\/v/}
 
       - name: Build
-        if: contains(github.ref, 'main')
-        run: zip -r foundry-extensible-plugin-main.zip foundry-extensible-plugin/ --exclude \*.iml
-  
+        if: contains(github.ref, 'refs/tags')
+        run: zip -r foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip foundry-extensible-plugin/ --exclude \*.iml
+
       - name: Build
         uses: actions/upload-artifact@v2
         if: contains(github.ref, 'main')
