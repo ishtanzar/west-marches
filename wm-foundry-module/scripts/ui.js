@@ -1,11 +1,21 @@
+function getRecursiveFolders(parent) {
+  const folders = [];
+
+  for(const folder of (game.folders.filter(f => f.parent?.id === parent.id) || [])) {
+    folders.push(folder);
+    folders.push(...getRecursiveFolders(folder));
+  }
+
+  return folders;
+}
 
 function selectGroup() {
   let $dropdown = $('<select id="group_tp_id"></select>');
 
-  for (const actor of game.folders.find(folder => folder.id === game.settings.get('wm-foundry-module', 'folders.groups')).children) {
+  for(const folder of getRecursiveFolders(game.folders.find(f => f.id === game.settings.get('wm-foundry-module', 'folders.groups')))) {
     $dropdown.append($('<option value="{{value}}">{{title}}</option>'
-      .replace(/{{value}}/g, actor.id)
-      .replace(/{{title}}/g, actor.name)));
+      .replace(/{{value}}/g, folder.id)
+      .replace(/{{title}}/g, folder.name)));
   }
 
   return $dropdown[0].outerHTML;
