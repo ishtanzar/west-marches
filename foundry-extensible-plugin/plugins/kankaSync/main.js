@@ -102,7 +102,7 @@ class KankaSyncPlugin {
       world.modules.push({
         'data': {
           'name': 'kanka-sync-module',
-          'title': 'KankaSync',
+          'title': 'Kanka Sync',
           'description': 'A module to sync data to Kanka',
           'author': 'ishtanzar',
           'version': '0.0.1',
