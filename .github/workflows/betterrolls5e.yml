@@ -1,0 +1,40 @@
+name: betterrolls5e
+
+on:
+  push:
+    paths:
+      - .github/workflows/betterrolls5e.yml
+      - FoundryVTT-BetterRolls5e/*
+    branches:
+      - main
+    tags:
+      - 'releases/FoundryVTT-BetterRolls5e/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+  
+      - name: Github tag
+        id: github_tag
+        run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/FoundryVTT-BetterRolls5e\/v/}
+
+      - name: Build
+        uses: actions/upload-artifact@v2
+        if: contains(github.ref, 'main')
+        with:
+          name: FoundryVTT-BetterRolls5e-main.zip
+          path: FoundryVTT-BetterRolls5e/betterrolls5e
+
+      - name: Build
+        if: contains(github.ref, 'refs/tags')
+        working-directory: FoundryVTT-BetterRolls5e
+        run: zip -r FoundryVTT-BetterRolls5e-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip betterrolls5e/ --exclude \*.iml
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: contains(github.ref, 'refs/tags')
+        with:
+          files: FoundryVTT-BetterRolls5e/FoundryVTT-BetterRolls5e-*.zip
