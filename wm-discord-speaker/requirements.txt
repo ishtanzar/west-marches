@@ -1,4 +1,4 @@
-Red-DiscordBot==3.4.13
+Red-DiscordBot==3.4.14
 logging-utilities==1.2.2
 dateparser==1.0.0
 validators==0.18.2
