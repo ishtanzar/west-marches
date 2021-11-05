@@ -1,4 +1,5 @@
-foundryvtt_zip: foundryvtt-0.7.9.zip
+foundry_version: 0.7.9
+foundryvtt_zip: "foundryvtt-{{ foundry_version }}.zip"
 foundry_data_path: /opt/data/foundry
 foundry_timezone: Europe/Paris
 foundry_language: fr.tidy5e-sheet

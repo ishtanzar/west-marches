@@ -46,12 +46,13 @@
 - name: Fetch patch resources
   amazon.aws.aws_s3:
     bucket: "{{ foundry_s3_bucket }}"
-    object: "private/foundryvtt/crack/0.7.9/{{ item }}"
+    object: "private/foundryvtt/crack/{{ foundry_version }}/{{ item }}"
     dest: "{{ foundry_data_path }}/container_patches/resources/{{ item }}"
     region: eu-west-3
     aws_access_key: "{{ FOUNDRY_BUCKET_ACCESS_KEY_ID }}"
     aws_secret_key: "{{ FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}"
     mode: get
+  ignore_errors: yes
   loop:
     - auth.js
     - init.js

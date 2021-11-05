@@ -109,6 +109,7 @@ resource "null_resource" "ansible" {
       ANSIBLE_FORCE_COLOR="1"
       SCW_VOLUME_ID=element(split("/", scaleway_instance_volume.data.id), 1)
       BACKUP_S3_BUCKET=var.backup_bucket
+      BACKUP_S3_ENDPOINT="https://s3.fr-par.scw.cloud"
       FOUNDRY_HOSTNAME=var.host_name
     }
   }
