@@ -40,13 +40,15 @@ services:
       context: wm-infra/docker/foundry
     environment:
       - FOUNDRY_WORLD=west-marches-de-la-cave
+      - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
+      - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
     volumes:
       - /home/pgmillon/workspace/FoundryVTT/app:/home/foundry/resources/app
       - ./wm-infra/deploy/local/data/foundry/Data:/data/Data
       - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
       - foundry-logs:/data/Logs
-      - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin
-      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module
+      - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
+      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
     command: ["--require=/home/foundry/resources/foundry-extensible-plugin", "--inspect=0.0.0.0:9229", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data"]
     ports:
       - "30000:30000"

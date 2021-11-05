@@ -3,5 +3,10 @@ foundry_hostname: westmarchesdelacave
 foundry_domain: ishtanzar.net
 foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 
+extensible_plugin_url: "https://github.com/ishtanzar/west-marches/releases/download/releases/foundry-extensible-plugin/v{{ foundry_extensible_plugin_version }}/foundry-extensible-plugin-{{ foundry_extensible_plugin_version }}.zip"
+foundry_s3_config:
+  accessKeyId: "{{ lookup('env', 'FOUNDRY_S3_ACCESS_KEY_ID') }}"
+  secretAccessKey: "{{ lookup('env', 'FOUNDRY_S3_SECRET_KEY') }}"
+
 westmarches_data_path: /opt/data/westmarches
 discordbot_data_path: /opt/data/discordbot

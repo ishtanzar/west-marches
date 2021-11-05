@@ -21,17 +21,45 @@
     - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/datasources.yml" }
     - { src: grafana-dashboards.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/dashboards.yml" }
 
+- ansible.builtin.file:
+    path: "{{ westmarches_data_path }}/nginx-entrypoint.sh"
+    mode: '0755'
+
 - name: Upload compose env file
   ansible.builtin.copy:
     dest: "{{ westmarches_data_path }}/.env"
     content: "COMPOSE_PROJECT_NAME=west-marches"
 
-- name: Upload backend-plugin
-  ansible.posix.synchronize:
-    src: "{{ playbook_dir }}/../../../../foundry-extensible-plugin/"
-    dest: "{{ westmarches_data_path }}/foundry-extensible-plugin"
-    rsync_opts:
-      - "--exclude=foundry-extensible-plugin/node_modules/* --exclude=foundry-extensible-plugin/package-lock.json"
+- ansible.builtin.file:
+    path: "{{ foundry_data_path }}/Config"
+    state: directory
+
+- name: Upload S3 config
+  ansible.builtin.copy:
+    dest: "{{ foundry_data_path }}/Config/s3config.json"
+    content: "{{ foundry_s3_config | to_nice_json }}"
+  
+- name: Fetch foundry-extensible-plugin
+  ansible.builtin.get_url:
+    url: "{{ lookup('env', 'FOUNDRY_EXTENSIBLE_PLUGIN_URL')|default(extensible_plugin_url, True) }}"
+    dest: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
+    url_username: "{{ lookup('env', 'GITHUB_USERNAME') }}"
+    url_password: "{{ lookup('env', 'GITHUB_PASSWORD') }}"
+    force_basic_auth: yes
+    
+- ansible.builtin.file:
+    path: "{{ westmarches_data_path }}/foundry-extensible-plugin"
+    state: absent
+    
+- ansible.builtin.file:
+    path: "{{ westmarches_data_path }}/foundry-extensible-plugin"
+    state: directory
+    
+- name: Unarchive foundry-extensible-plugin
+  ansible.builtin.unarchive:
+    src: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
+    dest: "{{ westmarches_data_path }}"
+    remote_src: yes
 
 - name: Upload grafana dashboards
   ansible.builtin.copy:
