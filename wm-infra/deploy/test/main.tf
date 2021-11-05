@@ -6,7 +6,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "westmarches-test-infra"
+    bucket = "westmarches-test-iac"
     key    = "tfstate/main.tfstate"
     region = "fr-par"
 
@@ -25,6 +25,6 @@ module "main" {
 
   gandi_key = var.gandi_key
   host_name = "westmarchesdelacave-test"
-  backup_bucket = "westmarches-infra-test-backups"
-  ssh_key_id = "5cff6783-ee69-4366-9ffe-4bafb9340e4d"
+  backup_bucket = "westmarches-test-backups"
+  ssh_key_id = "b58acf4e-c85b-4087-b2f1-9578418a5f9c"
 }
