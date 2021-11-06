@@ -17,10 +17,14 @@
     "Chat": {
       "LoginMessage": {
         "Title": "Connexion Kanka",
-        "Content.1": "Nous utilisons la plateforme Kanka.io pour toute l'histoire du Cairne, avec une synchronisation entre Foundry et Kanka.<br/>Le bouton ci-dessous contient une invitation pour rejoindre la campagne West Marches de la Cave et vous créer un compte si vous n'en possédez pas déjà un.",
-        "Content.2": "Une fois que vous avez rejoint la campagne, utilisez le bouton ci-dessous pour activer la synchronisation entre votre compte Foundry et Kanka.",
-        "Button.Join": "Rejoindre la campagne",
-        "Button.Login": "Connecter Foundry et Kanka"
+        "Button": {
+          "Join": "Rejoindre la campagne",
+          "Login": "Connecter Foundry et Kanka"
+        },
+        "Content": {
+          "1": "Nous utilisons la plateforme Kanka.io pour toute l'histoire du Cairne, avec une synchronisation entre Foundry et Kanka.<br/>Le bouton ci-dessous contient une invitation pour rejoindre la campagne West Marches de la Cave et vous créer un compte si vous n'en possédez pas déjà un.",
+          "2": "Une fois que vous avez rejoint la campagne, utilisez le bouton ci-dessous pour activer la synchronisation entre votre compte Foundry et Kanka."
+        }
       }
     }
   }

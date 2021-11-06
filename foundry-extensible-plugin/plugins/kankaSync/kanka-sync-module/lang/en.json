@@ -17,10 +17,14 @@
     "Chat": {
       "LoginMessage": {
         "Title": "Kanka Login",
-        "Content.1": "Click on the following button to join the campaign (and create an account if you don't already have one).",
-        "Content.2": "Activate Foundry/Kanka sync.",
-        "Button.Join": "Join the campaign",
-        "Button.Login": "Login with Kanka"
+        "Button": {
+          "Join": "Join the campaign",
+          "Login": "Login with Kanka"
+        },
+        "Content": {
+        "1": "Click on the following button to join the campaign (and create an account if you don't already have one).",
+        "2": "Activate Foundry/Kanka sync."
+        }
       }
     }
   }

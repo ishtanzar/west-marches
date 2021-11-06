@@ -69,6 +69,7 @@ class Kanka {
         '    </button>' +
         '</div>',
       whisper: [],
+      type: 2,
       timestamp: Date.now()
     });
     await ui.chat.postOne(chatMessage);
