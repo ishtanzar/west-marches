@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - .github/workflows/betterrolls5e.yml
-      - FoundryVTT-BetterRolls5e/*
+      - FoundryVTT-BetterRolls5e/**
     branches:
       - main
     tags:

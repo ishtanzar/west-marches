@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - .github/workflows/foundry-extensible-plugin.yml
-      - foundry-extensible-plugin/*
+      - foundry-extensible-plugin/**
     branches:
       - main
     tags:
