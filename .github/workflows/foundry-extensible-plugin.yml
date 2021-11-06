@@ -21,18 +21,27 @@ jobs:
         id: github_tag
         run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/foundry-extensible-plugin\/v/}
 
-      - name: Build
-        if: contains(github.ref, 'refs/tags')
-        run: zip -r foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip foundry-extensible-plugin/ --exclude \*.iml
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
 
-      - name: Build
+      - run: npm install
+        working-directory: foundry-extensible-plugin
+      
+      - name: Upload artifacts
         uses: actions/upload-artifact@v2
         if: contains(github.ref, 'main')
         with:
-          name: foundry-extensible-plugin-main.zip
+          name: foundry-extensible-plugin-main
           path: foundry-extensible-plugin
-          
-      - name: Release
+
+      - name: Create release archive
+        if: contains(github.ref, 'refs/tags')
+        working-directory: foundry-extensible-plugin
+        run: zip -r foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip . --exclude \*.iml
+
+      - name: Upload release
         uses: softprops/action-gh-release@v1
         if: contains(github.ref, 'refs/tags')
         with:
