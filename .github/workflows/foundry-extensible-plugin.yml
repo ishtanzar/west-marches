@@ -45,4 +45,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: contains(github.ref, 'refs/tags')
         with:
-          files: foundry-extensible-plugin-*.zip
+          files: foundry-extensible-plugin/foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip
