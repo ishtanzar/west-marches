@@ -46,6 +46,8 @@
     url_username: "{{ lookup('env', 'GITHUB_USERNAME') }}"
     url_password: "{{ lookup('env', 'GITHUB_PASSWORD') }}"
     force_basic_auth: yes
+    timeout: 60
+    force: yes
     
 - ansible.builtin.file:
     path: "{{ westmarches_data_path }}/foundry-extensible-plugin"
@@ -58,8 +60,12 @@
 - name: Unarchive foundry-extensible-plugin
   ansible.builtin.unarchive:
     src: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
-    dest: "{{ westmarches_data_path }}"
+    dest: "{{ westmarches_data_path }}/foundry-extensible-plugin"
     remote_src: yes
+
+- ansible.builtin.file:
+    path: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
+    state: absent
 
 - name: Upload grafana dashboards
   ansible.builtin.copy:
