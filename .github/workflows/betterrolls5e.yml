@@ -37,4 +37,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: contains(github.ref, 'refs/tags')
         with:
-          files: FoundryVTT-BetterRolls5e/FoundryVTT-BetterRolls5e-*.zip
+          files: FoundryVTT-BetterRolls5e/FoundryVTT-BetterRolls5e-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip
