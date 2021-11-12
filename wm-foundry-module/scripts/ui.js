@@ -61,7 +61,7 @@ async function fetchEntities(type) {
 }
 
 async function getCharacters(refresh = false) {
-  if(refresh || charactersCache === 0) {
+  if(refresh || charactersCache.length === 0) {
     const allTags = await fetchEntities('tags');
 
     charactersCache = allTags
@@ -340,7 +340,7 @@ class SessionManager extends Application {
   }
 
   async getSessions(refresh = false) {
-    if(sessionsCache === 0 || refresh) {
+    if(sessionsCache.length === 0 || refresh) {
       const allJournals = await fetchEntities('journals');
 
       sessionsCache = allJournals
@@ -392,7 +392,7 @@ class SessionManager extends Application {
     html.on('input', '[name="filter"]', event => {
       const filter = event?.target?.value ?? '';
 
-      if (!filter.trim()) {
+      if (!filter.trim().length) {
         // this.resetFilter();
         return;
       }
