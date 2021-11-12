@@ -44,7 +44,7 @@ async function getUserFromKankaTag(tag) {
 }
 
 async function fetchEntities(type) {
-  let apiResult, apiJson, entitiesResult = [], apiUrl = new URL(`https://kanka.io/api/1.0/campaigns/93396/${type}`);
+  let apiResult, apiJson, entitiesResult = [], apiUrl = new URL(`https://kanka.io/api/1.0/campaigns/67312/${type}`);
   do {
     apiResult = await fetch(apiUrl.toString(), {
       headers: {
@@ -61,7 +61,7 @@ async function fetchEntities(type) {
 }
 
 async function getCharacters(refresh = false) {
-  if(refresh || charactersCache.length === 0) {
+  if(refresh || charactersCache === 0) {
     const allTags = await fetchEntities('tags');
 
     charactersCache = allTags
@@ -340,7 +340,7 @@ class SessionManager extends Application {
   }
 
   async getSessions(refresh = false) {
-    if(sessionsCache.length === 0 || refresh) {
+    if(sessionsCache === 0 || refresh) {
       const allJournals = await fetchEntities('journals');
 
       sessionsCache = allJournals
@@ -392,7 +392,7 @@ class SessionManager extends Application {
     html.on('input', '[name="filter"]', event => {
       const filter = event?.target?.value ?? '';
 
-      if (!filter.trim().length) {
+      if (!filter.trim()) {
         // this.resetFilter();
         return;
       }
