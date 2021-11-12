@@ -44,7 +44,7 @@ async function getUserFromKankaTag(tag) {
 }
 
 async function fetchEntities(type) {
-  let apiResult, apiJson, entitiesResult = [], apiUrl = new URL(`https://kanka.io/api/1.0/campaigns/67312/${type}`);
+  let apiResult, apiJson, entitiesResult = [], apiUrl = new URL(`https://kanka.io/api/1.0/campaigns/93396/${type}`);
   do {
     apiResult = await fetch(apiUrl.toString(), {
       headers: {
@@ -205,7 +205,7 @@ class SessionForm extends FormApplication {
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       id: "west-marches-gm-session-edit",
-      title: "Ma Sessions",
+      title: "Ma session",
       template: "./modules/wm-foundry-module/templates/session_edit.hbs",
       classes: ["session-editor"],
       dragDrop: [{callbacks: {drop: this._onDrop}}],
@@ -233,10 +233,14 @@ class SessionForm extends FormApplication {
       if(dropData.type === 'Actor') {
         const actor = game.actors.get(dropData.id);
         const character = (await getCharacters()).find(c => c.name === actor.name);
-
+		   
+		if(character == undefined){
+		  ui.notifications.warn("Pas trouvé... Est-ce que le tag \"PJ\" a bien été ajouté sur Kanka?");
+		}
         if(!this.object.tags.includes(character.id)) {
           this.object.tags.push(character.id);
         }
+	   console.log(this.object);
 
         //TODO avoid the render
         this.render();
@@ -287,6 +291,14 @@ class SessionForm extends FormApplication {
             }
           })));
           break;
+	   case 'removechar':
+	   
+		const character = (await getCharacters()).find(c => c.name === event.currentTarget.dataset.value);
+		if(character) {
+			this.object.tags.splice(this.object.tags.indexOf(character.id), 1);
+		}
+		this.render(true);
+	     break;
       }
     });
   }
