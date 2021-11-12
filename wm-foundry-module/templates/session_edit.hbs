@@ -28,7 +28,7 @@
                 {{#each entity.actors}}
                     <li class="directory-item entity actor flexrow" style="border: 0">
                         <img class="profile actor-profile" title="{{this.name}}" src="{{this.img}}">
-                        <h4 class="entity-name"><a>{{this.name}}</a></h4>
+                        <h4 class="entity-name"><a>{{this.name}}</a> <button type="button" style='width:20%;' name="removechar" data-action="removechar" data-value="{{this.name}}"><i class="fas fa-user-times"></i></button></span></h4>
                     </li>
                 {{/each}}
             </ol>
