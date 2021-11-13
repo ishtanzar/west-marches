@@ -1,4 +1,4 @@
-name: wm-foundry-module
+name: wm-foundry-module-release
 
 on:
   push:
@@ -16,12 +16,10 @@ jobs:
         id: github_tag
         run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/wm-foundry-module\/v/}
 
-      - name: Build
-        if: contains(github.ref, 'refs/tags')
+      - name: Release Build
         run: zip -r wm-foundry-module-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip wm-foundry-module/ --exclude \*.iml
         
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: contains(github.ref, 'refs/tags')
         with:
-          files: wm-foundry-module-*.zip
+          files: wm-foundry-module-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip

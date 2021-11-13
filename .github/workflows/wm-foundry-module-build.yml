@@ -1,0 +1,28 @@
+name: wm-foundry-module-build
+
+on:
+  push:
+    paths:
+      - .github/workflows/wm-foundry-module.yml
+      - wm-foundry-module/**
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/wm-foundry-module.yml
+      - wm-foundry-module/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: head_sha1
+        run: echo ::set-output name=HEAD_SHA1::${GITHUB_SHA:0:7}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wm-foundry-module-${{ steps.head_sha1.outputs.HEAD_SHA1 }}
+          path: wm-foundry-module
