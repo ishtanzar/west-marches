@@ -61,7 +61,7 @@ async function fetchEntities(type) {
 }
 
 async function getCharacters(refresh = false) {
-  if(refresh || charactersCache.length === 0) {
+  if(refresh || charactersCache === 0) {
     const allTags = await fetchEntities('tags');
 
     charactersCache = allTags
@@ -292,7 +292,6 @@ class SessionForm extends FormApplication {
           })));
           break;
 	   case 'removechar':
-	   
 		const character = (await getCharacters()).find(c => c.name === event.currentTarget.dataset.value);
 		if(character) {
 			this.object.tags.splice(this.object.tags.indexOf(character.id), 1);
@@ -340,7 +339,7 @@ class SessionManager extends Application {
   }
 
   async getSessions(refresh = false) {
-    if(sessionsCache.length === 0 || refresh) {
+    if(sessionsCache === 0 || refresh) {
       const allJournals = await fetchEntities('journals');
 
       sessionsCache = allJournals
@@ -392,7 +391,7 @@ class SessionManager extends Application {
     html.on('input', '[name="filter"]', event => {
       const filter = event?.target?.value ?? '';
 
-      if (!filter.trim().length) {
+      if (!filter.trim()) {
         // this.resetFilter();
         return;
       }
