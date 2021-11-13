@@ -4,12 +4,12 @@
             <div class="flex1">
                 <div class="form-group">
                     <div class="form-fields">
-                        <input name="name" type="text" value="{{entity.name}}" placeholder="Entry Name"/>
+                        <input name="name" type="text" value="{{entity.name}}" placeholder="Nom de session"/>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="form-fields">
-                        <input name="date" class="flex1" type="date" value="{{entity.date}}" placeholder="Session date"/>
+                        <input name="date" class="flex1" type="date" value="{{entity.date}}" placeholder="Date du jour"/>
                     </div>
                 </div>
 <!--                <div class="form-group">-->
@@ -20,7 +20,23 @@
 <!--                </div>-->
             </div>
             <div style="flex-grow: 20">
+			<button id='session_tab_{{entity.id}}_editorbtn' style='width: 49%; line-height: 16px; font-size: 10px; box-shadow: 0 0 5px red' type="button" name="showEditorTab" data-action="showEditorTab" data-value="{{entity.id}}"><i class="fas fa-feather-alt"></i>Editeur</button>
+			<button id='session_tab_{{entity.id}}_downtimebtn' style='width: 49%; line-height: 16px; font-size: 10px' type="button" name="showDowntimeTab" data-action="showDowntimeTab" data-value="{{entity.id}}"><i class="fas fa-feather-alt"></i>Downtime</button>
+			<div id='session_tab_{{entity.id}}_editor'>
                 {{editor content=entity.content target="content" button=true editable=true owner=true}}
+			 </div>
+			  <ol id='session_tab_{{entity.id}}_downtime_table' class="directory-list" style='display:none;'>
+				<li class="directory-item entity actor flexrow" style="border: 0">
+				    <img class="profile actor-profile" title="Ajouter un personnage" src="{{this.img}}">
+				    <h4 class="entity-name"><a>Ajouter un personnage</a> <button type="button" style='width:18%;' name="removechar" data-action="removechar" data-value="{{this.name}}"><i class="fas fa-user-times"></i></button></span></h4>
+				</li>
+				 {{#each entity.actorsDT}}
+					<li class="directory-item entity actor flexrow" style="border: 0">
+					    <img class="profile actor-profile" title="{{this.name}}" src="{{this.img}}">
+					    <h4 class="entity-name"><a>{{this.name}}</a> <button type="button" style='width:18%;' name="removechar" data-action="removechar" data-value="{{this.name}}"><i class="fas fa-user-times"></i></button></span></h4>
+					</li>
+				 {{/each}}
+			  </ol>
             </div>
         </div>
         <div class="flex1 sidebar-tab">
@@ -28,7 +44,7 @@
                 {{#each entity.actors}}
                     <li class="directory-item entity actor flexrow" style="border: 0">
                         <img class="profile actor-profile" title="{{this.name}}" src="{{this.img}}">
-                        <h4 class="entity-name"><a>{{this.name}}</a> <button type="button" style='width:20%;' name="removechar" data-action="removechar" data-value="{{this.name}}"><i class="fas fa-user-times"></i></button></span></h4>
+                        <h4 class="entity-name"><a>{{this.name}}</a> <button type="button" style='width:18%;' name="removechar" data-action="removechar" data-value="{{this.name}}"><i class="fas fa-user-times"></i></button></span></h4>
                     </li>
                 {{/each}}
             </ol>
