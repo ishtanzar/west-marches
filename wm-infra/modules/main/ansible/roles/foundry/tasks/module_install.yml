@@ -1,6 +1,6 @@
 - name: "Fetch {{ module.name }}-{{ module.version }}"
   ansible.builtin.get_url:
-    url: "{{ module.url.format(**system) }}"
+    url: "{{ module.url.format(**module) }}"
     dest: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}-{{ module.version }}.zip"
     url_username: "{{ module.http_user|default('') }}"
     url_password: "{{ module.http_password|default('') }}"
@@ -32,10 +32,10 @@
       
     - set_fact:
         system_folder: "{{ unarchive_result.files
-          | select('match', '.*module.json')
+          | select('match', '.*(module|system).json')
           | first
           | default('')
-          | regex_replace('^/*(.*)module.json', '\\1') }}"
+          | regex_replace('^/*(.*)(module|system).json', '\\1') }}"
       
     - name: "Rename {{ system_folder }} as {{ module.name }}"
       command:
