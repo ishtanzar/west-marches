@@ -43,7 +43,7 @@
   ansible.builtin.get_url:
     url: "{{ lookup('env', 'FOUNDRY_EXTENSIBLE_PLUGIN_URL')|default(extensible_plugin_url, True) }}"
     dest: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
-    url_username: "{{ lookup('env', 'GITHUB_USERNAME') }}"
+    url_username: "{{ lookup('env', 'GITHUB_USER') }}"
     url_password: "{{ lookup('env', 'GITHUB_PASSWORD') }}"
     force_basic_auth: yes
     timeout: 60
