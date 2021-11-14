@@ -1,31 +1,31 @@
 - name: "Fetch {{ system.name }}-{{ system.version }}"
   ansible.builtin.get_url:
     url: "{{ system.url.format(**system) }}"
-    dest: "{{ foundry_data_path }}/Data/systems/{{ system.name }}-{{ system.version }}.zip"
+    dest: "{{ system.install_path|default(foundry_modules_path) }}/{{ system.name }}-{{ system.version }}.zip"
     url_username: "{{ system.http_user|default('') }}"
     url_password: "{{ system.http_password|default('') }}"
     force_basic_auth: "{{ system.http_password|default('')|length > 0 }}"
     timeout: 60
 
 - ansible.builtin.slurp:
-    src: "{{ '{}/Data/systems/{}/system.json'.format(foundry_data_path, system.name) }}"
+    src: "{{ '{}/{}/system.json'.format(system.install_path|default(foundry_modules_path), system.name) }}"
   register: system_json
   ignore_errors: yes
 
 - block:
     - ansible.builtin.file:
-        path: "{{ foundry_data_path }}/Data/systems/{{ system.name }}"
+        path: "{{ system.install_path|default(foundry_modules_path) }}/{{ system.name }}"
         state: absent
   
     - ansible.builtin.file:
-        path: "{{ foundry_data_path }}/Data/systems/{{ system.name }}"
+        path: "{{ system.install_path|default(foundry_modules_path) }}/{{ system.name }}"
         state: directory
       when: system.rename|default(False) == False
 
     - name: "Unarchive {{ system.name }}-{{ system.version }}"
       ansible.builtin.unarchive:
-        src: "{{ foundry_data_path }}/Data/systems/{{ system.name }}-{{ system.version }}.zip"
-        dest: "{{ foundry_data_path }}/Data/systems/{{ system.name if not system.rename else '' }}"
+        src: "{{ system.install_path|default(foundry_modules_path) }}/{{ system.name }}-{{ system.version }}.zip"
+        dest: "{{ system.install_path|default(foundry_modules_path) }}/{{ system.name if not system.rename else '' }}"
         remote_src: yes
         list_files: yes
       register: unarchive_result
@@ -40,7 +40,7 @@
     - name: "Rename {{ system_folder }} as {{ system.name }}"
       command:
         cmd: "mv {{ system_folder }} {{ system.name }}"
-        chdir: "{{ foundry_data_path }}/Data/systems/"
+        chdir: "{{ system.install_path|default(foundry_modules_path) }}/"
         creates: "{{ system.name }}"
         removes: "{{ system_folder }}"
       when: system.rename
