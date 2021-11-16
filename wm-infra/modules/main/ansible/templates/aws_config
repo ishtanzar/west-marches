@@ -1,7 +1,7 @@
 [plugins]
 endpoint = awscli_plugin_endpoint
 
-[default]
+[scw]
 region=fr-par
 s3 =
   endpoint_url = https://s3.fr-par.scw.cloud

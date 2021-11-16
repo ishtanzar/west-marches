@@ -91,8 +91,8 @@
     - { src: api-logging.tpl.yml, dest: "{{ foundry_data_path }}/api-logging.yml" }
     - { src: secrets.tpl.json, dest: "{{ foundry_data_path }}/secrets.json" }
 
-- name: Install systems
+- name: Install modules
   include_tasks: module_install.yml
-  loop: "{{ foundry_systems }}"
+  loop: "{{ foundry_modules }}"
   loop_control:
     loop_var: module
