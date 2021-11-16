@@ -90,3 +90,9 @@
     - { src: docker-compose.tpl.yml, dest: "{{ foundry_data_path }}-compose.yml" }
     - { src: api-logging.tpl.yml, dest: "{{ foundry_data_path }}/api-logging.yml" }
     - { src: secrets.tpl.json, dest: "{{ foundry_data_path }}/secrets.json" }
+
+- name: Install modules
+  include_tasks: module_install.yml
+  loop: "{{ foundry_modules }}"
+  loop_control:
+    loop_var: module

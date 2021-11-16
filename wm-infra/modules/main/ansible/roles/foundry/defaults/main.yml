@@ -8,6 +8,7 @@ foundry_hostname: westmarchesdelacave
 foundry_domain: ishtanzar.net
 foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 foundry_docker_image: ishtanzar/wm-foundry:latest
+foundry_modules_path: "{{ foundry_data_path }}/Data/modules"
 
 manager_api_secret: changeme
 manager_api_docker_image: ishtanzar/wm-manager-api:latest

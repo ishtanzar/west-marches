@@ -1,0 +1,55 @@
+- name: "Fetch {{ module.name }}-{{ module.version }}"
+  ansible.builtin.get_url:
+    url: "{{ module.url.format(**module) }}"
+    dest: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}-{{ module.version }}.zip"
+    url_username: "{{ module.http_user|default('') }}"
+    url_password: "{{ module.http_password|default('') }}"
+    force_basic_auth: "{{ module.http_password|default('')|length > 0 }}"
+    timeout: 60
+
+- ansible.builtin.stat:
+    path: "{{ '{}/{}/system.json'.format(module.install_path|default(foundry_modules_path), module.name) }}"
+  register: system_json_stat
+
+- ansible.builtin.stat:
+    path: "{{ '{}/{}/module.json'.format(module.install_path|default(foundry_modules_path), module.name) }}"
+  register: module_json_stat
+
+- ansible.builtin.slurp:
+    src: "{{ system_json_stat.stat.path if system_json_stat.stat.exists else module_json_stat.stat.path }}"
+  register: module_json
+  when: system_json_stat.stat.exists or module_json_stat.stat.exists
+
+- block:
+    - ansible.builtin.file:
+        path: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}"
+        state: absent
+  
+    - ansible.builtin.file:
+        path: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}"
+        state: directory
+      when: module.rename|default(False) == False
+
+    - name: "Unarchive {{ module.name }}-{{ module.version }}"
+      ansible.builtin.unarchive:
+        src: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}-{{ module.version }}.zip"
+        dest: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name if not module.rename|default(False) else '' }}"
+        remote_src: yes
+        list_files: yes
+      register: unarchive_result
+      
+    - set_fact:
+        system_folder: "{{ unarchive_result.files
+          | select('match', '.*(module|system).json')
+          | first
+          | default('')
+          | regex_replace('^/*(.*)(module|system).json', '\\1') }}"
+      
+    - name: "Rename {{ system_folder }} as {{ module.name }}"
+      command:
+        cmd: "mv {{ system_folder }} {{ module.name }}"
+        chdir: "{{ module.install_path|default(foundry_modules_path) }}/"
+        creates: "{{ module.name }}"
+        removes: "{{ system_folder }}"
+      when: module.rename|default(False)
+  when: module_json.skipped|default(False) or (module_json.content|b64decode|from_json|json_query('version') != module.version)
