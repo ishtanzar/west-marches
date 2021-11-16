@@ -52,4 +52,4 @@
         creates: "{{ module.name }}"
         removes: "{{ system_folder }}"
       when: module.rename|default(False)
-  when: module_json.skipped or (module_json.content|b64decode|from_json|json_query('version') != module.version)
+  when: module_json.skipped|default(False) or (module_json.content|b64decode|from_json|json_query('version') != module.version)
