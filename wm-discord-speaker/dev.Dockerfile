@@ -1,10 +1,10 @@
 # syntax = docker/dockerfile:1.2
-FROM ubuntu:groovy
+FROM ubuntu:20.04
 
 WORKDIR /opt/redbot
 
 RUN apt update && \
-  DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt install -y build-essential python3.8 python3-pip libcudart11.0 locales
+  DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt install -y build-essential python3.8 python3-pip libcudart10.1 locales
 
 RUN locale-gen fr_FR.UTF-8
 
