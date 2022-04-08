@@ -34,8 +34,9 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @staticmethod
     async def fetch_user_from_mention(ctx: commands.Context, mention: str):
-        if re.search(r'<@!\d+>', str(mention)):
-            user: Member = ctx.guild.get_member(int(mention[3:-1]))
+        match = re.search(r'<@!?(\d{17,19})>', str(mention))
+        if match:
+            user: Member = ctx.guild.get_member(int(match.group(1)))
             if user:
                 return user
 
