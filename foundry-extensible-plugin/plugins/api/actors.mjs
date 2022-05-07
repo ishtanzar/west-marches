@@ -1,6 +1,5 @@
-'use strict';
 
-class Actors {
+export default class Actors {
   async get(req, res) {
     try {
       res.set('Content-Type', 'application/json');
@@ -23,5 +22,3 @@ class Actors {
     }
   }
 }
-
-module.exports = Actors;

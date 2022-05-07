@@ -1,7 +1,4 @@
-'use strict';
-
-const path = require('path');
-let logger;
+import path from "path";
 
 /**
  * A simple event framework used throughout Foundry Virtual Tabletop.
@@ -23,7 +20,7 @@ class Hooks {
    * @return {number}       An ID number of the hooked function which can be used to turn off the hook later
    */
   static on(hook, fn) {
-    logger.debug(`Registered callback for ${hook} hook`);
+    global.extensibleLogger.debug(`Registered callback for ${hook} hook`);
     const id = this._id++;
     this._hooks[hook] = this._hooks[hook] || [];
     this._hooks[hook].push(fn);
@@ -77,7 +74,7 @@ class Hooks {
    * @param {...*} args     Arguments passed to the hook callback functions
    */
   static callAll(hook, ...args) {
-    logger.debug(`Calling ${hook} hook with args: ${args}`);
+    global.extensibleLogger.debug(`Calling ${hook} hook with args: ${args}`);
     if ( !this._hooks.hasOwnProperty(hook) ) return;
     const fns = new Array(...this._hooks[hook]);
     for ( let fn of fns ) {
@@ -99,7 +96,7 @@ class Hooks {
    * @param {...*} args      Arguments passed to the hook callback functions
    */
   static call(hook, ...args) {
-    logger.debug(`Calling ${hook} hook with args: ${args}`);
+    global.extensibleLogger.debug(`Calling ${hook} hook with args: ${args}`);
     if ( !this._hooks.hasOwnProperty(hook) ) return;
     const fns = new Array(...this._hooks[hook]);
     for ( let fn of fns ) {
@@ -120,7 +117,7 @@ class Hooks {
    * @param {...*} args      Arguments passed to the hook callback functions
    */
   static async callAsync(hook, ...args) {
-    logger.debug(`Calling ${hook} hook with args: ${args}`);
+    global.extensibleLogger.debug(`Calling ${hook} hook with args: ${args}`);
     if ( !this._hooks.hasOwnProperty(hook) ) return;
     const fns = new Array(...this._hooks[hook]);
     for ( let fn of fns ) {
@@ -141,7 +138,7 @@ class Hooks {
     try {
       return fn(...args);
     } catch(err) {
-      logger.error(`Error thrown in hooked function ${fn.name}: ${err}`);
+      global.extensibleLogger.error(`Error thrown in hooked function ${fn.name}: ${err}`);
     }
   }
 }
@@ -151,21 +148,22 @@ class ExtensibleFoundryPlugin {
   static _plugins = []
   static _instance;
 
-  static initialize(pluginsPath) {
-    logger.info('ExtensibleFoundry init');
+  static async initialize(pluginsPath) {
+    global.extensibleLogger.info('ExtensibleFoundry init');
 
     this._instance = global.extensibleFoundry = new ExtensibleFoundryPlugin();
-    const {overrideRequire} = global;
+    // const {overrideRequire} = global;
 
     // TODO: dynamic plugin list
-    for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
-      const cls = require(path.join(pluginsPath, plugin, 'main'));
-      this._plugins.push(new cls(this._instance));
+    // for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
+    for(let pluginId of ['api']) {
+      const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
+      this._plugins.push(new plugin.default(this._instance));
     }
 
-    const entities = [];
-    this._instance.hooks.call('setup_entities', entities);
-    overrideRequire.add_overrides(entities);
+    // const entities = [];
+    // this._instance.hooks.call('setup_entities', entities);
+    // overrideRequire.add_overrides(entities);
   }
 
   get hooks() {
@@ -174,15 +172,16 @@ class ExtensibleFoundryPlugin {
 
 }
 
-function initialize(argv, paths, startupMessages) {
-  const foundry_init = require(path.join(paths.code, 'init'));
-  const createVTTLogger = require(path.join(paths.code, 'logging'));
+export default async function initialize({args: args = [], root: root, messages: messages = [], debug: debug = false} = {}) {
+  global.foundryRoot = root;
 
-  logger = createVTTLogger(paths, []);
+  const init = await import('foundry:dist/init.mjs');
 
-  //TODO: configuration file
-  ExtensibleFoundryPlugin.initialize(path.join('..', '..', 'plugins'));
-  foundry_init(argv, paths, startupMessages);
+  await ExtensibleFoundryPlugin.initialize(path.join('..', '..', 'plugins'));
+  init.default({
+    args: args,
+    root: root,
+    messages: messages,
+    debug: debug
+  });
 }
-
-module.exports = initialize;
