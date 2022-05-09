@@ -23,27 +23,45 @@ const logger = (global.extensibleLogger || winston.createLogger({
 
 global.extensibleLogger = logger;
 
-export function resolve(specifier, context, defaultResolve) {
+export async function resolve(specifier, context, defaultResolve) {
   const { parentURL = null } = context;
   logger.debug(`Resolving ${specifier} from ${parentURL}`);
-  const pluginRoot = new URL('./', import.meta.url);
+  const pluginRoot = path.dirname(new URL(import.meta.url).pathname);
 
   if(specifier.startsWith('foundry:') && global.foundryRoot) {
     specifier = path.resolve(global.foundryRoot, specifier.split(':')[1]);
   }
 
   if(parentURL) {
-    const requested = new URL(specifier, parentURL);
-    const relative = path.relative((global.foundryRoot?new URL('file://'+foundryRoot):new URL('./', parentURL)).pathname, requested.pathname);
-
-    if(relative) {
-      const override = new URL(relative, new URL('./override/', pluginRoot))
-
-      if(fs.existsSync(override.pathname) && override.href !== parentURL) {
-        logger.info(`Found an override for ${specifier} as ${override.href}`);
-        return {
-          url: override.href
+    if(!global.foundryRoot) {
+      const currentPath = path.dirname(new URL(parentURL).pathname), pkgFile = path.join(currentPath, 'package.json');
+      if(fs.existsSync(pkgFile)) {
+        const pkgContent = JSON.parse(fs.readFileSync(pkgFile, {encoding: "utf8"}));
+        if(pkgContent.name === 'foundryvtt') {
+          global.foundryRoot = currentPath;
         }
+      }
+    }
+
+    let requested, override;
+    if(specifier.startsWith('.') || specifier.startsWith('/') || specifier.startsWith('file://')) {
+      requested = new URL(specifier, parentURL);
+      override = new URL(requested.href.replace(global.foundryRoot, path.join(pluginRoot, 'override', 'foundryvtt')));
+    } else {
+      const nextResult = await defaultResolve(specifier, context);
+      requested = nextResult.url;
+      if(requested.startsWith('node:')) {
+        return nextResult;
+      } else {
+        override = new URL(requested.replace(path.join(global.foundryRoot, 'node_modules'), path.join(pluginRoot, 'override')));
+      }
+    }
+
+    if(fs.existsSync(override.pathname) && override.href !== parentURL && override.href !== requested.href) {
+      logger.info(`Found an override for ${specifier} as ${override.pathname}`);
+
+      return {
+        url: override.href
       }
     }
   }

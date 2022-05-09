@@ -1,9 +1,7 @@
-'use strict';
+import Actors from "./actors.mjs";
+import Users from "./users.mjs";
 
-const Actors = require('./actors');
-const Users = require('./users');
-
-class ApiPlugin {
+export default class ApiPlugin {
 
   /**
    *
@@ -21,5 +19,3 @@ class ApiPlugin {
     });
   }
 }
-
-module.exports = ApiPlugin;

@@ -1,8 +1,8 @@
 'use strict';
 
-const User = require('../../override/dist/database/entities/user');
+import User from 'foundry:dist/database/documents/user.mjs';
 
-class Users {
+export default class Users {
 
   async get(req, resp) {
     const {extensibleFoundry} = global;
@@ -36,9 +36,9 @@ class Users {
 
     if(name) {
       try {
-        let user = await User.findOne({ name: name });
+        let [user] = await User.find({ name: name });
         if(user) {
-          resp.send({'user_id': user._id});
+          resp.send({'_id': user._id});
         } else {
           const user_data = {name: name, role: role ? role : 1};
           extensibleFoundry.hooks.call('pre.api.user.create', req, resp, user_data);
@@ -46,7 +46,7 @@ class Users {
           user = User.create(user_data);
           await user.save();
 
-          resp.send({'user_id': user._id});
+          resp.send({'_id': user._id});
         }
       } catch (ex) {
         resp.status(500).send(ex.toString());
@@ -61,17 +61,21 @@ class Users {
 
     try {
       if(userId) {
-        const user = await User.findOne({ _id: userId });
+        let user = await User.get(userId);
         if(user) {
-          user.name = req.body.name || user.name;
-          user.role = req.body.role || user.role;
-          user.save();
+          let [updated] = await User.database.update(User, {
+            updates: [{
+              '_id': userId,
+              name: req.body.name || user.name,
+              role: req.body.role || user.role
+            }]
+          });
 
-          resp.send({
-            'id': user._id,
+          resp.send(Object.assign({
+            '_id': userId,
             'name': user.name,
             'role': user.role
-          })
+          }, updated));
         }
       } else {
         resp.sendStatus(400);
@@ -81,5 +85,3 @@ class Users {
     }
   }
 }
-
-module.exports = Users;

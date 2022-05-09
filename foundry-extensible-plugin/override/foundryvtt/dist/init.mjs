@@ -156,7 +156,7 @@ class ExtensibleFoundryPlugin {
 
     // TODO: dynamic plugin list
     // for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
-    for(let pluginId of ['api']) {
+    for(let pluginId of ['api', 'extensibleAuth']) {
       const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
       this._plugins.push(new plugin.default(this._instance));
     }
@@ -177,7 +177,7 @@ export default async function initialize({args: args = [], root: root, messages:
 
   const init = await import('foundry:dist/init.mjs');
 
-  await ExtensibleFoundryPlugin.initialize(path.join('..', '..', 'plugins'));
+  await ExtensibleFoundryPlugin.initialize(new URL('../../../plugins', import.meta.url).pathname);
   init.default({
     args: args,
     root: root,

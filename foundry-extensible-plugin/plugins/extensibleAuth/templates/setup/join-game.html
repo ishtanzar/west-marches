@@ -1,0 +1,33 @@
+<form id="join-game" autocomplete="off">
+    <header id="world-title" class="join-header app">
+        <h1>{{ world.title }}</h1>
+    </header>
+
+    <section class="join-body flexrow">
+        <div class="left flexcol">
+            {{#each auth_methods}}{{{this}}}{{/each}}
+            <div class="app">
+                <h1>{{ localize "JOIN.HeaderSetup" }}</h1>
+                {{#if isAdmin }}
+                <p>{{ localize "JOIN.AuthAdmin" }}</p>
+                {{else}}
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> {{ localize "SETUP.AdminKeyLabel" }}</label>
+                    <input type="password" name="adminKey" value="" autocomplete="off">
+                </div>
+                {{/if}}
+                <button type="button" name="shutdown" title="{{ localize "JOIN.HeaderSetup" }}">
+                <i class="fas fa-lock"></i> {{ localize "JOIN.HeaderSetup" }}
+                </button>
+            </div>
+        </div>
+        <template id="test"></template>
+
+        <div class="right flexcol">
+            <div id="world-description" class="app">
+                <h1>{{ localize "JOIN.HeaderWorld" }}</h1>
+                {{{ world.description }}}
+            </div>
+        </div>
+    </section>
+</form>
