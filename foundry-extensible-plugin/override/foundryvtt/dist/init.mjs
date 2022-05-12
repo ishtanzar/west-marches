@@ -1,4 +1,7 @@
 import path from "path";
+import url from "url";
+import fs from "fs";
+import express from "express";
 
 /**
  * A simple event framework used throughout Foundry Virtual Tabletop.
@@ -144,32 +147,97 @@ class Hooks {
 }
 
 class ExtensibleFoundryPlugin {
-
-  static _plugins = []
   static _instance;
 
-  static async initialize(pluginsPath) {
-    global.extensibleLogger.info('ExtensibleFoundry init');
+  _plugins = [];
+  _templatePath = [];
+  _staticPath = [];
+  _viewsPath = [];
+  _clientModules = [];
 
-    this._instance = global.extensibleFoundry = new ExtensibleFoundryPlugin();
-    // const {overrideRequire} = global;
+  constructor() {
+    this.hooks.on('post.files.loadTemplate', this.loadTemplate.bind(this));
+    this.hooks.on('post.express.staticFiles', this.staticFiles.bind(this));
+    this.hooks.once('post.express.createApp', this.createApp.bind(this));
+    this.hooks.on('post.module.getPackages', this.getPackages.bind(this));
 
-    // TODO: dynamic plugin list
-    // for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
-    for(let pluginId of ['api', 'extensibleAuth']) {
-      const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
-      this._plugins.push(new plugin.default(this._instance));
-    }
 
     // const entities = [];
     // this._instance.hooks.call('setup_entities', entities);
     // overrideRequire.add_overrides(entities);
   }
 
+  static async initialize(pluginsPath) {
+    global.extensibleLogger.info('ExtensibleFoundry init');
+
+    this._instance = global.extensibleFoundry = new ExtensibleFoundryPlugin();
+    await this._instance.loadPlugins(pluginsPath);
+  }
+
   get hooks() {
     return Hooks;
   }
 
+  async loadPlugins(pluginsPath) {
+    // TODO: dynamic plugin list
+    // for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
+    for(let pluginId of ['api', 'extensibleAuth', 'extensibleAuthDiscord']) {
+      const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
+      this._plugins.push(new plugin.default(this));
+    }
+  }
+
+  addTemplateDirectory(dir) {
+    this._templatePath.push(dir);
+  }
+
+  addStaticFilesDirectory(path, prefix = '/') {
+    this._staticPath.push({
+      prefix: prefix,
+      path: path
+    });
+  }
+
+  addClientModule(module) {
+    this._clientModules.push(module);
+  }
+
+  addViewsDirectory(dir) {
+    this._viewsPath.push(dir);
+  }
+
+  loadTemplate(relative, template) {
+    for(let templateRoot of this._templatePath) {
+      const absolute = path.join(templateRoot, relative);
+
+      if(fs.existsSync(absolute)) {
+        Object.assign(template, delete template['error'], {
+          html: fs.readFileSync(absolute, {encoding: "utf8"}),
+          success: true
+        });
+      }
+    }
+  }
+
+  staticFiles(app) {
+    for(let entry of this._staticPath) {
+      app.use(entry.prefix, express.static(entry.path));
+    }
+  }
+
+  createApp(app) {
+    for(let viewsRoot of this._viewsPath) {
+      app.set('views', [viewsRoot].concat(app.get('views')));
+    }
+  }
+
+  getPackages(packages) {
+    this._clientModules.forEach(module => {
+      if(packages.filter(pkg => pkg.id === module.id).length === 0) {
+        packages.push(module);
+      }
+    });
+  }
 }
 
 export default async function initialize({args: args = [], root: root, messages: messages = [], debug: debug = false} = {}) {
@@ -178,10 +246,11 @@ export default async function initialize({args: args = [], root: root, messages:
   const init = await import('foundry:dist/init.mjs');
 
   await ExtensibleFoundryPlugin.initialize(new URL('../../../plugins', import.meta.url).pathname);
-  init.default({
+  await init.default({
     args: args,
     root: root,
     messages: messages,
     debug: debug
   });
+  await extensibleFoundry.hooks.callAsync('post.initialize');
 }

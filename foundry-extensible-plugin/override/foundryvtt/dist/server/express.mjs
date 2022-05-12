@@ -3,9 +3,14 @@ import Express from 'foundry:dist/server/express.mjs';
 export default class ExtensibleExpress extends Express {
 
   _defineRoutes(router) {
-    const {extensibleFoundry} = global;
     extensibleFoundry.hooks.call('pre.express.defineRoutes', router);
     super._defineRoutes(router);
+  }
+
+  _createApp({isProxy: isProxy = false} = {}) {
+    const app = super._createApp({'isProxy': isProxy});
+    extensibleFoundry.hooks.call('post.express.createApp', app);
+    return app;
   }
 
   static get CORE_VIEW_MODULES() {
@@ -21,6 +26,7 @@ export default class ExtensibleExpress extends Express {
   }
 
   _staticFiles(express) {
+    extensibleFoundry.hooks.call('pre.express.staticFiles', express);
     super._staticFiles(express);
     extensibleFoundry.hooks.call('post.express.staticFiles', express);
   }

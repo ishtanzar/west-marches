@@ -44,8 +44,6 @@ export default class Users {
           extensibleFoundry.hooks.call('pre.api.user.create', req, resp, user_data);
 
           user = User.create(user_data);
-          await user.save();
-
           resp.send({'_id': user._id});
         }
       } catch (ex) {

@@ -1,0 +1,7 @@
+{
+  "ExtensibleAuth": {
+    "AccessKey": {
+      "Enabled.Name": "Enable password login"
+    }
+  }
+}

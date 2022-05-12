@@ -1,0 +1,10 @@
+{
+  "ExtensibleAuth": {
+    "Discord": {
+      "Enabled.Name": "Enable Login with Discord",
+      "ClientId.Name": "Discord OAuth Cliend Id",
+      "ClientSecret.Name": "Discord OAuth Cliend Secret",
+      "RedirectUri.Name": "Discord OAuth Redirect URI"
+    }
+  }
+}
