@@ -181,7 +181,7 @@ class ExtensibleFoundryPlugin {
   async loadPlugins(pluginsPath) {
     // TODO: dynamic plugin list
     // for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
-    for(let pluginId of ['api', 'extensibleAuth', 'extensibleAuthDiscord']) {
+    for(let pluginId of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord']) {
       const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
       this._plugins.push(new plugin.default(this));
     }

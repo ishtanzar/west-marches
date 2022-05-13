@@ -1,8 +1,6 @@
-'use strict';
+import prom from "prom-client";
 
-const prom = require("prom-client");
-
-class MetricsPlugin {
+export default class MetricsPlugin {
 
   /**
    *
@@ -14,6 +12,7 @@ class MetricsPlugin {
       {db: 'Actor', name: 'actors'},
       {db: 'Item', name: 'items'},
       {db: 'Scene', name: 'scenes'},
+      {db: 'Note', name: 'notes'},
       {db: 'JournalEntry', name: 'journals'},
       {db: 'ChatMessage', name: 'chat_messages'},
       {db: 'Macro', name: 'macros'},
@@ -30,7 +29,6 @@ class MetricsPlugin {
 
   setup() {
     const self = this;
-    const {game} = global;
 
     prom.collectDefaultMetrics();
 
@@ -38,8 +36,10 @@ class MetricsPlugin {
       name: 'foundry_users_active_total',
       help: 'Currently active users',
       collect() {
-        if(game.activity && game.activity.users) {
-          this.set(Object.values(game.activity.users).filter(user => user.active).length)
+        const {game} = global;
+
+        if(game && game.activity && game.activity.users) {
+          this.set(Object.values(game.activity.users).length)
         }
       }
     }));
@@ -48,6 +48,8 @@ class MetricsPlugin {
       name: 'foundry_uptime',
       help: 'Server Uptime',
       collect() {
+        const {game} = global;
+
         if(game && game.activity) {
           this.set(game.activity.serverTime)
         }
@@ -71,9 +73,9 @@ class MetricsPlugin {
   update() {
     const {db, game} = global;
 
-    if(game.active) {
+    if(game && game.active) {
       for(let metric of this.metrics) {
-        if(db[metric.db].ds && db[metric.db].ds.connected) {
+        if(db[metric.db] && db[metric.db].connected) {
           db[metric.db].db.count({}, function (err, count) {
             this[metric.name] = count;
           }.bind(this));
@@ -91,7 +93,7 @@ class MetricsPlugin {
       } catch (ex) {}
 
       this.schedule();
-    }.bind(this), 60000);
+    }.bind(this), 600);
 
     return this;
   }
@@ -105,5 +107,3 @@ class MetricsPlugin {
     }
   }
 }
-
-module.exports = MetricsPlugin;
