@@ -44,7 +44,7 @@ async function getUserFromKankaTag(tag) {
 }
 
 async function fetchEntities(type) {
-  let apiResult, apiJson, entitiesResult = [], apiUrl = new URL(`https://kanka.io/api/1.0/campaigns/67312/${type}`);
+  let apiResult, apiJson, entitiesResult = [], apiUrl = new URL(`https://kanka.io/api/1.0/campaigns/93396/${type}`);
   do {
     apiResult = await fetch(apiUrl.toString(), {
       headers: {
@@ -205,7 +205,7 @@ class SessionForm extends FormApplication {
   static get defaultOptions() {
     return mergeObject(super.defaultOptions, {
       id: "west-marches-gm-session-edit",
-      title: "Ma Sessions",
+      title: "Ma session",
       template: "./modules/wm-foundry-module/templates/session_edit.hbs",
       classes: ["session-editor"],
       dragDrop: [{callbacks: {drop: this._onDrop}}],
@@ -230,13 +230,24 @@ class SessionForm extends FormApplication {
   async _onDrop(event) {
     try {
       const dropData = JSON.parse(event.dataTransfer.getData('text/plain'));
+	 
       if(dropData.type === 'Actor') {
         const actor = game.actors.get(dropData.id);
         const character = (await getCharacters()).find(c => c.name === actor.name);
-
-        if(!this.object.tags.includes(character.id)) {
-          this.object.tags.push(character.id);
-        }
+		   
+		if(character == undefined){
+		  ui.notifications.warn("Pas trouvé... Est-ce que le tag \"PJ\" a bien été ajouté sur Kanka?");
+		}
+		
+		
+        if(!this.object.tags.includes(character.id)){
+		if(event.target.className == 'flex1 sidebar-tab') {
+			this.object.tags.push(character.id);
+		}else if(event.target.className == 'flex1 sidebar-tab'){
+			
+		}
+	   }
+	   console.log(this.object);
 
         //TODO avoid the render
         this.render();
@@ -264,6 +275,32 @@ class SessionForm extends FormApplication {
     html.on('click', 'button[data-action]', async event => {
       const {action} = event.currentTarget?.dataset ?? {};
       switch(action) {
+
+	   //Panneau latéral droite
+	   case 'removechar':
+		const character = (await getCharacters()).find(c => c.name === event.currentTarget.dataset.value);
+		if(character) {
+			this.object.tags.splice(this.object.tags.indexOf(character.id), 1);
+		}
+		this.render(true);
+	     break;
+		
+	   //Gestions des onglets
+	   case 'showEditorTab':
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_editor").style.display='';
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_downtime_table").style.display='none';
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_editorbtn").style.boxShadow = '0 0 5px red';
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_downtimebtn").style.boxShadow = '';
+	     break;
+	   case 'showDowntimeTab':
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_editor").style.display='none';
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_downtime_table").style.display='';
+		
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_editorbtn").style.boxShadow = '';
+		document.getElementById("session_tab_"+event.currentTarget.dataset.value+"_downtimebtn").style.boxShadow = '0 0 5px red';
+	     break;
+		
+		 //Bottom buttons
         case 'book':
           dialogDiscordSend(
             game.settings.get('wm-foundry-module', 'discord.messages.book'),
@@ -287,6 +324,7 @@ class SessionForm extends FormApplication {
             }
           })));
           break;
+		
       }
     });
   }
@@ -294,6 +332,8 @@ class SessionForm extends FormApplication {
   async _updateObject(event, formData) {
     const app = this;
     this.object = mergeObject(this.object, formData);
+    
+    console.log(this.object);
 
     game.socket.emit('createOrUpdateGameSession', {
       id: this.object.id,
