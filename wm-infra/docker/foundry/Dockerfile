@@ -6,3 +6,5 @@ RUN npm install \
     express-handlebars@^5.3.0 \
     jsonwebtoken@^8.5.1 \
     cookie@^0.4.1
+
+RUN npm install -g pm2
