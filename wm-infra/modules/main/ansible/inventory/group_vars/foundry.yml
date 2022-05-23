@@ -1,54 +1,109 @@
 foundry_hostname: "{{ lookup('env', 'FOUNDRY_HOSTNAME')|default('westmarchesdelacave', True) }}"
 foundry_modules:
   - name: dnd5e
-    version: 1.2.4
+    version: 1.5.7
     url: https://gitlab.com/foundrynet/dnd5e/-/archive/release-{version}/dnd5e-release-{version}.zip
     install_path: "{{ foundry_data_path }}/Data/systems"
     rename: true
-    
-  - name: autocomplete-inline-properties
-    version: 1.2.0
-    url: https://github.com/schultzcole/FVTT-Autocomplete-Inline-Properties/archive/{version}.zip
-    rename: true
+
+#  - name: autocomplete-inline-properties
+#    version: 1.2.0
+#    url: https://github.com/schultzcole/FVTT-Autocomplete-Inline-Properties/archive/{version}.zip
+#    rename: true
   - name: betterrolls5e
-    version: 1.4.12
-    url: https://github.com/ishtanzar/west-marches/releases/download/releases/FoundryVTT-BetterRolls5e/v{version}/FoundryVTT-BetterRolls5e-{version}.zip
-  - name: conditions5e
-    version: 0.4.9
-    url: https://github.com/trdischat/conditions5e/archive/4265d12a167526665530f503ac859cbfe2eb5211.zip
+    version: 1.6.16
+    url: https://github.com/RedReign/FoundryVTT-BetterRolls5e/archive/v{version}.zip
     rename: true
+#  - name: conditions5e
+#    version: 0.4.9
+#    url: https://github.com/trdischat/conditions5e/archive/4265d12a167526665530f503ac859cbfe2eb5211.zip
+#    rename: true
+  - name: dnd5e-status-icons
+    version: 1.0.0
+    url: https://github.com/orangetruth/dnd5e-status-icons/archive/baac7aff65b06b242f60033a242627ccd6b50187.zip
   - name: downtime-ethck
-    version: 0.4.2
+    version: 0.6.3
     url: https://github.com/Ethck/Ethck-s-Downtime-Tracking/releases/download/{version}/downtime-ethck.zip
+  - name: itemcollection
+    version: 1.8.18
+    url: https://gitlab.com/tposney/itemcollection/raw/master/package/itemcollection-v{version}.zip
+    rename: true
   - name: lib-wrapper
-    version: 1.7.5.0
+    version: 1.12.4.0
     url: https://github.com/ruipin/fvtt-lib-wrapper/releases/download/v{version}/lib-wrapper-v{version}.zip
   - name: lootsheetnpc5e
-    version: 3.0.3
-    url: https://github.com/jopeek/fvtt-loot-sheet-npc-5e/archive/refs/tags/{version}.zip
+    version: 3.4.1
+    url: https://github.com/jopeek/fvtt-loot-sheet-npc-5e/archive/v{version}.zip
     rename: true
-  - name: plutonium
-    version: 1.34.0
-    url: https://caveduroliste-westmarches.s3.amazonaws.com/public/modules/plutonium-{version}.zip
+  - name: perfect-vision
+    version: 2.10.8
+    url: https://github.com/dev7355608/perfect-vision/archive/v{version}.zip
     rename: true
-  - name: stairways
-    version: 0.6.0
-    url: https://gitlab.com/SWW13/foundryvtt-stairways/-/archive/v{version}/foundryvtt-stairways-v{version}.zip
+  - name: compendium-folders
+    version: 2.3.64
+    url: https://github.com/earlSt1/vtt-compendium-folders/releases/download/{version}/{version}.zip
     rename: true
   - name: tabbed-chatlog
-    version: 1.5.8
+    version: 1.6.4
     url: https://github.com/cswendrowski/FoundryVTT-tabbed-chatlog/releases/download/{version}/module.zip
   - name: tidy5e-sheet
-    version: 0.4.29
+    version: 0.5.31
     url: https://github.com/sdenec/tidy5e-sheet/releases/download/{version}/module.zip
-  - name: trigger-happy
-    version: 0.8.2
-    url: https://github.com/League-of-Foundry-Developers/fvtt-module-trigger-happy/archive/v{version}.zip
     rename: true
-  - name: wm-foundry-module
-    version: 0.5.0
-    url: https://github.com/ishtanzar/west-marches/releases/download/releases/wm-foundry-module/v{version}/wm-foundry-module-{version}.zip
   - name: XCard
     version: 0.0.7
     url: https://github.com/Sk1mble/XCard/archive/v{version}.zip
     rename: true
+  - name: torch
+    version: 1.4.4
+    url: https://github.com/League-of-Foundry-Developers/torch/archive/v{version}.zip
+    rename: true
+  - name: monks-tokenbar
+    version: 1.0.55
+    url: https://github.com/ironmonk88/monks-tokenbar/archive/{version}.zip
+    rename: true
+  - name: monks-scene-navigation
+    version: 1.0.18
+    url: https://github.com/ironmonk88/monks-scene-navigation/archive/{version}.zip
+    rename: true
+  - name: ActiveAuras
+    version: 0.3.08
+    url: https://github.com/kandashi/Active-Auras/archive/refs/tags/{version}.zip
+    rename: true
+  - name: zoom-pan-options
+    version: 1.7.0
+    url: https://github.com/itamarcu/ZoomPanOptions/archive/{version}.zip
+    rename: true
+  - name: socketlib
+    version: 1.0.10
+    url: https://github.com/manuelVo/foundryvtt-socketlib/archive/v{version}.zip
+    rename: true
+  - name: colorsettings
+    version: 2.8.4
+    url: https://github.com/ardittristan/VTTColorSettings/archive/refs/tags/{version}.zip
+    rename: true
+  - name: splatter
+    version: 2.6
+    url: https://github.com/theripper93/Splatter/archive/{version}.zip
+    rename: true
+  - name: quick-insert
+    version: 2.5.3
+    url: https://gitlab.com/fvtt-modules-lab/quick-insert/-/jobs/artifacts/v{version}/raw/quick-insert-v{version}.zip?job=build-module
+    
+  - name: stairways
+    version: 0.7.5
+    url: https://gitlab.com/SWW13/foundryvtt-stairways/-/archive/v{version}/foundryvtt-stairways-v{version}.zip
+    rename: true
+  - name: plutonium
+    version: 1.49.4
+    url: https://caveduroliste-westmarches.s3.amazonaws.com/public/modules/plutonium-{version}.zip
+    rename: true
+  - name: trigger-happy
+    version: 0.8.39
+    url: https://github.com/League-of-Foundry-Developers/fvtt-module-trigger-happy/archive/v{version}.zip
+    rename: true
+    
+#  - name: wm-foundry-module
+#    version: 0.5.0
+#    url: https://github.com/ishtanzar/west-marches/releases/download/releases/wm-foundry-module/v{version}/wm-foundry-module-{version}.zip
+
