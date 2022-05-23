@@ -1,0 +1,10 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Install modules
+      include_role:
+        name: foundry
+        tasks_from: module_install.yml
+      loop: "{{ foundry_modules }}"
+      loop_control:
+        loop_var: module
