@@ -3,6 +3,7 @@ import url from "url";
 import fetch from "node-fetch";
 import sessions from "foundry:dist/sessions.mjs";
 import Express from "foundry:dist/server/express.mjs";
+import { randomBytes } from "crypto";
 
 class InvalidAccessTokenError extends Error {}
 
@@ -87,17 +88,15 @@ export default class ExtensibleDiscordOAuthPlugin {
 
         //TODO: update username with discriminator
 
-        // user.update({
-        //   discord: discord,
-        //   auth: {
-        //     discord: {
-        //       access_token: oauthData.access_token,
-        //       refresh_token: oauthData.refresh_token,
-        //       expires_in: oauthData.expires_in,
-        //       logging_date: Date.now()
-        //     }
-        //   }
-        // }).save();
+        await user.update({
+          password: randomBytes(16).toString('hex'),
+          discord: discord,
+          auth: {
+            discord: {
+              logging_date: Date.now()
+            }
+          }
+        });
 
         sessions.logoutWorld(req, resp);
         const session = sessions.getOrCreate(req, resp);
