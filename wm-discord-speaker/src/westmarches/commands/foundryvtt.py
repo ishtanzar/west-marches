@@ -1,14 +1,15 @@
 import datetime
 import logging
 import os
+import random
 import re
+import string
 from abc import abstractmethod
-from operator import itemgetter
-from typing import Optional
-
 from discord import Embed, Member
 from discord.ext.commands import Context
+from operator import itemgetter
 from redbot.core import commands, checks
+from typing import Optional
 
 from westmarches.utils import CompositeMetaClass, MixinMeta
 
@@ -113,20 +114,39 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
             foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
-            if foundry_user:
-                await self.api_client.foundry.users_update(foundry_user['_id'], role=4)
-                async with self.config.messages() as messages:
+            async with self.config.messages() as messages:
+                if foundry_user:
+                    await self.api_client.foundry.users_update(foundry_user['_id'], role=4)
                     await ctx.send(messages['foundry.player.toggle_gm.activate'] % discord_user.name)
+                else:
+                    await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
 
     @command_foundry.command(name="player_remove_gm")
     async def player_remove_gm(self, ctx: commands.Context, user_str: str):
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
             foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
-            if foundry_user:
-                await self.api_client.foundry.users_update(foundry_user['_id'], role=1)
-                async with self.config.messages() as messages:
+            async with self.config.messages() as messages:
+                if foundry_user:
+                    await self.api_client.foundry.users_update(foundry_user['_id'], role=1)
                     await ctx.send(messages['foundry.player.toggle_gm.deactivate'] % discord_user.name)
+                else:
+                    await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
+
+    @command_foundry.command(name="reset_password")
+    async def player_reset_password(self, ctx: commands.Context, user_str: str):
+        discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
+        if discord_user:
+            foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
+            async with self.config.messages() as messages:
+                if foundry_user:
+                    new_password = ''.join(
+                        random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(12))
+                    await self.api_client.foundry.users_update(foundry_user['_id'], password=new_password)
+                    await discord_user.send(messages['foundry.player.password.reset'] % new_password)
+                    await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
+                else:
+                    await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
 
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):

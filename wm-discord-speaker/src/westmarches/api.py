@@ -93,12 +93,15 @@ class FoundryApi(AbstractApi):
         })
         return resp.json()
 
-    async def users_update(self, user_id, name: Optional[str] = None, role: Optional[int] = None) -> str:
+    async def users_update(self, user_id, name: Optional[str] = None, role: Optional[int] = None,
+                           password: Optional[str] = None) -> str:
         body = {}
         if name:
             body['name'] = name
         if role:
             body['role'] = role
+        if password:
+            body['password'] = password
 
         resp = await self._client.put('/foundry/users/%s' % user_id, json=body)
         return resp.json()

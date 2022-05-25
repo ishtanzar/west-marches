@@ -49,8 +49,12 @@ class WestMarchesCog(commands.Commands,
             "foundry.roster.search.class": "Parmis les aventuriers qui viennent ici, voici les %s que je connais : %s",
 
             "foundry.player.add.done": "Bienvenue parmis nous %s. Puisses-tu survivre longtemps sur ces terres gelées.",
+            "foundry.player.discord.not_found": "Aucune correspondance sur Foundry pour l'utilisateur %s.",
+            "foundry.player.password.reset": "Le mot de passe Foundry a été réinitialisé : %s",
             "foundry.player.toggle_gm.activate": "%s est maintenant MJ.",
             "foundry.player.toggle_gm.deactivate": "%s n'est plus MJ.",
+            "gm.message.sent": "Ton message a bien été transmis, l'équipe en discute et reviendra vers toi par message "
+                               "privé. Bonne journée.",
         }
     }
 
