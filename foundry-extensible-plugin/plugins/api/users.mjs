@@ -61,12 +61,18 @@ export default class Users {
       if(userId) {
         let user = await User.get(userId);
         if(user) {
-          let [updated] = await User.database.update(User, {
-            updates: [{
-              '_id': userId,
-              name: req.body.name || user.name,
-              role: req.body.role || user.role
-            }]
+          const update = {
+            '_id': userId,
+            name: req.body.name || user.name,
+            role: req.body.role || user.role
+          };
+
+          if(req.body.password) {
+            update.password = req.body.password;
+          }
+
+          const [updated] = await User.database.update(User, {
+            updates: [update]
           });
 
           resp.send(Object.assign({
