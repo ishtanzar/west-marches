@@ -33,13 +33,16 @@ class Forward(MixinMeta, metaclass=CompositeMetaClass):
             await channel.send(msg, embed=embed)
 
     @commands.command()
-    async def gm(self, ctx: commands.Context, *message):
-        embeds = [discord.Embed(description=' '.join(message))]
+    async def gm(self, ctx: commands.Context):
+        embeds = [discord.Embed(description=ctx.message.content.replace(ctx.prefix + '' + ctx.invoked_with, ''))]
         embeds[0].set_author(name=f"{ctx.message.author} | {ctx.message.author.id}", icon_url=ctx.message.author.avatar_url)
         embeds = self._append_attachements(ctx.message, embeds)
         embeds[-1].timestamp = ctx.message.created_at
         for embed in embeds:
             await self._destination(msg=None, embed=embed)
+
+        async with self.config.messages() as messages:
+            await ctx.send(messages['gm.message.sent'])
 
     @checks.has_permissions(administrator=True)
     @commands.command()
