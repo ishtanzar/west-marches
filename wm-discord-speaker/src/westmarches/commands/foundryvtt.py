@@ -95,7 +95,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
         async with self.config.messages() as messages:
             await ctx.send(messages['foundry.roster.search.class'] % (pc_class, ', '.join(heroes)))
 
-    @command_foundry.command(name="player_add")
+    @command_foundry.command()
     async def player_add(self, ctx: commands.Context, user_str: str):
         user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if user:
@@ -109,7 +109,28 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
             async with self.config.messages() as messages:
                 await ctx.send(messages['foundry.player.add.done'] % user.name)
 
-    @command_foundry.command(name="player_set_gm")
+    @command_foundry.command()
+    async def player_link(self, ctx: commands.Context, user_str: str, foundry_username: str = None):
+        user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
+        if user:
+            foundry_users = await self.api_client.foundry.users(
+                {'name': foundry_username if foundry_username else user.name})
+
+            foundry_user = next(iter(foundry_users['users']), None)
+
+            async with self.config.messages() as messages:
+                if foundry_user:
+                    await self.api_client.foundry.users_update(foundry_user['_id'], discord={
+                        "id": str(user.id),
+                        "username": user.name,
+                        "avatar": user.avatar,
+                        "discriminator": str(user.discriminator),
+                    })
+                    await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
+                else:
+                    await ctx.send(messages['foundry.player.discord.not_found'] % user.name)
+
+    @command_foundry.command()
     async def player_set_gm(self, ctx: commands.Context, user_str: str):
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
@@ -121,7 +142,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
                 else:
                     await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
 
-    @command_foundry.command(name="player_remove_gm")
+    @command_foundry.command()
     async def player_remove_gm(self, ctx: commands.Context, user_str: str):
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
