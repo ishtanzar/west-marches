@@ -38,8 +38,26 @@ class Forward(MixinMeta, metaclass=CompositeMetaClass):
         embeds[0].set_author(name=f"{ctx.message.author} | {ctx.message.author.id}", icon_url=ctx.message.author.avatar_url)
         embeds = self._append_attachements(ctx.message, embeds)
         embeds[-1].timestamp = ctx.message.created_at
-        for embed in embeds:
-            await self._destination(msg=None, embed=embed)
+
+        await self.bot.wait_until_ready()
+        channel = await self.config.destination()
+        channel = self.bot.get_channel(channel)
+
+        if channel is None:
+            for embed in embeds:
+                await self.bot.send_to_owners(None, embed=embed)
+        else:
+            lines = embeds.pop(0).description.splitlines()
+            async with self.config.messages() as messages:
+                thread = await channel.create_thread(
+                    messages['gm.message.title'] % (
+                        ctx.message.author,
+                        lines[0] if len(lines) > 1 else messages['gm.message.title.default']
+                    ),
+                    '\n'.join(lines[1:] if len(lines) > 1 else lines)
+                )
+            for embed in embeds:
+                await thread.send(embed=embed)
 
         async with self.config.messages() as messages:
             await ctx.send(messages['gm.message.sent'])
