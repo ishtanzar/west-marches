@@ -71,6 +71,11 @@ export default class Users {
             update.password = req.body.password;
           }
 
+          if(req.body.discord) {
+            update.discord = req.body.discord
+            ;
+          }
+
           const [updated] = await User.database.update(User, {
             updates: [update]
           });
