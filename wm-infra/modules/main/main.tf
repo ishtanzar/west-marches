@@ -24,7 +24,7 @@ variable "host_name" {
 }
 
 variable "backup_bucket" {
-  default = "westmarches-infra-backups"
+  default = "westmarches-backups"
 }
 
 variable "ssh_key_id" {
@@ -83,7 +83,7 @@ resource "scaleway_instance_server" "main" {
   type = var.instance_type
   image = "ubuntu_focal"
   ip_id = scaleway_instance_ip.public_ip.id
-  tags = ["foundry", "kanka"]
+  tags = ["foundry"]
   additional_volume_ids = [scaleway_instance_volume.data.id]
   security_group_id = scaleway_instance_security_group.front.id
 }

@@ -1,13 +1,14 @@
 terraform {
   required_providers {
     scaleway = {
-      source = "scaleway/scaleway"
+      source  = "scaleway/scaleway"
+      version = "2.1.0"
     }
   }
 
   backend "s3" {
     bucket = "westmarches-infra"
-    key    = "tfstate/main.tfstate"
+    key    = "tfstate/prod/main.tfstate"
     region = "fr-par"
 
     endpoint = "https://s3.fr-par.scw.cloud"
@@ -20,10 +21,12 @@ terraform {
 
 variable "gandi_key" {}
 
+variable scw_ssh_key_id {}
+
 module "main" {
   source = "../../modules/main"
 
   gandi_key = var.gandi_key
-  ssh_key_id = "def22f15-3be9-4fbc-ae46-49de416bd66a"
+  ssh_key_id = var.scw_ssh_key_id
   instance_type = "DEV1-M"
 }

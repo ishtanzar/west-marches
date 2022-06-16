@@ -1,0 +1,69 @@
+name: deploy
+
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Output versions
+        run: |
+          terraform version
+          ansible-playbook --version
+          
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Terraform init
+        run: terraform init
+        working-directory: wm-infra/deploy/prod
+        env:
+          AWS_REGION: fr-par
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+        
+      - name: Add SSH key
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan ${{ secrets.SERVICE_FQDN }} >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SCW_SSH_KEY }}" > /home/runner/.ssh/github_actions
+          chmod 600 /home/runner/.ssh/github_actions
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add /home/runner/.ssh/github_actions
+        
+      - name: Terraform apply
+        run: terraform plan
+        working-directory: wm-infra/deploy/prod
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_SSH_KEY_ID: ${{ secrets.SCW_SSH_KEY_ID }}
+          SCW_TOKEN: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_REGION: fr-par
+          TF_VAR_gandi_key: ${{ secrets.GANDI_KEY }}
+          TF_VAR_scw_ssh_key_id: ${{ secrets.SCW_SSH_KEY_ID }}
+          AWS_REGION: fr-par
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          FOUNDRY_VERSION: 0.8.9
+          FOUNDRY_BUCKET_ACCESS_KEY_ID: ${{ secrets.FOUNDRY_BUCKET_ACCESS_KEY_ID }}
+          FOUNDRY_BUCKET_SECRET_ACCESS_KEY: ${{ secrets.FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}
+          FOUNDRY_S3_ACCESS_KEY_ID: ${{ secrets.FOUNDRY_S3_ACCESS_KEY_ID }}
+          FOUNDRY_S3_SECRET_KEY: ${{ secrets.FOUNDRY_S3_SECRET_KEY }}
+          INFLUXDB_ADMIN_SECRET: ${{ secrets.INFLUXDB_ADMIN_SECRET }}
+          INFLUXDB_ADMIN_TOKEN: ${{ secrets.INFLUXDB_ADMIN_TOKEN }}
+          DISCORD_BOT_SECRET: ${{ secrets.DISCORD_BOT_SECRET }}
+          DISCORD_OWNER_ID: ${{ secrets.DISCORD_OWNER_ID }}
+          DISCORD_AWS_ACCESS_KEY_ID: ${{ secrets.DISCORD_AWS_ACCESS_KEY_ID }}
+          DISCORD_AWS_SECRET_KEY: ${{ secrets.DISCORD_AWS_SECRET_KEY }}
+          DISCORD_AWS_REGION: eu-west-3
+          OAUTH_CLIENT: ${{ secrets.OAUTH_CLIENT }}
+          OAUTH_SECRET: ${{ secrets.OAUTH_SECRET }}
+          FOUNDRY_ADMIN_KEY: ${{ secrets.FOUNDRY_ADMIN_KEY }}
+          BACKUP_S3_ENDPOINT: https://s3.fr-par.scw.cloud
+          
