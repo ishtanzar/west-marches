@@ -30,13 +30,13 @@ jobs:
         run: |
           mkdir -p /home/runner/.ssh
           ssh-keyscan ${{ secrets.SERVICE_FQDN }} >> /home/runner/.ssh/known_hosts
-          echo "${{ secrets.SCW_SSH_KEY }}" > /home/runner/.ssh/github_actions
-          chmod 600 /home/runner/.ssh/github_actions
+          echo "${{ secrets.SCW_SSH_KEY }}" > /home/runner/.ssh/id_rsa_ishtanzar
+          chmod 600 /home/runner/.ssh/id_rsa_ishtanzar
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add /home/runner/.ssh/github_actions
+          ssh-add /home/runner/.ssh/id_rsa_ishtanzar
         
       - name: Terraform apply
-        run: terraform plan
+        run: terraform apply -auto-approve
         working-directory: wm-infra/deploy/prod
         env:
           SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
