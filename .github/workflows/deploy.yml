@@ -45,7 +45,11 @@ jobs:
           ssh-add /home/runner/.ssh/id_rsa_ishtanzar
         
       - name: Terraform apply
-        run: terraform apply -auto-approve
+        run: |
+          export ANSIBLE_MITOGEN=$(python -c "import ansible_mitogen as _; print(_.__path__[0])")
+          export ANSIBLE_STRATEGY_PLUGINS=${ANSIBLE_MITOGEN}/plugins/strategy
+          export ANSIBLE_STRATEGY=mitogen_linear
+          terraform apply -auto-approve
         working-directory: wm-infra/deploy/prod
         env:
           SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
