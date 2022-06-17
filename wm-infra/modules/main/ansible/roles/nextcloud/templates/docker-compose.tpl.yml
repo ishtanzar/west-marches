@@ -2,7 +2,7 @@ version: '3.2'
 
 services:
   nextcloud:
-    image: nextcloud:22-fpm
+    image: nextcloud:23-fpm
     restart: always
     ports:
       - 8080
