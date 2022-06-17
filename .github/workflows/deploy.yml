@@ -16,6 +16,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        working-directory: wm-infra
+        
       - name: Terraform init
         run: terraform init
         working-directory: wm-infra/deploy/prod
