@@ -7,30 +7,15 @@
       "Effect": "Allow",
       "Principal": {
         "SCW": [
-          "project_id:395a81f2-0abe-417b-9e08-95079a607e2f"
+          "project_id:395a81f2-0abe-417b-9e08-95079a607e2f",
+          "project_id:df7b4653-0923-42ea-9e03-e84eb41107b3"
         ]
       },
       "Action": [
-        "s3:ListBucket"
+        "s3:*"
       ],
       "Resource": [
-        "westmarches-infra"
-      ]
-    },
-    {
-      "Sid": "Manage objects",
-      "Effect": "Allow",
-      "Principal": {
-        "SCW": "project_id:395a81f2-0abe-417b-9e08-95079a607e2f"
-      },
-      "Action": [
-        "s3:GetObject",
-        "s3:DeleteObject",
-        "s3:PutObject",
-        "s3:GetObjectVersion",
-        "s3:GetObjectTagging"
-      ],
-      "Resource": [
+        "westmarches-infra",
         "westmarches-infra/*"
       ]
     }

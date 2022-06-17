@@ -31,7 +31,7 @@ resource "scaleway_object_bucket" "main" {
   acl      = "private"
 }
 
-resource "aws_s3_bucket_policy" "main-policy" {
-  bucket = scaleway_object_bucket.main.name
-  policy = file("files/bucket-iac-policy.json")
-}
+#resource "aws_s3_bucket_policy" "main-policy" {
+#  bucket = scaleway_object_bucket.main.name
+#  policy = file("files/bucket-iac-policy.json")
+#}

@@ -1,0 +1,12 @@
+
+- name: Create nextcloud data paths
+  ansible.builtin.file:
+    path: "{{ nextcloud_data_path }}"
+    state: directory
+
+- name: Template docker-compose file
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: docker-compose.tpl.yml, dest: "{{ nextcloud_data_path }}-compose.yml" }

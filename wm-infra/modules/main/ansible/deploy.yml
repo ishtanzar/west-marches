@@ -16,6 +16,8 @@
           - lookup('env', 'OAUTH_SECRET')
           - lookup('env', 'DISCORD_BOT_SECRET')
           - lookup('env', 'DISCORD_OWNER_ID')
+          - lookup('env', 'DISCORD_AWS_ACCESS_KEY_ID')
+          - lookup('env', 'DISCORD_AWS_SECRET_KEY')
           - lookup('env', 'INFLUXDB_ADMIN_SECRET')
           - lookup('env', 'INFLUXDB_ADMIN_TOKEN')
           - lookup('env', 'BACKUP_S3_BUCKET')
@@ -43,6 +45,10 @@
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
         DISCORD_BOT_SECRET: "{{ lookup('env', 'DISCORD_BOT_SECRET') }}"
         DISCORD_OWNER_ID: "{{ lookup('env', 'DISCORD_OWNER_ID') }}"
+        DISCORD_AWS_ACCESS_KEY_ID: "{{ lookup('env', 'DISCORD_AWS_ACCESS_KEY_ID') }}"
+        DISCORD_AWS_SECRET_KEY: "{{ lookup('env', 'DISCORD_AWS_SECRET_KEY') }}"
+        DISCORD_AWS_REGION: "{{ lookup('env', 'DISCORD_AWS_REGION') }}"
+        KANKA_TOKEN: "{{ lookup('env', 'KANKA_TOKEN') }}"
         INFLUXDB_ADMIN_SECRET: "{{ lookup('env', 'INFLUXDB_ADMIN_SECRET') }}"
         INFLUXDB_ADMIN_TOKEN: "{{ lookup('env', 'INFLUXDB_ADMIN_TOKEN') }}"
         BACKUP_S3_BUCKET: "{{ lookup('env', 'BACKUP_S3_BUCKET') }}"
@@ -73,4 +79,5 @@
   roles:
     - foundry
     - discordbot
+    - nextcloud
     - westmarches

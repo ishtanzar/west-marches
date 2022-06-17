@@ -1,6 +1,18 @@
 - hosts: all
   gather_facts: no
   tasks:
+  
+    - name: Create some paths
+      ansible.builtin.file:
+        path: "{{ foundry_data_path }}/{{ item }}"
+        state: directory
+        owner: 421
+        group: 421
+      loop:
+        - Data/systems
+        - Data/modules
+        - Config
+  
     - name: Install modules
       include_role:
         name: foundry

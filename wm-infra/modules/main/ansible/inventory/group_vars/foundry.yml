@@ -1,4 +1,7 @@
 foundry_hostname: "{{ lookup('env', 'FOUNDRY_HOSTNAME')|default('westmarchesdelacave', True) }}"
+foundry_data_path: /opt/data/foundry
+nextcloud_data_path: /opt/data/nextcloud
+
 foundry_modules:
   - name: dnd5e
     version: 1.5.7
@@ -6,18 +9,10 @@ foundry_modules:
     install_path: "{{ foundry_data_path }}/Data/systems"
     rename: true
 
-#  - name: autocomplete-inline-properties
-#    version: 1.2.0
-#    url: https://github.com/schultzcole/FVTT-Autocomplete-Inline-Properties/archive/{version}.zip
-#    rename: true
   - name: betterrolls5e
     version: 1.6.16
     url: https://github.com/RedReign/FoundryVTT-BetterRolls5e/archive/v{version}.zip
     rename: true
-#  - name: conditions5e
-#    version: 0.4.9
-#    url: https://github.com/trdischat/conditions5e/archive/4265d12a167526665530f503ac859cbfe2eb5211.zip
-#    rename: true
   - name: dnd5e-status-icons
     version: 1.0.0
     url: https://github.com/orangetruth/dnd5e-status-icons/archive/baac7aff65b06b242f60033a242627ccd6b50187.zip
@@ -27,7 +22,7 @@ foundry_modules:
   - name: itemcollection
     version: 1.8.18
     url: https://gitlab.com/tposney/itemcollection/raw/master/package/itemcollection-v{version}.zip
-    rename: true
+#    rename: true
   - name: lib-wrapper
     version: 1.12.4.0
     url: https://github.com/ruipin/fvtt-lib-wrapper/releases/download/v{version}/lib-wrapper-v{version}.zip
@@ -89,7 +84,27 @@ foundry_modules:
   - name: quick-insert
     version: 2.5.3
     url: https://gitlab.com/fvtt-modules-lab/quick-insert/-/jobs/artifacts/v{version}/raw/quick-insert-v{version}.zip?job=build-module
-    
+  - name: pdf-sheet
+    version: 0.18.1
+    url: https://github.com/arcanistzed/pdf-sheet/releases/download/{version}/module.zip
+    rename: true
+  - name: dice-calculator
+    version: 1.5.2
+    url: https://gitlab.com/asacolips-projects/foundry-mods/foundry-vtt-dice-calculator/-/archive/{version}/foundry-vtt-dice-calculator-master.zip
+    rename: true
+  - name: pings
+    version: 1.2.12+0.8.6
+    url: https://gitlab.com/foundry-azzurite/pings/-/jobs/artifacts/{version}/raw/dist/pings.zip?job=build
+  - name: settings-extender
+    version: 1.1.7+9
+    url: https://gitlab.com/foundry-azzurite/settings-extender/-/jobs/artifacts/{version}/raw/dist/settings-extender.zip?job=build
+  - name: enhanced-terrain-layer
+    version: 1.0.34
+    url: https://github.com/ironmonk88/enhanced-terrain-layer/archive/{version}.zip
+  - name: terrain-ruler
+    version: 1.5.0
+    url: https://github.com/manuelVo/foundryvtt-terrain-ruler/archive/v{version}.zip
+
   - name: stairways
     version: 0.7.5
     url: https://gitlab.com/SWW13/foundryvtt-stairways/-/archive/v{version}/foundryvtt-stairways-v{version}.zip
@@ -101,9 +116,9 @@ foundry_modules:
   - name: trigger-happy
     version: 0.8.39
     url: https://github.com/League-of-Foundry-Developers/fvtt-module-trigger-happy/archive/v{version}.zip
-    rename: true
-    
-#  - name: wm-foundry-module
-#    version: 0.5.0
-#    url: https://github.com/ishtanzar/west-marches/releases/download/releases/wm-foundry-module/v{version}/wm-foundry-module-{version}.zip
+#    rename: true
+#
+##  - name: wm-foundry-module
+##    version: 0.5.0
+##    url: https://github.com/ishtanzar/west-marches/releases/download/releases/wm-foundry-module/v{version}/wm-foundry-module-{version}.zip
 

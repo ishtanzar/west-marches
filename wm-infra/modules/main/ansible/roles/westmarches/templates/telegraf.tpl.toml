@@ -11,7 +11,8 @@ bucket = "bucket0"
 [[inputs.nstat]]
 [[inputs.net]]
 [[inputs.internal]]
-#[[inputs.procstat]]
+[[inputs.procstat]]
+pattern = ".*"
 
 [[inputs.nginx]]
 urls = ["http://127.0.0.1:8080/status"]

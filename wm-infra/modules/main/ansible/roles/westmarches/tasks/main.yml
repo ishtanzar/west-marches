@@ -4,7 +4,6 @@
     path: "{{ item }}"
     state: directory
   loop:
-    - "{{ westmarches_data_path }}/grafana"
     - "{{ westmarches_data_path }}/influxdb"
     - /opt/data/www/.well-known
 
@@ -67,6 +66,18 @@
     path: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
     state: absent
 
+- name: Create grafana data paths
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: 472
+    mode: '0644'
+  loop:
+    - "{{ westmarches_data_path }}/grafana"
+    - "{{ westmarches_data_path }}/grafana/plugins"
+    - "{{ westmarches_data_path }}/grafana/dashboards"
+    - "{{ westmarches_data_path }}/grafana/csv"
+
 - name: Upload grafana dashboards
   ansible.builtin.copy:
     src: grafana-dashboards
@@ -83,6 +94,7 @@
     compose_files:
       - "{{ foundry_data_path }}-compose.yml"
       - "{{ discordbot_data_path }}-compose.yml"
+      - "{{ nextcloud_data_path }}-compose.yml"
       - "{{ westmarches_data_path }}/docker-compose.yml"
   register: unit_file_status
 
@@ -109,7 +121,7 @@
     delay: 10
     
 - name: SSL certificate
-  ansible.builtin.shell: "certbot certonly -n --agree-tos --email webmaster@ishtanzar.net --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }}"
+  ansible.builtin.shell: "certbot certonly -n --agree-tos --email webmaster@ishtanzar.net --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }},{{ nextcloud_fqdn }}"
 
 - name: Restart units
   ansible.builtin.systemd:

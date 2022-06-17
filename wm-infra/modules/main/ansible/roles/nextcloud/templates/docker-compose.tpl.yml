@@ -1,0 +1,11 @@
+version: '3.2'
+
+services:
+  nextcloud:
+    image: nextcloud:22-fpm
+    restart: always
+    ports:
+      - 8080
+    volumes:
+      - "{{ nextcloud_data_path }}:/var/www/html:rw"
+      

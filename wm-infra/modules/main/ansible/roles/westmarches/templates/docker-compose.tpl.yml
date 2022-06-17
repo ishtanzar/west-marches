@@ -60,12 +60,14 @@ services:
       - "{{ westmarches_data_path }}/nginx-custom.conf:/etc/nginx/01-custom.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-ssl.conf:/etc/nginx/02-ssl.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-entrypoint.sh:/docker-entrypoint.d/ssl-config.sh:ro"
+      - "{{ westmarches_data_path }}/nextcloud:/opt/data/nextcloud:ro"
       - "/etc/letsencrypt:/etc/letsencrypt:ro"
       - "/opt/data/5etools:/opt/data/5etools:ro"
       - "/opt/data/www:/usr/share/nginx/html:rw"
     links:
       - foundry
       - grafana
+      - nextcloud
 #      - oauth
     ports:
       - "80:80"
@@ -85,14 +87,20 @@ services:
       - "FOUNDRY_AWS_CONFIG=/data/Config/s3config.json"
     volumes:
       - "{{ westmarches_data_path }}/foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin"
-    command: [ "--require", "/home/foundry/resources/foundry-extensible-plugin", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data" ]
+    command: [ "--inspect=0.0.0.0:9229", "--loader=/home/foundry/resources/foundry-extensible-plugin/custom-resolver.mjs", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data" ]
   discordbot:
     links:
       - manager_api
     environment:
-      - "WM_API_SECRET={{ manager_api_secret }}"
+      - WM_API_SECRET={{ manager_api_secret }}
       - WM_API_ENDPOINT=http://manager_api:5000
-
+      - AWS_ACCESS_KEY_ID={{ DISCORD_AWS_ACCESS_KEY_ID }}
+      - AWS_SECRET_ACCESS_KEY={{ DISCORD_AWS_SECRET_KEY }}
+      - KANKA_TOKEN={{ KANKA_TOKEN }}
+  nextcloud:
+    volumes:
+      - "{{ nextcloud_data_path }}:/var/www/html:rw"
+      - "{{ nextcloud_data_path }}:/opt/data/nextcloud:rw"
 #  oauth:
 #    image: voucher/vouch-proxy
 #    restart: "unless-stopped"

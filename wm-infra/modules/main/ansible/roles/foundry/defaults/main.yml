@@ -13,6 +13,8 @@ foundry_modules_path: "{{ foundry_data_path }}/Data/modules"
 manager_api_secret: changeme
 manager_api_docker_image: ishtanzar/wm-manager-api:latest
 
+nextcloud_fqdn: "nextcloud.{{ foundry_fqdn }}"
+
 foundry_s3_bucket: caveduroliste-westmarches
 FOUNDRY_BUCKET_ACCESS_KEY_ID: ''
 FOUNDRY_BUCKET_SECRET_ACCESS_KEY: ''

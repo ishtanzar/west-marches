@@ -29,9 +29,14 @@
   ansible.builtin.file:
     path: "{{ foundry_data_path }}/{{ item }}"
     state: directory
+    owner: 421
+    group: 421
   loop:
     - container_cache
     - container_patches/resources
+    - Data/systems
+    - Data/modules
+    - Config
 
 - name: Fetch foundry
   amazon.aws.aws_s3:

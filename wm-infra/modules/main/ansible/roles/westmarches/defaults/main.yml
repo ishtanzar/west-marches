@@ -10,3 +10,4 @@ foundry_s3_config:
 
 westmarches_data_path: /opt/data/westmarches
 discordbot_data_path: /opt/data/discordbot
+nextcloud_data_path: /opt/data/nextcloud

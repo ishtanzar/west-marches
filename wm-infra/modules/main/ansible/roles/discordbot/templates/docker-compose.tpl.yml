@@ -11,4 +11,7 @@ services:
     environment:
       - DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json
       - LOGGING_CONFIG=/opt/redbot/data/discordbot-logging.yml
+      - AWS_ACCESS_KEY_ID={{DISCORD_AWS_ACCESS_KEY_ID}}
+      - AWS_SECRET_ACCESS_KEY={{DISCORD_AWS_SECRET_KEY}}
+      - AWS_DEFAULT_REGION={{DISCORD_AWS_REGION}}
     command: redbot westmarches --mentionable --token=${DISCORD_BOT_SECRET} --prefix=YVwWFZyjiFQH --owner=${DISCORD_OWNER_ID}
