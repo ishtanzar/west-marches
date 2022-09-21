@@ -55,6 +55,9 @@ class WestMarchesCog(commands.Commands,
             "foundry.player.toggle_gm.deactivate": "%s n'est plus MJ.",
             "foundry.activity.users": "Utilisateurs connectés : %s.",
             "inkarnate.password": "%s\nCe message sera automatiquement supprimé dans 30s.",
+            "kanka.users.list.not_found": "Aucun utilisateur",
+            "kanka.reports.link": "Voici le lien vers le rapport demandé : \n%s\nCe message sera supprimé dans %s.",
+            "kanka.reports.not_found": "Impossible de trouver le rapport demandé.",
             "gm.message.sent": "Ton message a bien été transmis, l'équipe en discute et reviendra vers toi par message "
                                "privé. Bonne journée.",
         }

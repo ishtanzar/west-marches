@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "foundry-extensible-plugin",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "localRoot": "${workspaceFolder}/foundry-extensible-plugin",
+            "remoteRoot": "/home/foundry/resources/foundry-extensible-plugin"
+        },
+        {
+            "name": "wm-discord-speaker",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+              "host": "localhost",
+              "port": 5679
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/wm-discord-speaker",
+                    "remoteRoot": "/opt/project/wm-discord-speaker"
+                }
+            ]
+          },
+          {
+              "name": "wm-manager-api",
+              "type": "python",
+              "request": "attach",
+              "connect": {
+                "host": "localhost",
+                "port": 5678
+              },
+              "pathMappings": [
+                  {
+                      "localRoot": "${workspaceFolder}/wm-manager-api",
+                      "remoteRoot": "/opt/project/wm-manager-api"
+                  }
+              ]
+            }
+    ]
+}

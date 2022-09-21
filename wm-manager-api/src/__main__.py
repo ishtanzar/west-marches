@@ -15,7 +15,6 @@ from api import WestMarchesApi
 from services.backup import BackupService
 from services.chatbot import IntentService
 from services.database import Engine
-from services.discord import DiscordService
 from services.docker import FoundryProject
 from services.foundryvtt import FoundryService
 from services.kanka import KankaService
@@ -26,8 +25,9 @@ foundry_endpoint = os.environ['FOUNDRY_ENDPOINT']
 backup_bucket = os.environ['BACKUP_S3_BUCKET']
 db_endpoint = os.environ['DATABASE_ENDPOINT']
 s3_endpoint = os.environ['BACKUP_S3_ENDPOINT'] if 'BACKUP_S3_ENDPOINT' in os.environ.keys() else None
-discord_secret = os.environ['DISCORD_SECRET']
 model_dir = os.environ['INTENT_MODEL_DIR']
+kanka_token = os.environ['KANKA_TOKEN']
+kanka_campaign = os.environ['KANKA_CAMPAIGN']
 
 with open(os.environ['LOGGING_CONFIG']) as fd:
     config = yaml.safe_load(fd.read())
@@ -44,8 +44,7 @@ app = WestMarchesApi(
     FoundryProject(project_path),
     BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint)),
     FoundryService(foundry_endpoint),
-    DiscordService(discord_secret),
-    KankaService(),
+    KankaService(kanka_token, kanka_campaign),
     IntentService(Engine(), Path(model_dir))
 )
 

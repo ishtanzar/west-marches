@@ -60,8 +60,7 @@ class WestMarchesApi(Quart):
     def __init__(
         self, import_name: str, compose: FoundryProject,
         backup: BackupService, foundry: FoundryService,
-        discord: DiscordService, kanka: KankaService,
-        intent_service: IntentService
+        kanka: KankaService, intent_service: IntentService
     ) -> None:
         super().__init__(import_name)
         WestMarchesApi.instance = self
@@ -70,7 +69,6 @@ class WestMarchesApi(Quart):
         self._compose = compose
         self._backup = backup
         self._foundry = foundry
-        self._discord = discord
         self._kanka = kanka
         self._intent_service = intent_service
         self._auth = BasicAuth(os.environ['HTPASSWD_PATH'])
@@ -111,10 +109,6 @@ class WestMarchesApi(Quart):
         return self._foundry
 
     @property
-    def discord(self) -> DiscordService:
-        return self._discord
-
-    @property
     def kanka(self) -> KankaService:
         return self._kanka
 
@@ -131,5 +125,6 @@ class WestMarchesApi(Quart):
         import api.foundry.routes
         import api.backups.routes
         import api.intents.routes
-        import api.sessions.routes
+        # import api.sessions.routes
+        import api.reports.routes
         import api.routes

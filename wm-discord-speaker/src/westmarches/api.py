@@ -1,8 +1,14 @@
+import dataclasses
+
+from dataclasses import dataclass
+
+import sys
+
+import json
 import logging
+import requests
 from abc import ABC, abstractmethod
 from typing import Optional
-
-import requests
 
 log = logging.getLogger("red.westmarches.api")
 
@@ -55,6 +61,21 @@ class ServerException(HTTPException):
 
 class ClientException(HTTPException):
     pass
+
+
+@dataclass
+class DiscordUser:
+    id: int
+    name: str
+    discriminator: int
+
+
+@dataclass
+class DiscordMessage:
+    id: int
+    content: str
+    author: DiscordUser
+    created_at: int
 
 
 class AbstractApi(ABC):
@@ -113,6 +134,16 @@ class FoundryApi(AbstractApi):
         return resp.json()
 
 
+class ReportsApi(AbstractApi):
+
+    async def send_report(self, message: DiscordMessage):
+        await self._client.post('/report/discord', json=dataclasses.asdict(message))
+
+    async def find_report_from_message(self, message_id):
+        resp = await self._client.get('/report/discord/%s' % message_id)
+        return next(iter(resp.json()['reports']), None)
+
+
 class SessionApi(AbstractApi):
 
     async def schedule(self, date: str, message: dict) -> dict:
@@ -149,6 +180,7 @@ class WestMarchesApiClient:
         self._sessions = SessionApi(self)
         self._foundry = FoundryApi(self)
         self._intents = IntentsApi(self)
+        self._reports = ReportsApi(self)
 
     async def _request(self, method, *args, **kwargs):
         resp = requests.request(method, auth=self._auth(), *args, **kwargs)
@@ -191,3 +223,7 @@ class WestMarchesApiClient:
     @property
     def intents(self):
         return self._intents
+
+    @property
+    def reports(self):
+        return self._reports

@@ -37,11 +37,12 @@ async def chatbot_parse_session_schedule(user):
     date = dateparser.parse(date_in, locales=["fr"], settings={'PREFER_DATES_FROM': 'future'})
 
     if type(message_in) is dict:
-        discord_msg: discord.Message = await app.discord.fetch_message(message_in['channel_id'],
-                                                                       message_in['message_id'])
+        # discord_msg: discord.Message = await app.discord.fetch_message(message_in['channel_id'],
+        #                                                                message_in['message_id'])
         message = {'channel_id': message_in['channel_id'], 'message_id': message_in['message_id']}
-        organizer_id = discord_msg.author.id
-        organizer = discord_msg.author.name
+        # TODO: should not read from discord
+        # organizer_id = discord_msg.author.id
+        # organizer = discord_msg.author.name
 
     else:
         # TODO: Create message
@@ -67,5 +68,4 @@ async def set_session_players(user, session_id):
         await app.kanka.set_journal_tags(session.journal_id, tags)
 
     return session.asdict(), 201
-
 

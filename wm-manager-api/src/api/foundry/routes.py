@@ -22,6 +22,11 @@ async def foundry_actors():
     return app.foundryvtt.get('/api/actors').json()
 
 
+@app.route('/foundry/activity')
+async def foundry_activity():
+    return app.foundryvtt.get('/api/activity').json()
+
+
 @app.route('/foundry/users')
 @app.auth.required
 async def foundry_users(user):
