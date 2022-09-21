@@ -53,6 +53,7 @@ class WestMarchesCog(commands.Commands,
             "foundry.player.password.reset": "Le mot de passe Foundry a été réinitialisé : %s",
             "foundry.player.toggle_gm.activate": "%s est maintenant MJ.",
             "foundry.player.toggle_gm.deactivate": "%s n'est plus MJ.",
+            "foundry.activity.users": "Utilisateurs connectés : %s.",
             "inkarnate.password": "%s\nCe message sera automatiquement supprimé dans 30s.",
             "gm.message.sent": "Ton message a bien été transmis, l'équipe en discute et reviendra vers toi par message "
                                "privé. Bonne journée.",

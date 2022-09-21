@@ -97,6 +97,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_foundry.command()
     async def player_add(self, ctx: commands.Context, user_str: str):
+        """Add a new user to Foundry from Discord"""
         user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if user:
             await self.api_client.foundry.users_add(user.name, discord={
@@ -111,6 +112,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_foundry.command()
     async def player_link(self, ctx: commands.Context, user_str: str, foundry_username: str = None):
+        """Link a Discord user with a Foundry user"""
         user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if user:
             foundry_users = await self.api_client.foundry.users(
@@ -132,6 +134,8 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_foundry.command()
     async def player_set_gm(self, ctx: commands.Context, user_str: str):
+        """Switch a Foundry user as GM (need the Discord user to be linked with a Foundry user either by login or
+        by using the link command)"""
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
             foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
@@ -144,6 +148,8 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_foundry.command()
     async def player_remove_gm(self, ctx: commands.Context, user_str: str):
+        """Switch a Foundry user as Player (need the Discord user to be linked with a Foundry user either by login or
+        by using the link command)"""
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
             foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
@@ -156,6 +162,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_foundry.command(name="reset_password")
     async def player_reset_password(self, ctx: commands.Context, user_str: str):
+        """Update a Foundry user with a random password and send it to you via PM"""
         discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
         if discord_user:
             foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
@@ -168,6 +175,13 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
                     await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
                 else:
                     await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
+
+    @command_foundry.command(name="online")
+    async def activity_users(self, ctx: commands.Context):
+        """List users connected to Foundry"""
+        async with self.config.messages() as messages:
+            users = await self.api_client.foundry.activity()
+            await ctx.send(messages['foundry.activity.users'] % ', '.join(users['users']))
 
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):
