@@ -57,6 +57,15 @@ export default class MetricsPlugin {
     }));
 
     this.gauges.push(new prom.Gauge({
+      name: 'foundry_sessions',
+      help: 'Active sessions',
+      collect() {
+        const {config} = global;
+        this.set(config.express.sessions.sessions.size)
+      }
+    }));
+
+    this.gauges.push(new prom.Gauge({
       name: 'foundry_db_entities_total',
       help: 'Size of DB table for each entity type',
       labelNames: ['db'],
