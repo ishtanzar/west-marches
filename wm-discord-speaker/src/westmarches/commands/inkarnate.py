@@ -65,6 +65,7 @@ class InkarnateCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_inkarnate.command()
     async def update_password(self, ctx: commands.Context):
+        """Update inkarnate account with a new random password"""
         inkarnate_logged = False
         try:
             sm_client = boto3.client('secretsmanager')
@@ -98,6 +99,7 @@ class InkarnateCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_inkarnate.command()
     async def password(self, ctx: commands.Context):
+        """Get inkarnate account password"""
         try:
             sm_client = boto3.client('secretsmanager')
             secret = sm_client.get_secret_value(SecretId='account/inkarnate')

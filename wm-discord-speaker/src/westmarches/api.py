@@ -108,6 +108,10 @@ class FoundryApi(AbstractApi):
         resp = await self._client.put('/foundry/users/%s' % user_id, json=body)
         return resp.json()
 
+    async def activity(self) -> dict:
+        resp = await self._client.get('/foundry/activity')
+        return resp.json()
+
 
 class SessionApi(AbstractApi):
 
