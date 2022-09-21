@@ -2,6 +2,8 @@ FROM python:3-slim
 
 WORKDIR /opt/wm-manager-api
 
+LABEL updated_at="202209151200"
+
 RUN apt update && apt install -y gcc libev-dev
 
 COPY requirements.txt ./
