@@ -66,7 +66,7 @@ services:
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-manager-api/pm2.config.js"]
     ports:
       - "5000:5000"
-      - "5678:5678"
+#      - "5678:5678" # VScode
     environment:
       - COMPOSE_DIR=/opt/project
       - HTPASSWD_PATH=/opt/project/wm-manager-api/test/resources/.htpasswd
@@ -85,6 +85,16 @@ services:
     links:
       - minio
       - foundry
+  websocket:
+    build:
+      context: wm-websocket-server
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./:/opt/project
+    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-websocket-server/pm2.config.js"]
+    ports:
+      - "3000:3000"
+      - "9228:9228"
   discordbot:
     build:
       context: wm-discord-speaker/
@@ -109,8 +119,8 @@ services:
       - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
       - KANKA_TOKEN=${KANKA_TOKEN}
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-speaker/pm2.config.js"]
-    ports:
-      - "5679:5679"
+#    ports:
+#      - "5679:5679" # VScode
   foundry_debugger:
     image: alpine/socat
     links:
