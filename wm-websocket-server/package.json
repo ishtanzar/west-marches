@@ -1,0 +1,8 @@
+{
+    "name": "wm-websocket-server",
+    "version": "0.0.1",
+    "description": "A websocket server for the campaign",
+    "dependencies": {
+        "socket.io": "^4.5.2"
+    }
+}
