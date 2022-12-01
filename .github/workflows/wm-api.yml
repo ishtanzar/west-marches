@@ -9,6 +9,10 @@ on:
       - main
     tags:
       - 'releases/wm-api/*'
+  pull_request:
+    paths:
+      - .github/workflows/wm-api.yml
+      - wm-api/**
 
 jobs:
   build:
@@ -16,7 +20,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-api
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=match,pattern=releases\/wm-api\/v(\d.\d.\d),group=1
+
       - name: Docker tag
         id: docker_tag
         run: echo ::set-output name=DOCKER_TAG::${GITHUB_REF/refs\/tags\/releases\/wm-api\/v/}
@@ -40,37 +55,11 @@ jobs:
             ${{ runner.os }}-buildx-
       
       - name: Build and push
-        uses: docker/build-push-action@v2
-        if: contains(github.ref, 'refs/tags')
+        uses: docker/build-push-action@v3
         with:
-          context: ./wm-api
           file: ./wm-api/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-api:${{ steps.docker_tag.outputs.DOCKER_TAG }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-      
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        if: contains(github.ref, 'refs/heads') && !contains(github.ref, 'main')
-        with:
-          context: ./wm-api
-          file: ./wm-api/Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-api:${GITHUB_REF/refs\/heads\//}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-      
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        if: contains(github.ref, 'main')
-        with:
-          context: ./wm-api
-          file: ./wm-api/Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-api:latest
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
