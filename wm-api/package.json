@@ -1,0 +1,20 @@
+{
+    "name": "wm-websocket-server",
+    "version": "0.0.1",
+    "description": "A websocket server for the campaign",
+    "dependencies": {
+        "@svgdotjs/svg.js": "^3.1.2",
+        "ajv": "^8.11.0",
+        "cors": "^2.8.5",
+        "discord-interactions": "^3.2.0",
+        "discord.js": "^14.6.0",
+        "express": "^4.18.2",
+        "express-http-proxy": "^1.6.3",
+        "honeycomb-grid": "^3.1.8",
+        "lmdb": "2.6.8-v1",
+        "lodash": "^4.17.21",
+        "sharp": "^0.31.1",
+        "socket.io": "^4.5.2",
+        "svgdom": "github:TomFalkner/svgdom#fix_getElementById_is_not_a_function"
+    }
+}
