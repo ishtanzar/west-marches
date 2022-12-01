@@ -33,8 +33,6 @@ services:
       - MINIO_ROOT_USER=BUH8JVS2CJYK8HH22UI6-XIP
       - MINIO_ROOT_PASSWORD=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
     command: server /data
-    ports:
-      - "9000:9000"
   foundry:
     build:
       context: wm-infra/docker/foundry
@@ -85,16 +83,22 @@ services:
     links:
       - minio
       - foundry
-  websocket:
+  api:
     build:
-      context: wm-websocket-server
-      dockerfile: dev.Dockerfile
+      context: ./
+      dockerfile: wm-api/dev.Dockerfile
     volumes:
       - ./:/opt/project
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-websocket-server/pm2.config.js"]
+      - ./wm-infra/deploy/local/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs
+      - ./wm-website/public/wm-scripts/hexmap.mjs:/opt/hexmap/hexmap.mjs
+    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-api/pm2.config.js"]
     ports:
       - "3000:3000"
       - "9228:9228"
+    environment:
+      - HEXMAP_CONFIG=/opt/hexmap/hexMap-config.mjs
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
   discordbot:
     build:
       context: wm-discord-speaker/
