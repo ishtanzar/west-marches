@@ -74,7 +74,7 @@ services:
       - "80:80"
       - "443:443"
       - "127.0.0.1:8080:8080"
-  manager_api:
+  management_api:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
     environment:
@@ -91,10 +91,10 @@ services:
     command: [ "--inspect=0.0.0.0:9229", "--loader=/home/foundry/resources/foundry-extensible-plugin/custom-resolver.mjs", "resources/app/main.js", "--port=30000", "--headless", "--noupdate", "--dataPath=/data" ]
   discordbot:
     links:
-      - manager_api
+      - management_api
     environment:
-      - WM_API_SECRET={{ manager_api_secret }}
-      - WM_API_ENDPOINT=http://manager_api:5000
+      - WM_API_SECRET={{ management_api_secret }}
+      - WM_API_ENDPOINT=http://management_api:5000
       - AWS_ACCESS_KEY_ID={{ DISCORD_AWS_ACCESS_KEY_ID }}
       - AWS_SECRET_ACCESS_KEY={{ DISCORD_AWS_SECRET_KEY }}
       - KANKA_TOKEN={{ KANKA_TOKEN }}

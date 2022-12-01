@@ -1,14 +1,14 @@
-name: wm-manager-api
+name: wm-management-api
 
 on:
   push:
     paths:
-      - .github/workflows/wm-manager-api.yml
-      - wm-manager-api/**
+      - .github/workflows/wm-management-api.yml
+      - wm-management-api/**
     branches:
       - main
     tags:
-      - 'releases/wm-manager-api/*'
+      - 'releases/wm-management-api/*'
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
       
       - name: Docker tag
         id: docker_tag
-        run: echo ::set-output name=DOCKER_TAG::${GITHUB_REF/refs\/tags\/releases\/wm-manager-api\/v/}
+        run: echo ::set-output name=DOCKER_TAG::${GITHUB_REF/refs\/tags\/releases\/wm-management-api\/v/}
       
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -43,11 +43,11 @@ jobs:
         uses: docker/build-push-action@v2
         if: contains(github.ref, 'refs/tags')
         with:
-          context: ./wm-manager-api
-          file: ./wm-manager-api/Dockerfile
+          context: ./wm-management-api
+          file: ./wm-management-api/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-manager-api:${{ steps.docker_tag.outputs.DOCKER_TAG }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-management-api:${{ steps.docker_tag.outputs.DOCKER_TAG }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       
@@ -55,11 +55,11 @@ jobs:
         uses: docker/build-push-action@v2
         if: contains(github.ref, 'refs/heads') && !contains(github.ref, 'main')
         with:
-          context: ./wm-manager-api
-          file: ./wm-manager-api/Dockerfile
+          context: ./wm-management-api
+          file: ./wm-management-api/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-manager-api:${GITHUB_REF/refs\/heads\//}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-management-api:${GITHUB_REF/refs\/heads\//}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       
@@ -67,10 +67,10 @@ jobs:
         uses: docker/build-push-action@v2
         if: contains(github.ref, 'main')
         with:
-          context: ./wm-manager-api
-          file: ./wm-manager-api/Dockerfile
+          context: ./wm-management-api
+          file: ./wm-management-api/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-manager-api:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-management-api:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache

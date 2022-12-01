@@ -56,20 +56,20 @@ services:
     ports:
       - "30000:30000"
       - "9229:9229"
-  manager_api:
+  management_api:
     build:
-      context: wm-manager-api/
+      context: wm-management-api/
       dockerfile: dev.Dockerfile
     volumes:
       - ./:/opt/project
       - /var/run/docker.sock:/var/run/docker.sock
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-manager-api/pm2.config.js"]
+    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-management-api/pm2.config.js"]
     ports:
       - "5000:5000"
 #      - "5678:5678" # VScode
     environment:
       - COMPOSE_DIR=/opt/project
-      - HTPASSWD_PATH=/opt/project/wm-manager-api/test/resources/.htpasswd
+      - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
       - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
@@ -100,7 +100,7 @@ services:
       context: wm-discord-speaker/
       dockerfile: dev.Dockerfile
     links:
-      - manager_api
+      - management_api
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/data/discord:/opt/redbot/data
@@ -109,7 +109,7 @@ services:
       - ./wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json:/opt/default-intents.json
     environment:
       - WM_API_SECRET=changeme
-      - WM_API_ENDPOINT=http://manager_api:5000
+      - WM_API_ENDPOINT=http://management_api:5000
       - LOGGING_CONFIG=/opt/discordbot-logging.yml
       - DEFAULT_INTENTS_PATH=/opt/default-intents.json
       - AWS_ACCESS_KEY_ID=${DISCORD_AWS_ACCESS_KEY_ID}

@@ -24,7 +24,7 @@ async def report_from_discord():
     await app.kanka.set_entity_attribute(journal['entity_id'], '_discord_message', str(json_request['id']), private=True)
     await app.kanka.set_entity_attribute(journal['entity_id'], '_discord_author', str(json_request['author']['id']), private=True)
 
-    return "OK", 200
+    return json.dumps(journal), 200
 
 
 @app.route('/report/discord/<message_id>', methods=['GET'])
