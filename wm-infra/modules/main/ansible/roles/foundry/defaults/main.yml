@@ -10,8 +10,8 @@ foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
 foundry_docker_image: ishtanzar/wm-foundry:latest
 foundry_modules_path: "{{ foundry_data_path }}/Data/modules"
 
-manager_api_secret: changeme
-manager_api_docker_image: ishtanzar/wm-manager-api:latest
+management_api_secret: changeme
+management_api_docker_image: ishtanzar/wm-management-api:latest
 
 nextcloud_fqdn: "nextcloud.{{ foundry_fqdn }}"
 

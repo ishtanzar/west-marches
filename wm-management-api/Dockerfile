@@ -1,6 +1,6 @@
 FROM python:3-slim
 
-WORKDIR /opt/wm-manager-api
+WORKDIR /opt/wm-management-api
 
 LABEL updated_at="202209151200"
 

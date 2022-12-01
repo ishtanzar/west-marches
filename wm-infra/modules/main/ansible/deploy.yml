@@ -55,7 +55,7 @@
         BACKUP_S3_ENDPOINT: "{{ lookup('env', 'BACKUP_S3_ENDPOINT') }}"
         FOUNDRY_ADMIN_KEY: "{{ lookup('env', 'FOUNDRY_ADMIN_KEY') }}"
         foundry_version: "{{ lookup('env', 'FOUNDRY_VERSION') }}"
-        manager_api_secret: "{{ lookup('password', '/dev/null') }}"
+        management_api_secret: "{{ lookup('password', '/dev/null') }}"
 
     - name: AWS config
       ansible.builtin.template:
