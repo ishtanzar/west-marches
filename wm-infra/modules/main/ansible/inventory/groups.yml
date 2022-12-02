@@ -4,5 +4,6 @@ all:
     telegraf_agent_version: 2.0.7
     foundry_docker_image: ishtanzar/wm-docker-foundry:2.0.0
     management_api_docker_image: ishtanzar/wm-manager-api:0.6.0
+    api_docker_image: ishtanzar/wm-api:pr-14
     discordbot_docker_image: ishtanzar/wm-discord-speaker:0.10.0
     foundry_extensible_plugin_version: 2.2.0

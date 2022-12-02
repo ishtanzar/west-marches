@@ -83,6 +83,15 @@ services:
       - "AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}"
       - "AWS_DEFAULT_REGION={{ SCW_REGION }}"
       - DISCORD_SECRET=${DISCORD_BOT_SECRET}
+  api:
+    image: "{{ api_docker_image }}"
+    volumes:
+      - "{{ westmarches_data_path }}/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs"
+    ports:
+      - "3000:3000"
+    environment:
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
   foundry:
     environment:
       - "FOUNDRY_AWS_CONFIG=/data/Config/s3config.json"
