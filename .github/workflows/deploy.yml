@@ -72,6 +72,7 @@ jobs:
           INFLUXDB_ADMIN_TOKEN: ${{ secrets.INFLUXDB_ADMIN_TOKEN }}
           DISCORD_BOT_SECRET: ${{ secrets.DISCORD_BOT_SECRET }}
           DISCORD_OWNER_ID: ${{ secrets.DISCORD_OWNER_ID }}
+          DISCORD_BOT_PUBLIC_KEY: ${{ secrets.DISCORD_BOT_PUBLIC_KEY }}
           DISCORD_AWS_ACCESS_KEY_ID: ${{ secrets.DISCORD_AWS_ACCESS_KEY_ID }}
           DISCORD_AWS_SECRET_KEY: ${{ secrets.DISCORD_AWS_SECRET_KEY }}
           DISCORD_AWS_REGION: eu-west-3

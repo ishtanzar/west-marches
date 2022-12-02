@@ -20,6 +20,13 @@
     - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/datasources.yml" }
     - { src: grafana-dashboards.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/dashboards.yml" }
 
+- name: Copy config files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: hexMap-config.mjs, dest: "{{ westmarches_data_path }}/hexMap-config.mjs" }
+
 - ansible.builtin.file:
     path: "{{ westmarches_data_path }}/nginx-entrypoint.sh"
     mode: '0755'
@@ -121,7 +128,7 @@
     delay: 10
     
 - name: SSL certificate
-  ansible.builtin.shell: "certbot certonly -n --agree-tos --email webmaster@ishtanzar.net --keep --webroot -w /opt/data/www/ -d {{ foundry_fqdn }},{{ nextcloud_fqdn }}"
+  ansible.builtin.shell: "certbot certonly -n --agree-tos --email webmaster@ishtanzar.net --keep --expand --webroot -w /opt/data/www/ -d {{ foundry_fqdn }},api.{{ foundry_fqdn }},{{ nextcloud_fqdn }}"
 
 - name: Restart units
   ansible.builtin.systemd:
