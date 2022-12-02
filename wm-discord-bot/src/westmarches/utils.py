@@ -5,6 +5,7 @@ from discord.ext.commands import Context
 from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import commands
+from socketio import AsyncClient
 
 from westmarches.api import WestMarchesApiClient
 
@@ -50,6 +51,7 @@ class DiscordProgress:
 class MixinMeta(ABC):
     bot: Red
     config: Config
+    io: AsyncClient
     api_client: WestMarchesApiClient
 
     @abstractmethod

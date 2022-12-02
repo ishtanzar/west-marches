@@ -1,18 +1,18 @@
-name: wm-api
+name: wm-discord-bot
 
 on:
   push:
     paths:
-      - .github/workflows/wm-api.yml
-      - wm-api/**
+      - .github/workflows/wm-discord-bot.yml
+      - wm-discord-bot/**
     branches:
       - main
     tags:
-      - 'releases/wm-api/*'
+      - 'releases/wm-discord-bot/*'
   pull_request:
     paths:
-      - .github/workflows/wm-api.yml
-      - wm-api/**
+      - .github/workflows/wm-discord-bot.yml
+      - wm-discord-bot/**
 
 jobs:
   build:
@@ -25,12 +25,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-api
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-discord-bot
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
-            type=match,pattern=releases\/wm-api\/v(\d.\d.\d),group=1
+            type=match,pattern=releases\/wm-discord-bot\/v(\d.\d.\d),group=1
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -53,7 +53,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          file: ./wm-api/Dockerfile
+          context: ./wm-discord-bot
+          file: ./wm-discord-bot/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
