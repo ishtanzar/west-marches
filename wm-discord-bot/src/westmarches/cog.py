@@ -1,5 +1,6 @@
 import logging.config
 import os
+import socketio
 
 import yaml
 from discord.ext.commands import Context
@@ -63,10 +64,11 @@ class WestMarchesCog(commands.Commands,
         }
     }
 
-    def __init__(self, bot: Red):
+    def __init__(self, bot: Red, io: socketio.AsyncClient):
         super().__init__()
 
         self.bot = bot
+        self.io = io
         self.setup_events()
 
         self.config = Config.get_conf(self, identifier=567346224)

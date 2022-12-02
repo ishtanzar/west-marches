@@ -54,7 +54,7 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
         await self.config.kanka_reports_channel.set(ctx.channel.id)
         await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
 
-    @commands.Cog.listener()
+    # @commands.Cog.listener()
     async def on_message_without_command(self, message: discord.Message):
         ctx = await self.bot.get_context(message)  # type: commands.Context
 
@@ -87,7 +87,8 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
             })
 
             reaction_event = {
-                "kanka": self.on_kanka_reaction
+                'kanka': self.on_kanka_reaction,
+                '🗺': self.on_map_reaction
             }.get(payload.emoji.name)
 
             if reaction_event:
@@ -105,3 +106,9 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
                 message = await payload.member.send(messages['kanka.reports.not_found'])
 
         await message.delete(delay=delay)
+
+    async def on_map_reaction(self, payload: RawReactionActionEvent):
+        report = await self.api_client.reports.find_report_from_message(payload.message_id)
+        delay = 60
+
+        await self.io.emit('location_focus', 'some location')

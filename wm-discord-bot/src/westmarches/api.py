@@ -173,7 +173,7 @@ class IntentsApi(AbstractApi):
 
 class WestMarchesApiClient:
 
-    def __init__(self, auth: AbstractAuth, endpoint="manager_api") -> None:
+    def __init__(self, auth: AbstractAuth, endpoint="management_api") -> None:
         self._auth = auth
         self._endpoint = endpoint
 
