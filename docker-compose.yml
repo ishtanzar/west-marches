@@ -126,7 +126,6 @@ services:
       - "3000:3000"
       - "9228:9228"
     environment:
-      - HEXMAP_CONFIG=/opt/hexmap/hexMap-config.mjs
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
   discordbot:
@@ -167,8 +166,7 @@ services:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-    ports:
-      - "5001:5000"
+      - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
   foundry_debugger:
     image: alpine/socat

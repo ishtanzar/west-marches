@@ -1,3 +1,5 @@
+import logging.config
+
 from types import SimpleNamespace
 
 import json
@@ -71,6 +73,7 @@ class Kanka:
         self.queue = queue
         self.discord = discord
         self.discord_notification_channel = None
+        self.logger = logging.getLogger('kanka')
 
         self.init_cache()
 
@@ -85,6 +88,7 @@ class Kanka:
                             })
 
         if resp.status_code == 200:
+            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
             resp_json = resp.json()
             data += resp_json['data']
             if resp_json['links']['next']:
@@ -92,6 +96,9 @@ class Kanka:
                 if query:
                     data += self.fetch(parse_qs(query)['page'])
             self.entities_cache["last_sync"] = resp_json['sync']
+        else:
+            self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
+            raise Exception('Unable to fetch entities')
 
         return data
 
@@ -122,8 +129,10 @@ class Kanka:
                             })
 
         if resp.status_code == 200:
+            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
             return resp.json()['data']
 
+        self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
         raise Exception('Unable to fetch users')
 
     async def cron(self):
@@ -144,10 +153,14 @@ class Kanka:
 
     async def notify(self, entities):
         channel = await self.get_notification_channel()
-        for entity in entities:
-            author = await self.get_user(entity["updated_by"])
-            await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'
-                               f'{self.get_entity_url(entity)}')
+        count = len(entities)
+        if count > 100:
+            self.logger.warning(f'{count} entities modified, no notifications')
+        else:
+            for entity in entities:
+                author = await self.get_user(entity["updated_by"])
+                await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'
+                                   f'{self.get_entity_url(entity)}')
 
     def init_cache(self):
         users_cache_file = Path(self.config.cache.base_path) / 'users.cache.json'
@@ -163,21 +176,28 @@ async def main():
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
     config.discord.token = os.environ.get('DISCORD_BOT_SECRET', config.discord.token)
 
+    # Ugly SN to dict converted
+    logging.config.dictConfig(json.loads(json.dumps(config.log, default=lambda x: vars(x))))
+
     app = Quart(__name__)
     queue = asyncio.Queue()
     client = discord.Client(intents=discord.Intents.none())
 
     kanka = Kanka(config, client, queue)
 
-    @aiocron.crontab('*/5 * * * *', loop=asyncio.get_event_loop())
+    @aiocron.crontab('* * * * *', loop=asyncio.get_event_loop())
     async def kanka_live():
+        logger = logging.getLogger('cron.kanka.live')
+        logger.debug('Adding task to the queue')
         await queue.put(kanka.cron)
 
     async def worker():
+        logger = logging.getLogger('worker')
+
         while True:
-            print('Waiting item')
+            logger.debug('Waiting item')
             routine = await queue.get()
-            print('Processing item')
+            logger.debug('Processing item')
             await routine()
 
     @app.route('/health')
