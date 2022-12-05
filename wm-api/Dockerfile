@@ -12,4 +12,6 @@ COPY wm-api/src ./
 
 RUN npm install --arch=x64 --platform=linux --libc=musl
 
+ENV HEXMAP_CONFIG=/opt/hexmap/hexMap-config.mjs
+
 CMD ["node", "./main.mjs"]
