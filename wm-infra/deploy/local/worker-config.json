@@ -1,0 +1,14 @@
+{
+  "kanka": {
+    "endpoint": "https://kanka.io/fr/campaign/67312",
+    "api_endpoint": "https://kanka.io/api/1.0/campaigns/67312",
+    "token": ""
+  },
+  "discord": {
+    "kanka_notify_channel": 859433172704690186,
+    "token": ""
+  },
+  "cache": {
+    "base_path": "/var/cache/wm-worker"
+  }
+}

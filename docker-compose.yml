@@ -27,6 +27,36 @@ services:
       - foundry-logs:/logs/foundry
     links:
       - influxdb
+  proxy:
+    image: nginx:1.21.0
+    volumes:
+      - ./:/opt/project:ro
+      - ./wm-infra/deploy/local/custom.tpl.nginx:/etc/nginx/conf.d/custom.conf:ro
+      - ./wm-infra/deploy/local/rootCA.pem:/etc/ssl/private/rootCA.pem:ro
+      - ./wm-infra/deploy/local/rootCA-key.pem:/etc/ssl/private/rootCA-key.pem:ro
+      - ./wm-infra/deploy/local/westmarches.localhost.lan+1.pem:/etc/ssl/private/westmarches.localhost.lan+1.pem:ro
+      - ./wm-infra/deploy/local/westmarches.localhost.lan+1-key.pem:/etc/ssl/private/westmarches.localhost.lan+1-key.pem:ro
+    links:
+      - foundry
+      - api
+      - website
+    ports:
+      - "8000:80"
+      - "8443:443"
+  website:
+    build:
+      context: wm-website
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./:/opt/project:ro
+      - ./wm-website:/var/www/html:ro
+      - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
+      - twig-cache:/var/cache/website
+    environment:
+      - DISCORD_OAUTH_CLIENT=${OAUTH_CLIENT}
+      - DISCORD_OAUTH_SECRET=${OAUTH_SECRET}
+      - DISCORD_OAUTH_REDIRECT=${WEBSITE_DISCORD_OAUTH_REDIRECT}
+      - KANKA_OAUTH_REDIRECT=${WEBSITE_KANKA_OAUTH_REDIRECT}
   minio:
     image: minio/minio:latest
     environment:
@@ -101,10 +131,11 @@ services:
       - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
   discordbot:
     build:
-      context: wm-discord-speaker/
+      context: wm-discord-bot/
       dockerfile: dev.Dockerfile
     links:
       - management_api
+      - api
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/data/discord:/opt/redbot/data
@@ -122,9 +153,23 @@ services:
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
       - KANKA_TOKEN=${KANKA_TOKEN}
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-speaker/pm2.config.js"]
+    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-bot/pm2.config.js"]
 #    ports:
 #      - "5679:5679" # VScode
+  worker:
+    build:
+      context: wm-worker
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./:/opt/project
+      - ./wm-infra/deploy/local/data/cache/worker:/var/cache/wm-worker
+    environment:
+      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
+      - KANKA_TOKEN=${KANKA_TOKEN}
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+    ports:
+      - "5001:5000"
+    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
   foundry_debugger:
     image: alpine/socat
     links:
@@ -136,3 +181,4 @@ services:
       - debug
 volumes:
   foundry-logs:
+  twig-cache:

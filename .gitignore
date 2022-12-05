@@ -4,6 +4,8 @@ checkpoint
 .terraform
 .terraform.lock.hcl
 .envrc
+.direnv
+vendor
 /wm-infra/modules/main/ansible/roles/.galaxy/
 wm-infra/deploy/local/data/
 

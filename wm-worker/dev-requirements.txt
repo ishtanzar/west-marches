@@ -1,0 +1,4 @@
+-r requirements.txt
+
+debugpy==1.6.3
+pydevd-pycharm~=222.4167.29

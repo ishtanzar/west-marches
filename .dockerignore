@@ -1,0 +1,8 @@
+./wm-infra/deploy/local
+**/node_modules
+**/.direnv
+**/vendor
+**/.terraform
+**/venv
+.idea
+.vscode
