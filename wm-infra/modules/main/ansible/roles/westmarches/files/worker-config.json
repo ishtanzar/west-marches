@@ -11,6 +11,11 @@
   "cache": {
     "base_path": "/var/cache/wm-worker"
   },
+  "cron": {
+    "kanka": {
+      "live": "*/5 * * * *"
+    }
+  },
   "log": {
     "version": 1,
     "formatters": {

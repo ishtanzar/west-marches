@@ -185,7 +185,7 @@ async def main():
 
     kanka = Kanka(config, client, queue)
 
-    @aiocron.crontab('* * * * *', loop=asyncio.get_event_loop())
+    @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
         logger = logging.getLogger('cron.kanka.live')
         logger.debug('Adding task to the queue')
@@ -198,7 +198,10 @@ async def main():
             logger.debug('Waiting item')
             routine = await queue.get()
             logger.debug('Processing item')
-            await routine()
+            try:
+                await routine()
+            except Exception as e:
+                logger.warning(str(e))
 
     @app.route('/health')
     async def health():
