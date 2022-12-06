@@ -12,6 +12,7 @@ services:
     restart: "unless-stopped"
     volumes:
       - "{{ foundry_data_path }}:/data"
+    hostname: foundry
     environment:
       - CONTAINER_CACHE=/data/container_cache
       - CONTAINER_PATCHES=/data/container_patches

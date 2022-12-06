@@ -45,6 +45,7 @@
         OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
         DISCORD_BOT_SECRET: "{{ lookup('env', 'DISCORD_BOT_SECRET') }}"
         DISCORD_OWNER_ID: "{{ lookup('env', 'DISCORD_OWNER_ID') }}"
+        DISCORD_BOT_PUBLIC_KEY: "{{ lookup('env', 'DISCORD_BOT_PUBLIC_KEY') }}"
         DISCORD_AWS_ACCESS_KEY_ID: "{{ lookup('env', 'DISCORD_AWS_ACCESS_KEY_ID') }}"
         DISCORD_AWS_SECRET_KEY: "{{ lookup('env', 'DISCORD_AWS_SECRET_KEY') }}"
         DISCORD_AWS_REGION: "{{ lookup('env', 'DISCORD_AWS_REGION') }}"

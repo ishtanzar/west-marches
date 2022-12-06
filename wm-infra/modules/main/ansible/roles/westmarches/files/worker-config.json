@@ -5,7 +5,7 @@
     "token": ""
   },
   "discord": {
-    "kanka_notify_channel": 859433172704690186,
+    "kanka_notify_channel": 813731633177296906,
     "token": ""
   },
   "cache": {
@@ -14,7 +14,7 @@
   "log": {
     "version": 1,
     "formatters": {
-     "standard": {
+      "standard": {
         "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
       }
     },

@@ -5,6 +5,8 @@
     state: directory
   loop:
     - "{{ westmarches_data_path }}/influxdb"
+    - "{{ westmarches_data_path }}/worker"
+    - "{{ westmarches_data_path }}/worker/cache"
     - /opt/data/www/.well-known
 
 - name: Template config files
@@ -26,6 +28,7 @@
     dest: "{{ item.dest }}"
   loop:
     - { src: hexMap-config.mjs, dest: "{{ westmarches_data_path }}/hexMap-config.mjs" }
+    - { src: worker-config.json, dest: "{{ westmarches_data_path }}/worker/config.json" }
 
 - ansible.builtin.file:
     path: "{{ westmarches_data_path }}/nginx-entrypoint.sh"

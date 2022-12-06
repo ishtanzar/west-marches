@@ -12,10 +12,10 @@ services:
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - "DOCKER_INFLUXDB_INIT_PASSWORD={{ INFLUXDB_ADMIN_SECRET }}"
+      - DOCKER_INFLUXDB_INIT_PASSWORD={{ INFLUXDB_ADMIN_SECRET }}
       - DOCKER_INFLUXDB_INIT_ORG=westmarchesdelacave
       - DOCKER_INFLUXDB_INIT_BUCKET=bucket0
-      - "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN={{ INFLUXDB_ADMIN_TOKEN }}"
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN={{ INFLUXDB_ADMIN_TOKEN }}
     healthcheck:
       test: curl localhost:8086/health || exit -1
       interval: 10s
@@ -30,13 +30,13 @@ services:
       - "{{ westmarches_data_path }}/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
       - "{{ westmarches_data_path }}/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml"
     environment:
-      - "GF_SERVER_DOMAIN={{ foundry_fqdn }}"
-      - "GF_SERVER_ROOT_URL=https://{{ foundry_fqdn }}/monitoring"
+      - GF_SERVER_DOMAIN={{ foundry_fqdn }}
+      - GF_SERVER_ROOT_URL=https://{{ foundry_fqdn }}/monitoring
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_AUTH_GENERIC_OAUTH_NAME=Discord
       - GF_AUTH_GENERIC_OAUTH_ENABLED=true
-      - "GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ OAUTH_CLIENT }}"
-      - "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ OAUTH_SECRET }}"
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ OAUTH_CLIENT }}
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ OAUTH_SECRET }}
       - GF_AUTH_GENERIC_OAUTH_SCOPES=identify email
       - GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://discordapp.com/api/oauth2/authorize
       - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://discordapp.com/api/oauth2/token
@@ -45,8 +45,6 @@ services:
       - GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE=false
     links:
       - influxdb
-    ports:
-      - 3000
     healthcheck:
       test: wget -qO - http://localhost:3000/api/health || exit -1
       interval: 10s
@@ -78,18 +76,18 @@ services:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
     environment:
-      - "BACKUP_S3_ENDPOINT={{ BACKUP_S3_ENDPOINT }}"
-      - "AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}"
-      - "AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}"
-      - "AWS_DEFAULT_REGION={{ SCW_REGION }}"
-      - DISCORD_SECRET=${DISCORD_BOT_SECRET}
+      - BACKUP_S3_ENDPOINT={{ BACKUP_S3_ENDPOINT }}
+      - AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}
+      - AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}
+      - AWS_DEFAULT_REGION={{ SCW_REGION }}
+      - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
   api:
     image: "{{ api_docker_image }}"
     volumes:
       - "{{ westmarches_data_path }}/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs"
     environment:
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
+      - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
+      - DISCORD_BOT_PUBLIC_KEY={{ DISCORD_BOT_PUBLIC_KEY }}
   foundry:
     environment:
       - "FOUNDRY_AWS_CONFIG=/data/Config/s3config.json"
@@ -105,6 +103,17 @@ services:
       - AWS_ACCESS_KEY_ID={{ DISCORD_AWS_ACCESS_KEY_ID }}
       - AWS_SECRET_ACCESS_KEY={{ DISCORD_AWS_SECRET_KEY }}
       - KANKA_TOKEN={{ KANKA_TOKEN }}
+      - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
+  worker:
+    image: "{{ worker_image }}"
+    volumes:
+      - "{{ westmarches_data_path }}/worker/config.json:/opt/worker/config.json"
+      - "{{ westmarches_data_path }}/worker/cache:/var/cache/wm-worker"
+    environment:
+      - CONFIG_PATH=/opt/worker/config.json
+      - KANKA_TOKEN={{ KANKA_TOKEN }}
+      - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
+      - PYTHONUNBUFFERED=1
   nextcloud:
     volumes:
       - "{{ nextcloud_data_path }}:/var/www/html:rw"
