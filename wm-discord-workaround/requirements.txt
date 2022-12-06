@@ -1,0 +1,3 @@
+# -e ../wm-management-api-client
+
+discord.py==2.0.1
