@@ -7,11 +7,9 @@ foundry_world: west-marches-de-la-cave
 foundry_hostname: westmarchesdelacave
 foundry_domain: ishtanzar.net
 foundry_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
-foundry_docker_image: ishtanzar/wm-foundry:latest
 foundry_modules_path: "{{ foundry_data_path }}/Data/modules"
 
 management_api_secret: changeme
-management_api_docker_image: ishtanzar/wm-management-api:latest
 
 nextcloud_fqdn: "nextcloud.{{ foundry_fqdn }}"
 

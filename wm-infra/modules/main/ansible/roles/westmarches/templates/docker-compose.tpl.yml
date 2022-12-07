@@ -82,7 +82,7 @@ services:
       - AWS_DEFAULT_REGION={{ SCW_REGION }}
       - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
   api:
-    image: "{{ api_docker_image }}"
+    image: "{{ api_image }}"
     volumes:
       - "{{ westmarches_data_path }}/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs"
     environment:

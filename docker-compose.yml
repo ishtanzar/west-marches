@@ -176,7 +176,7 @@ services:
       - management_api
     volumes:
       - ./:/opt/project
-      - ./wm-management-api-client:/opt/wm-management-api-client
+#      - ./wm-management-api-client:/opt/wm-management-api-client
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/workaround-config.json
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
@@ -184,7 +184,6 @@ services:
       - WM_API_ENDPOINT=http://management_api:5000
       - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-workaround/pm2.config.js"]
-    working_dir: /opt/project/wm-discord-workaround
   foundry_debugger:
     image: alpine/socat
     links:

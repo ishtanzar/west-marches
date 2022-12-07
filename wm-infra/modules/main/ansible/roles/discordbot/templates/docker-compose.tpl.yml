@@ -3,7 +3,7 @@ version: "3.8"
 
 services:
   discordbot:
-    image: "{{ discordbot_docker_image }}"
+    image: "{{ discordbot_image }}"
     restart: "unless-stopped"
     volumes:
       - "{{ discordbot_data_path }}:/opt/redbot/data"

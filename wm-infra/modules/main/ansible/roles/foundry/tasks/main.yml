@@ -78,15 +78,6 @@
     password: "{{ management_api_secret }}"
     path: "{{ foundry_data_path }}/.htpasswd"
 
-- name: Pull Docker images
-  community.docker.docker_image:
-    name: "{{ item }}"
-    source: pull
-    force_source: true
-  loop:
-    - "{{ foundry_docker_image }}"
-    - "{{ management_api_docker_image }}"
-
 - name: Template docker-compose file
   ansible.builtin.template:
     src: "{{ item.src }}"

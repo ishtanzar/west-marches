@@ -11,7 +11,7 @@
 
 - name: Pull Docker image
   community.docker.docker_image:
-    name: "{{ discordbot_docker_image }}"
+    name: "{{ discordbot_image }}"
     source: pull
     force_source: true
 
