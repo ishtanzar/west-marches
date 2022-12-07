@@ -53,7 +53,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: ./wm-discord-workaround
+          context: ./
           file: ./wm-discord-workaround/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true

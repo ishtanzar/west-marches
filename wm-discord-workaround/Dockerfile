@@ -1,15 +1,13 @@
-FROM ubuntu:20.04
+FROM python:3.10-slim
 
-WORKDIR /opt/discord-bot
+WORKDIR /opt/wm-discord-workaround
 
-RUN apt update && \
-  DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt install -y build-essential python3.8 python3-pip libcudart10.1 locales
+LABEL updated_at="202210220900"
 
-RUN locale-gen fr_FR.UTF-8
+COPY ./wm-discord-workaround/requirements.txt ./
 
-COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src /opt/discord-bot
+COPY ./wm-discord-workaround/src ./
 
 CMD ["python", "__main__.py"]

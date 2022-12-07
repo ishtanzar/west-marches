@@ -1,16 +1,19 @@
 # syntax = docker/dockerfile:1.2
-FROM ubuntu:20.04
+FROM python:3.10-slim
+
+WORKDIR /opt/wm-discord-workaround
 
 LABEL updated_at="202210220900"
 
-RUN apt update && \
-  DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt install -y build-essential python3.8 python3-pip libcudart10.1 locales npm
-
-RUN locale-gen fr_FR.UTF-8
+RUN apt update && apt install -y gcc libev-dev npm
 
 RUN npm install pm2 -g
 
-COPY wm-discord-workaround/ ./wm-discord-workaround
-COPY wm-management-api-client/ ./wm-management-api-client
+COPY wm-discord-workaround/requirements.txt ./
+COPY wm-discord-workaround/dev-requirements.txt ./
 
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r ./wm-discord-workaround/dev-requirements.txt
+#COPY wm-management-api-client/ ./wm-management-api-client
+
+RUN pip install --no-cache-dir -r dev-requirements.txt
+
+CMD ["python", "./__main__.py"]
