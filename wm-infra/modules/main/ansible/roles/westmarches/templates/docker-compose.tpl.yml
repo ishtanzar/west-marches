@@ -114,6 +114,18 @@ services:
       - KANKA_TOKEN={{ KANKA_TOKEN }}
       - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
       - PYTHONUNBUFFERED=1
+  discordbot_workaround:
+    image: "{{ discord_workaround_image }}"
+    volumes:
+      - "{{ westmarches_data_path }}/workaround/config.json:/opt/discord_workaround/config.json"
+#    links:
+#      - management_api
+    environment:
+      - CONFIG_PATH=/opt/discord_workaround/config.json
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - WM_API_SECRET=changeme
+      - WM_API_ENDPOINT=http://management_api:5000
+      - PYTHONUNBUFFERED=1
   nextcloud:
     volumes:
       - "{{ nextcloud_data_path }}:/var/www/html:rw"
