@@ -67,6 +67,7 @@ class WorkaroundCog(commands.Cog):
     async def session_start(self, ctx: commands.Context):
         if ctx.author.get_role(self._config.discord.gm_role):
             if isinstance(ctx.channel, discord.Thread):
+                gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
                 session_role = ctx.guild.get_role(self._config.discord.session_role)
                 thread_message = "Début de session pour :\n"
                 gm_notif = f"Session de {ctx.author.name} avec :\n"
@@ -76,7 +77,7 @@ class WorkaroundCog(commands.Cog):
                     thread_message += f'- {member.mention}\n'
                     gm_notif += f'- {member.name}\n'
 
-                notif_channel = await ctx.guild.fetch_channel(self._config.discord.session_notif_channel)
+                notif_channel = gm_guild.get_channel_or_thread(self._config.discord.session_notif_channel)
                 await notif_channel.send(gm_notif)
                 await ctx.channel.send(thread_message)
             else:
@@ -97,18 +98,40 @@ class WorkaroundCog(commands.Cog):
             pass
 
     async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
-        if payload.parent_id == self._config.discord.questions_channel and payload.thread and payload.thread.archived:
-            self._logger.info(f"Thread '{payload.thread.name}' is archiving, checking for status")
-            original_message = await self.get_thread_original_message(payload.thread)
-            full_message = await payload.thread.parent.fetch_message(original_message.id)
+        if payload.thread and payload.thread.archived:
+            if payload.parent_id == self._config.discord.questions_channel:
+                self._logger.info(f"Thread '{payload.thread.name}' is archiving, checking for status")
+                original_message = await self.get_thread_original_message(payload.thread)
+                full_message = await payload.thread.parent.fetch_message(original_message.id)
 
-            for reaction in full_message.reactions:
-                if reaction.emoji == '✅':
-                    self._logger.info("Question has check emoji, let it archived")
-                    return
+                for reaction in full_message.reactions:
+                    if reaction.emoji == '✅':
+                        self._logger.info("Question has check emoji, let it archived")
+                        return
 
-            self._logger.info("Question do not have the check emoji, stay open")
-            await payload.thread.edit(archived=False)
+                self._logger.info("Question do not have the check emoji, stay open")
+                await payload.thread.edit(archived=False)
+
+            if payload.parent_id == self._config.discord.downtime_channel:
+                self._logger.info(f"Downtime thread '{payload.thread.name}' is archiving, keeping it opened")
+                await payload.thread.edit(archived=False)
+
+    @staticmethod
+    def _append_attachements(message: discord.Message, embeds: list):
+        attachments_urls = []
+        for attachment in message.attachments:
+            if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                if embeds[0].image:
+                    embed = discord.Embed()
+                    embed.set_image(url=attachment.url)
+                    embeds.append(embed)
+                else:
+                    embeds[0].set_image(url=attachment.url)
+            else:
+                attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
+        if attachments_urls:
+            embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
+        return embeds
 
     async def on_message(self, message: discord.Message):
         if message.author == self._bot.user:
@@ -148,6 +171,18 @@ class WorkaroundCog(commands.Cog):
             self._logger.debug('Archiving thread')
             await message.channel.edit(archived=True)
 
+        if message.channel.parent_id == self._config.discord.downtime_channel:
+            gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
+            notif_channel = gm_guild.get_channel_or_thread(self._config.discord.downtime_notif_channel)
+
+            embeds = [discord.Embed(title=message.channel.name, description=message.content)]
+            embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar.url)
+            embeds = self._append_attachements(message, embeds)
+            embeds[-1].timestamp = message.created_at
+
+            for embed in embeds:
+                await notif_channel.send(None, embed=embed)
+
 
 class WorkaroundBot(commands.Bot):
 
@@ -168,10 +203,16 @@ class WorkaroundBot(commands.Bot):
         await self.add_cog(self._cog)
 
     async def on_message(self, message: discord.Message):
-        await self._cog.on_message(message)
+        try:
+            await self._cog.on_message(message)
+        except Exception as e:
+            self._logger.warning(str(e))
 
     async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
-        await self._cog.on_raw_thread_update(payload)
+        try:
+            await self._cog.on_raw_thread_update(payload)
+        except Exception as e:
+            self._logger.warning(str(e))
 
 
 def main():
