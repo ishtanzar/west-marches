@@ -175,7 +175,7 @@ class WorkaroundCog(commands.Cog):
             gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
             notif_channel = gm_guild.get_channel_or_thread(self._config.discord.downtime_notif_channel)
 
-            embeds = [discord.Embed(title=message.channel.name, description=message.content)]
+            embeds = [discord.Embed(title=message.channel.name, description=message.content, url=message.channel.jump_url)]
             embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar.url)
             embeds = self._append_attachements(message, embeds)
             embeds[-1].timestamp = message.created_at
