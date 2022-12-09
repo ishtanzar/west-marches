@@ -23,6 +23,8 @@
           - lookup('env', 'BACKUP_S3_BUCKET')
           - lookup('env', 'BACKUP_S3_ENDPOINT')
           - lookup('env', 'FOUNDRY_ADMIN_KEY')
+          - lookup('env', 'KANKA_TOKEN')
+          - lookup('env', 'KANKA_CAMPAIGN')
     - ansible.builtin.wait_for:
         host: "{{ ansible_host }}"
         port: 22
@@ -50,6 +52,7 @@
         DISCORD_AWS_SECRET_KEY: "{{ lookup('env', 'DISCORD_AWS_SECRET_KEY') }}"
         DISCORD_AWS_REGION: "{{ lookup('env', 'DISCORD_AWS_REGION') }}"
         KANKA_TOKEN: "{{ lookup('env', 'KANKA_TOKEN') }}"
+        KANKA_CAMPAIGN: "{{ lookup('env', 'KANKA_CAMPAIGN') }}"
         INFLUXDB_ADMIN_SECRET: "{{ lookup('env', 'INFLUXDB_ADMIN_SECRET') }}"
         INFLUXDB_ADMIN_TOKEN: "{{ lookup('env', 'INFLUXDB_ADMIN_TOKEN') }}"
         BACKUP_S3_BUCKET: "{{ lookup('env', 'BACKUP_S3_BUCKET') }}"

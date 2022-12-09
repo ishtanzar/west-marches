@@ -1,8 +1,11 @@
 {
   "discord": {
     "gm_role": 996157256699740232,
+    "gm_guild": 776895471875915837,
     "session_notif_channel": 893175117012676618,
     "questions_channel": 911374861304234045,
+    "downtime_channel": 1020731919329144862,
+    "downtime_notif_channel": 1050702617476612126,
     "session_role": 996470410721906800,
     "token": ""
   },

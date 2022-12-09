@@ -81,6 +81,8 @@ services:
       - AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}
       - AWS_DEFAULT_REGION={{ SCW_REGION }}
       - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
+      - KANKA_TOKEN={{ KANKA_TOKEN }}
+      - KANKA_CAMPAIGN={{ KANKA_CAMPAIGN }}
   api:
     image: "{{ api_image }}"
     volumes:
