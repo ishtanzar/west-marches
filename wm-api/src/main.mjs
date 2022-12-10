@@ -10,7 +10,7 @@ import {readFile} from "fs/promises";
 import {Server} from "socket.io";
 import sharp from 'sharp';
 import { open } from 'lmdb';
-import { Client, TextChannel } from "discord.js";
+import {Client, EmbedBuilder, TextChannel} from "discord.js";
 
 import _ from 'lodash';
 import Honeycomb from 'honeycomb-grid';
@@ -19,6 +19,22 @@ import {createSVGWindow} from 'svgdom';
 import schema_hex from './schema_hex.mjs';
 import {verifyKeyMiddleware, InteractionResponseType} from "discord-interactions";
 import crypto from "crypto";
+import {readFileSync, writeFileSync} from "fs";
+import dayjs from "dayjs";
+import 'dayjs/locale/fr.js';
+
+String.prototype.format = function () {
+    // store arguments in an array
+    const args = arguments;
+    // use replace to iterate over the string
+    // select the match and check if the related argument is present
+    // if yes, replace the match with the argument
+    return this.replace(/{([0-9]+)}/g, function (match, index) {
+        // check if the argument is present
+        return typeof args[index] == 'undefined' ? match : args[index];
+    });
+};
+
 
 global._ = _;
 global.Honeycomb = Honeycomb;
@@ -26,10 +42,12 @@ global.SVG = SVG;
 global.window = createSVGWindow()
 
 registerWindow(window, window.document);
+dayjs.locale('fr');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { hexMapConfig } = await import(path.relative(__dirname, process.env.HEXMAP_CONFIG));
 const { HexmapFactory } = await import(path.relative(__dirname, '/opt/hexmap/hexmap.mjs'));
+const { default: config } = await import(path.relative(__dirname, process.env.CONFIG_PATH), { assert: { type: "json" } })
 
 const ajv = new Ajv();
 const app = express();
@@ -47,6 +65,7 @@ const map12 = hexMap.build(hexMapConfig.map12);
 let ioSocket;
 
 discord.login(process.env.DISCORD_BOT_SECRET);
+
 app.use(cors());
 app.set('etag', true);
 app.use('/kanka_api', proxy('kanka.io', {
@@ -170,6 +189,10 @@ app.get('/map/:zoom/charted.jpg', async (req, res) => {
     res.sendFile(chartedMapFile)
 });
 
+app.get('/donations/progress.jpg', async (req, resp) => {
+    resp.sendFile('/opt/project/wm-api/src/progress.jpg');
+})
+
 app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PUBLIC_KEY), async (req, res) => {
     switch (req.body.data?.custom_id) {
         case 'generic_cancel':
@@ -192,12 +215,73 @@ app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PU
     }
 });
 
+app.post('/kofi/hook', express.urlencoded({ extended: true}), async (req, resp) => {
+    const data = JSON.parse(req.body.data)
+    if(data.verification_token === config.kofi.verification_token) {
+        /** @type {TextChannel} */
+        const gm_channel = await discord.channels.fetch(config.discord.gm_notif_channel);
+
+        /** @type {TextChannel} */
+        const progress_channel = await discord.channels.fetch(config.discord.progress_channel);
+
+        let cache = {}, progress_message;
+
+        // noinspection JSCheckFunctionSignatures
+        const gm_embed = new EmbedBuilder()
+            .setColor(0x58b9ff)
+            .setTitle("Nouveau don Ko-fi !")
+            .addFields(
+                { name: "Nom", value: '```{0}```'.format(data.from_name), inline: true},
+                { name: "Montant", value: '```{0} {1}```'.format(data.amount, data.currency), inline: true},
+                { name: "Message", value: data.message},
+            )
+
+        // await gm_channel.send({ embeds: [gm_embed] });
+
+        try {
+            cache = JSON.parse(readFileSync(config.cache.donations.path, 'utf-8'));
+        } catch (e) {}
+
+        cache.total = (cache.total || 0) + parseInt(data.amount);
+        cache.donors = (cache.donors || 0) + 1;
+        cache.monthly_fees = cache.monthly_fees || 30;
+
+        const image_url = new URL(req.protocol + "://" + req.hostname);
+        image_url.pathname = 'donations/progress.jpg';
+        image_url.searchParams.set("id", crypto.randomUUID());
+
+        image_url.search = image_url.searchParams.toString()
+
+        const player_embed = new EmbedBuilder()
+            .setColor(0x58b9ff)
+            .setTitle("Dons pour {0}".format(dayjs().format('MMMM YYYY')))
+            .addFields(
+                { name: "Donateurs", value: '```{0}```'.format(cache.donors)},
+                { name: "Prise en charge des dépenses", value: '```{0} %```'.format(cache.total * 100 / cache.monthly_fees)},
+            )
+            //.setImage(image_url.toString())
+
+        if(cache.message_id) {
+            progress_message = await progress_channel.messages.fetch(cache.message_id)
+            await progress_message.edit({ embeds: [player_embed] });
+        } else {
+            progress_message = await progress_channel.send({ embeds: [player_embed] })
+            cache.message_id = progress_message.id
+        }
+
+        writeFileSync(config.cache.donations.path, JSON.stringify(cache), 'utf-8')
+        resp.send('OK')
+    } else {
+        resp.status(401).send('Invalid token')
+    }
+})
+
 io.on('connection', (socket) => {
     console.log('Connection from ' + socket.handshake.address)
     //TODO: abuseipdb check
 
     socket.on('addlocation_map', (data) => {
-        console;log('test')
+        console.log('test')
     })
 
     socket.on('location_focus', (data) => {

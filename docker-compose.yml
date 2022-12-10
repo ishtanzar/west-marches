@@ -126,6 +126,7 @@ services:
       - "3000:3000"
       - "9228:9228"
     environment:
+      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
   discordbot:
@@ -161,7 +162,7 @@ services:
       dockerfile: dev.Dockerfile
     volumes:
       - ./:/opt/project
-      - ./wm-infra/deploy/local/data/cache/worker:/var/cache/wm-worker
+      - ./wm-infra/deploy/local/data/cache:/var/cache/westmarches
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}
