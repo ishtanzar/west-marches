@@ -13,6 +13,7 @@ module.exports = {
             '--mentionable',
             `--token=${DISCORD_BOT_SECRET}`,
             '--prefix=YVwWFZyjiFQH',
+            '--load-cogs=westmarches',
             `--owner=${DISCORD_OWNER_ID}`,
             // '--intents=2097151'
         ],

@@ -138,15 +138,12 @@ services:
       - api
     volumes:
       - ./:/opt/project
-      - ./wm-infra/deploy/local/data/discord:/opt/redbot/data
       - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json
-      - ./wm-infra/deploy/local/discordbot-logging.yml:/opt/discordbot-logging.yml
-      - ./wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json:/opt/default-intents.json
     environment:
       - WM_API_SECRET=changeme
       - WM_API_ENDPOINT=http://management_api:5000
-      - LOGGING_CONFIG=/opt/discordbot-logging.yml
-      - DEFAULT_INTENTS_PATH=/opt/default-intents.json
+      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/discordbot-config.json
+      - DEFAULT_INTENTS_PATH=/opt/project/wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json
       - AWS_ACCESS_KEY_ID=${DISCORD_AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${DISCORD_AWS_SECRET_KEY}
       - AWS_DEFAULT_REGION=${DISCORD_AWS_REGION}

@@ -6,7 +6,7 @@ WORKDIR /opt/redbot
 LABEL updated_at="202209160900"
 
 RUN apt update && \
-  DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt install -y build-essential python3.8 python3-pip libcudart10.1 locales npm
+  DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt install -y git build-essential python3.8 python3-pip libcudart10.1 locales npm
 
 RUN locale-gen fr_FR.UTF-8
 
