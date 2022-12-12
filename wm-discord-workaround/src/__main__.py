@@ -206,13 +206,13 @@ class WorkaroundBot(commands.Bot):
         try:
             await self._cog.on_message(message)
         except Exception as e:
-            self._logger.warning(str(e))
+            self._logger.warning(str(e), exc_info=True)
 
     async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
         try:
             await self._cog.on_raw_thread_update(payload)
         except Exception as e:
-            self._logger.warning(str(e))
+            self._logger.warning(str(e), exc_info=True)
 
 
 def main():
