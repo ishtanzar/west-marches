@@ -173,8 +173,6 @@ class WorkaroundCog(commands.Cog):
         #
         #     await message.delete()
 
-        self._logger.info(f'{message.author.name}#{message.author.discriminator}: {message.content}')
-
         if isinstance(message.channel, discord.Thread):
             if message.channel.parent_id == self._config.discord.questions_channel and message.content == '✅':
                 self._logger.info(f"Question is considered answered, closing the thread")
