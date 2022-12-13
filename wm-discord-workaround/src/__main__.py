@@ -7,6 +7,9 @@ from typing import Optional, Any, Type
 from discord.ext import commands
 
 import discord
+from discord.ext.commands import Context
+from discord.ext.commands._types import BotT
+
 
 # from westmarches.api import BasicAuth, WestMarchesApiClient, DiscordMessage, DiscordUser
 
@@ -48,7 +51,7 @@ class WorkaroundCog(commands.Cog):
         self._bot = bot
         self._logger = logging.getLogger('cog')
 
-    async def get_thread_original_message(self, channel: discord.Thread):
+    async def _get_thread_original_message(self, channel: discord.Thread):
         try:
             async for starter_message in channel.history(limit=1, oldest_first=True):
                 if starter_message.type is discord.MessageType.thread_starter_message:
@@ -56,71 +59,14 @@ class WorkaroundCog(commands.Cog):
         except Exception as e:
             self._logger.warning(str(e), exc_info=True)
 
-    async def get_thread_original_message_mentions(self, channel: discord.Thread, guild: discord.Guild):
+    async def _get_thread_original_message_mentions(self, channel: discord.Thread, guild: discord.Guild):
         members = []
-        original_message = await self.get_thread_original_message_mentions(channel)
+        original_message = await self._get_thread_original_message(channel)
 
         for user in original_message.mentions:
             members.append((await guild.query_members(user_ids=[user.id]))[0])
 
         return members
-
-    @commands.Cog.listener()
-    async def on_command(self, ctx: commands.Context):
-        self._logger.info(f'{ctx.author.name}#{ctx.author.discriminator}: {ctx.message.content}')
-
-    @commands.command(name="session")
-    async def session_start(self, ctx: commands.Context):
-        if ctx.author.get_role(self._config.discord.gm_role):
-            if isinstance(ctx.channel, discord.Thread):
-                gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
-                session_role = ctx.guild.get_role(self._config.discord.session_role)
-                thread_message = "Début de session pour :\n"
-                gm_notif = f"Session de {ctx.author.name} avec :\n"
-
-                for member in await self.get_thread_original_message_mentions(ctx.channel, ctx.guild):
-                    await member.add_roles(session_role)
-                    thread_message += f'- {member.mention}\n'
-                    gm_notif += f'- {member.name}\n'
-
-                notif_channel = gm_guild.get_channel_or_thread(self._config.discord.session_notif_channel)
-                await notif_channel.send(gm_notif)
-                await ctx.channel.send(thread_message)
-            else:
-                await ctx.send('Not implemented yet')
-        else:
-            await ctx.send("Tu t'es pris pour un MJ ?")
-
-    @commands.command()
-    async def session_end(self, ctx: commands.Context):
-        if isinstance(ctx.channel, discord.Thread):
-            session_role = ctx.guild.get_role(self._config.discord.session_role)
-
-            for member in await self.get_thread_original_message_mentions(ctx.channel, ctx.guild):
-                await member.remove_roles(session_role)
-
-            await ctx.channel.send("Fin de session.")
-        else:
-            self._logger.warning('session_end not in a thread')
-
-    async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
-        if payload.thread and payload.thread.archived:
-            if payload.parent_id == self._config.discord.questions_channel:
-                self._logger.info(f"Thread '{payload.thread.name}' is archiving, checking for status")
-                original_message = await self.get_thread_original_message(payload.thread)
-                full_message = await payload.thread.parent.fetch_message(original_message.id)
-
-                for reaction in full_message.reactions:
-                    if reaction.emoji == '✅':
-                        self._logger.info("Question has check emoji, let it archived")
-                        return
-
-                self._logger.info("Question do not have the check emoji, stay open")
-                await payload.thread.edit(archived=False)
-
-            if payload.parent_id == self._config.discord.downtime_channel:
-                self._logger.info(f"Downtime thread '{payload.thread.name}' is archiving, keeping it opened")
-                await payload.thread.edit(archived=False)
 
     @staticmethod
     def _append_attachements(message: discord.Message, embeds: list):
@@ -139,7 +85,69 @@ class WorkaroundCog(commands.Cog):
             embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
         return embeds
 
-    async def on_message(self, message: discord.Message):
+    async def cog_command_error(self, ctx: Context[BotT], error: Exception) -> None:
+        self._logger.warning(str(error), exc_info=True)
+
+    async def cog_before_invoke(self, ctx: Context[BotT]) -> None:
+        self._logger.info(f'{ctx.author.name}#{ctx.author.discriminator}: {ctx.message.content}')
+
+    @commands.command(name="session")
+    async def session_start(self, ctx: commands.Context):
+        if ctx.author.get_role(self._config.discord.gm_role):
+            if isinstance(ctx.channel, discord.Thread):
+                gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
+                session_role = ctx.guild.get_role(self._config.discord.session_role)
+                thread_message = "Début de session pour :\n"
+                gm_notif = f"Session de {ctx.author.name} avec :\n"
+
+                for member in await self._get_thread_original_message_mentions(ctx.channel, ctx.guild):
+                    await member.add_roles(session_role)
+                    thread_message += f'- {member.mention}\n'
+                    gm_notif += f'- {member.name}\n'
+
+                notif_channel = gm_guild.get_channel_or_thread(self._config.discord.session_notif_channel)
+                await notif_channel.send(gm_notif)
+                await ctx.channel.send(thread_message)
+            else:
+                await ctx.send('Not implemented yet')
+        else:
+            await ctx.send("Tu t'es pris pour un MJ ?")
+
+    @commands.command()
+    async def session_end(self, ctx: commands.Context):
+        if isinstance(ctx.channel, discord.Thread):
+            session_role = ctx.guild.get_role(self._config.discord.session_role)
+
+            for member in await self._get_thread_original_message_mentions(ctx.channel, ctx.guild):
+                await member.remove_roles(session_role)
+
+            await ctx.channel.send("Fin de session.")
+        else:
+            self._logger.warning('session_end not in a thread')
+
+    @commands.Cog.listener()
+    async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
+        if payload.thread and payload.thread.archived:
+            if payload.parent_id == self._config.discord.questions_channel:
+                self._logger.info(f"Thread '{payload.thread.name}' is archiving, checking for status")
+                original_message = await self._get_thread_original_message(payload.thread)
+                if original_message:
+                    full_message = await payload.thread.parent.fetch_message(original_message.id)
+
+                    for reaction in full_message.reactions:
+                        if reaction.emoji == '✅':
+                            self._logger.info("Question has check emoji, let it archived")
+                            return
+
+                    self._logger.info("Question do not have the check emoji, stay open")
+                    await payload.thread.edit(archived=False)
+
+            if payload.parent_id == self._config.discord.downtime_channel:
+                self._logger.info(f"Downtime thread '{payload.thread.name}' is archiving, keeping it opened")
+                await payload.thread.edit(archived=False)
+
+    @commands.Cog.listener()
+    async def on_message_without_command(self, message: discord.Message):
         if message.author == self._bot.user:
             return
 
@@ -165,12 +173,14 @@ class WorkaroundCog(commands.Cog):
         #
         #     await message.delete()
 
+        self._logger.info(f'{message.author.name}#{message.author.discriminator}: {message.content}')
+
         if isinstance(message.channel, discord.Thread):
             if message.channel.parent_id == self._config.discord.questions_channel and message.content == '✅':
                 self._logger.info(f"Question is considered answered, closing the thread")
                 await message.channel.send('Ce sujet est désormais clos, merci.')
                 self._logger.debug('Fetching original message')
-                original_message = await self.get_thread_original_message(message.channel)
+                original_message = await self._get_thread_original_message(message.channel)
                 self._logger.debug('Fetching full original message')
                 full_message = await message.channel.parent.fetch_message(original_message.id)
                 self._logger.debug('Adding reaction')
@@ -206,20 +216,34 @@ class WorkaroundBot(commands.Bot):
     async def on_ready(self):
         self._logger.info(f'We have logged in as {self.user}')
 
+    async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any) -> None:
+        self._logger.warning(f'Error in {event_method}', exc_info=True)
+
     async def setup_hook(self) -> None:
         await self.add_cog(self._cog)
 
-    async def on_message(self, message: discord.Message):
-        try:
-            await self._cog.on_message(message)
-        except Exception as e:
-            self._logger.warning(str(e), exc_info=True)
+    async def process_commands(self, message: discord.Message, /):
+        """
+        Same as base method, but dispatches an additional event for cogs
+        which want to handle normal messages differently to command
+        messages,  without the overhead of additional get_context calls
+        per cog.
+        """
+        if not message.author.bot:
+            ctx = await self.get_context(message)
+            if ctx.invoked_with and isinstance(message.channel, discord.PartialMessageable):
+                self._logger.warning(
+                    "Discarded a command message (ID: %s) with PartialMessageable channel: %r",
+                    message.id,
+                    message.channel,
+                )
+            else:
+                await self.invoke(ctx)
+        else:
+            ctx = None
 
-    async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
-        try:
-            await self._cog.on_raw_thread_update(payload)
-        except Exception as e:
-            self._logger.warning(str(e), exc_info=True)
+        if ctx is None or ctx.valid is False:
+            self.dispatch("message_without_command", message)
 
 
 def main():
