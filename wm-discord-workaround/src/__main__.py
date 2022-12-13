@@ -48,11 +48,13 @@ class WorkaroundCog(commands.Cog):
         self._bot = bot
         self._logger = logging.getLogger('cog')
 
-    @staticmethod
-    async def get_thread_original_message(channel: discord.Thread):
-        async for starter_message in channel.history(limit=1, oldest_first=True):
-            if starter_message.type is discord.MessageType.thread_starter_message:
-                return starter_message.reference.resolved
+    async def get_thread_original_message(self, channel: discord.Thread):
+        try:
+            async for starter_message in channel.history(limit=1, oldest_first=True):
+                if starter_message.type is discord.MessageType.thread_starter_message:
+                    return starter_message.reference.resolved
+        except Exception as e:
+            self._logger.warning(str(e), exc_info=True)
 
     async def get_thread_original_message_mentions(self, channel: discord.Thread, guild: discord.Guild):
         members = []
@@ -62,6 +64,10 @@ class WorkaroundCog(commands.Cog):
             members.append((await guild.query_members(user_ids=[user.id]))[0])
 
         return members
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx: commands.Context):
+        self._logger.info(f'{ctx.author.name}#{ctx.author.discriminator}: {ctx.message.content}')
 
     @commands.command(name="session")
     async def session_start(self, ctx: commands.Context):
@@ -95,7 +101,7 @@ class WorkaroundCog(commands.Cog):
 
             await ctx.channel.send("Fin de session.")
         else:
-            pass
+            self._logger.warning('session_end not in a thread')
 
     async def on_raw_thread_update(self, payload: discord.RawThreadUpdateEvent):
         if payload.thread and payload.thread.archived:
@@ -159,29 +165,30 @@ class WorkaroundCog(commands.Cog):
         #
         #     await message.delete()
 
-        if message.channel.parent_id == self._config.discord.questions_channel and message.content == '✅':
-            self._logger.info(f"Question is considered answered, closing the thread")
-            await message.channel.send('Ce sujet est désormais clos, merci.')
-            self._logger.debug('Fetching original message')
-            original_message = await self.get_thread_original_message(message.channel)
-            self._logger.debug('Fetching full original message')
-            full_message = await message.channel.parent.fetch_message(original_message.id)
-            self._logger.debug('Adding reaction')
-            await full_message.add_reaction('✅')
-            self._logger.debug('Archiving thread')
-            await message.channel.edit(archived=True)
+        if isinstance(message.channel, discord.Thread):
+            if message.channel.parent_id == self._config.discord.questions_channel and message.content == '✅':
+                self._logger.info(f"Question is considered answered, closing the thread")
+                await message.channel.send('Ce sujet est désormais clos, merci.')
+                self._logger.debug('Fetching original message')
+                original_message = await self.get_thread_original_message(message.channel)
+                self._logger.debug('Fetching full original message')
+                full_message = await message.channel.parent.fetch_message(original_message.id)
+                self._logger.debug('Adding reaction')
+                await full_message.add_reaction('✅')
+                self._logger.debug('Archiving thread')
+                await message.channel.edit(archived=True)
 
-        if message.channel.parent_id == self._config.discord.downtime_channel:
-            gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
-            notif_channel = gm_guild.get_channel_or_thread(self._config.discord.downtime_notif_channel)
+            if message.channel.parent_id == self._config.discord.downtime_channel:
+                gm_guild = self._bot.get_guild(self._config.discord.gm_guild)
+                notif_channel = gm_guild.get_channel_or_thread(self._config.discord.downtime_notif_channel)
 
-            embeds = [discord.Embed(title=message.channel.name, description=message.content, url=message.channel.jump_url)]
-            embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar.url)
-            embeds = self._append_attachements(message, embeds)
-            embeds[-1].timestamp = message.created_at
+                embeds = [discord.Embed(title=message.channel.name, description=message.content, url=message.channel.jump_url)]
+                embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar.url)
+                embeds = self._append_attachements(message, embeds)
+                embeds[-1].timestamp = message.created_at
 
-            for embed in embeds:
-                await notif_channel.send(None, embed=embed)
+                for embed in embeds:
+                    await notif_channel.send(None, embed=embed)
 
 
 class WorkaroundBot(commands.Bot):
