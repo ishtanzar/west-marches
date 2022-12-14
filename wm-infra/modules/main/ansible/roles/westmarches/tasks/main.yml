@@ -4,9 +4,10 @@
     path: "{{ item }}"
     state: directory
   loop:
+    - "{{ westmarches_data_path }}/api"
     - "{{ westmarches_data_path }}/influxdb"
-    - "{{ westmarches_data_path }}/worker"
     - "{{ westmarches_data_path }}/workaround"
+    - "{{ westmarches_data_path }}/worker"
     - "{{ westmarches_data_path }}/worker/cache"
     - /opt/data/www/.well-known
 
@@ -29,6 +30,7 @@
     dest: "{{ item.dest }}"
   loop:
     - { src: hexMap-config.mjs, dest: "{{ westmarches_data_path }}/hexMap-config.mjs" }
+    - { src: api-config.json, dest: "{{ westmarches_data_path }}/api/config.json" }
     - { src: worker-config.json, dest: "{{ westmarches_data_path }}/worker/config.json" }
     - { src: workaround-config.json, dest: "{{ westmarches_data_path }}/workaround/config.json" }
 

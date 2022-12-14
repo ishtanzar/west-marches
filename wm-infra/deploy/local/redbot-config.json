@@ -1,6 +1,6 @@
 {
   "westmarches": {
-    "DATA_PATH": "/opt/redbot/data/westmarches",
+    "DATA_PATH": "/opt/project/wm-infra/deploy/local/data/discord/westmarches",
     "COG_PATH_APPEND": "cogs",
     "CORE_PATH_APPEND": "core",
     "STORAGE_TYPE": "JSON",

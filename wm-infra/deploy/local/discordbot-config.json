@@ -1,0 +1,60 @@
+{
+  "rumors": [],
+  "rumors_idx": 0,
+  "rumors_triggers": {},
+  "rumors_cooldown_message": [
+    "On se calme, repasses plus tard.",
+    "Hey, je suis pas un robot.",
+    "J'ai d'autres choses à faire que de discuter."
+  ],
+  "intents": [],
+  "taverns": [],
+  "log": {
+    "handlers": {
+      "json": {
+        "fmt": {
+          "__tuple__": true,
+          "date": "asctime",
+          "level": "levelname",
+          "logger": "name",
+          "message": "message"
+        },
+        "filename": "/opt/project/wm-infra/deploy/local/data/discord/westmarches/westmarches-json.log"
+      }
+    }
+  },
+  "messages": {
+    "sessions.schedule.done": "Rapport créé : {}. Bonne partie !",
+    "gm.message.sent": "Ton message a bien été transmis, l'équipe en discute et reviendra vers toi par message privé. Bonne journée.",
+    "inkarnate.password": "%s\nCe message sera automatiquement supprimé dans 30s.",
+
+    "intents.learn.done": "On en apprend de belles tous les jours !",
+    "intents.train.done": "Rien de tel qu'une bonne scéance d'entraînement pour garder la forme.",
+
+    "kanka.users.list.not_found": "Aucun utilisateur",
+    "kanka.reports.link": "Voici le lien vers le rapport demandé : \n%s\nCe message sera supprimé dans %s.",
+    "kanka.reports.not_found": "Impossible de trouver le rapport demandé.",
+
+    "foundry.activity.users": "Utilisateurs connectés : %s.",
+
+    "foundry.backup.started": "Bon allez, tout le monde dehors, on ferme la taverne pour ce soir.",
+    "foundry.backup.failed": "La porte de la réserve est restée coincée, on a pas rangé la dernière livraison",
+    "foundry.backup.done": "C'est bon, on a pu ranger la réserve, on peut ouvrir pour la journée !",
+
+    "foundry.restart.started": "Krusk, ça sent encore le cramé; ouvre la fenêtre !",
+    "foundry.restart.done": "Merci",
+
+    "foundry.backup_restore.started": "Ce tonneau de bière sent le rance, faut en prendre un autre dans la réserve",
+    "foundry.backup_restore.failed": "Pas moyen de trouver un bon tonneau de secours.",
+    "foundry.backup_restore.done": "Voilà, on a récupéré un bon tonneau; ça devrait aller mieux",
+
+    "foundry.roster.intro": "*%s déroule une feuille de parchemin vierge sur la table entre vous et pose une pierre dont émane une étrange aura magique. Alors que la pierre touche le parchemin, une étrange liste de noms apparaît.*",
+    "foundry.roster.search.class": "Parmis les aventuriers qui viennent ici, voici les %s que je connais : %s",
+
+    "foundry.player.add.done": "Bienvenue parmis nous %s. Puisses-tu survivre longtemps sur ces terres gelées.",
+    "foundry.player.discord.not_found": "Aucune correspondance sur Foundry pour l'utilisateur %s.",
+    "foundry.player.password.reset": "Le mot de passe Foundry a été réinitialisé : %s",
+    "foundry.player.toggle_gm.activate": "%s est maintenant MJ.",
+    "foundry.player.toggle_gm.deactivate": "%s n'est plus MJ."
+  }
+}

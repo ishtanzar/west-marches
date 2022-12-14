@@ -6,20 +6,24 @@
   },
   "discord": {
     "kanka_notify_channel": 859433172704690186,
+    "questions_channel": 859433172704690186,
     "token": ""
   },
   "cache": {
-    "base_path": "/var/cache/wm-worker"
+    "base_path": "/var/cache/westmarches/worker"
   },
   "cron": {
     "kanka": {
       "live": "*/5 * * * *"
+    },
+    "questions": {
+      "review": "0 12 * * *"
     }
   },
   "log": {
     "version": 1,
     "formatters": {
-     "standard": {
+      "standard": {
         "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
       }
     },

@@ -10,8 +10,8 @@ services:
       - "{{ discordbot_data_path }}/redbot-config.json:/root/.config/Red-DiscordBot/config.json"
     environment:
       - DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json
-      - LOGGING_CONFIG=/opt/redbot/data/discordbot-logging.yml
+      - CONFIG_PATH=/opt/redbot/data/discordbot-config.json
       - AWS_ACCESS_KEY_ID={{DISCORD_AWS_ACCESS_KEY_ID}}
       - AWS_SECRET_ACCESS_KEY={{DISCORD_AWS_SECRET_KEY}}
       - AWS_DEFAULT_REGION={{DISCORD_AWS_REGION}}
-    command: redbot westmarches --mentionable --token=${DISCORD_BOT_SECRET} --prefix=YVwWFZyjiFQH --owner=${DISCORD_OWNER_ID}
+    command: redbot westmarches --mentionable --load-cogs=westmarches --token=${DISCORD_BOT_SECRET} --prefix=YVwWFZyjiFQH --owner=${DISCORD_OWNER_ID}
