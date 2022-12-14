@@ -1,24 +1,14 @@
-import logging.config
-
-from types import SimpleNamespace
-
-import json
-
-from pathlib import Path
-
-from dataclasses import dataclass
-
-import argparse
-
 import aiocron
-import discord
-from urllib.parse import urlparse, parse_qs
-
 import asyncio
+import discord
+import json
+import logging.config
 import os
 import requests
-
+from pathlib import Path
 from quart import Quart
+from types import SimpleNamespace
+from urllib.parse import urlparse, parse_qs
 
 
 class Config:
@@ -171,6 +161,38 @@ class Kanka:
         self.entities_cache = Cache(Path(self.config.cache.base_path) / 'entities.cache.json')
 
 
+class Questions:
+
+    def __init__(self, config, discord: discord.Client):
+        self._logger = logging.getLogger(type(self).__name__)
+        self._discord = discord
+        self._config = config
+
+    async def review(self):
+        channel = await self._discord.fetch_channel(self._config.discord.questions_channel)
+        threads = channel.threads
+        self._logger.debug(f'Found {len(threads)} threads to review')
+        for thread in threads:
+            resolved = False
+            self._logger.debug(f'Reviewing thread named "{thread.name}"')
+            async for starter_message in thread.history(limit=1, oldest_first=True):
+                if starter_message.type is discord.MessageType.thread_starter_message:
+                    full_message = await channel.fetch_message(starter_message.reference.resolved.id)
+                    for reaction in full_message.reactions:
+                        if reaction.emoji == '✅':
+                            self._logger.debug("Question has check emoji, don't update it")
+                            resolved = True
+                            break
+            if not resolved:
+                self._logger.debug(f'Thread named "{thread.name}" is not resolved, updating.')
+                update_message = await thread.send('.')
+                await update_message.delete(delay=2)
+
+    async def cron(self):
+        self._logger.info('Review opened questions')
+        await self.review()
+
+
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
@@ -181,15 +203,24 @@ async def main():
 
     app = Quart(__name__)
     queue = asyncio.Queue()
-    client = discord.Client(intents=discord.Intents.none())
+
+    intents = discord.Intents.none()
+    intents.guilds = True
+
+    client = discord.Client(intents=intents)
 
     kanka = Kanka(config, client, queue)
+    questions = Questions(config, client)
 
     @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
-        logger = logging.getLogger('cron.kanka.live')
-        logger.debug('Adding task to the queue')
+        logging.getLogger('cron.kanka.live').debug('Queued')
         await queue.put(kanka.cron)
+
+    @aiocron.crontab(config.cron.questions.review, loop=asyncio.get_event_loop())
+    async def questions_review():
+        logging.getLogger('cron.questions.review').debug('Queued')
+        await queue.put(questions.cron)
 
     async def worker():
         logger = logging.getLogger('worker')
