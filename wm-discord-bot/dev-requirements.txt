@@ -3,5 +3,6 @@
 pytest==6.2.2
 pytest-asyncio==0.14.0
 
-debugpy==1.6.3
-pydevd-pycharm~=222.4167.29
+debugpy==1.6.4
+#pydevd-pycharm~=222.4167.29
+pydevd-pycharm~=223.4884.62

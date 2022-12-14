@@ -39,7 +39,7 @@ async def setup(bot: Red):
     ))
     logging.getLogger().addHandler(handler)
 
-    config_dict = json.loads(json.dumps(config.log, default=lambda x: vars(x)))
+    config_dict = json.loads(json.dumps(config, default=lambda x: vars(x)))
     io = socketio.AsyncClient()
     io.register_namespace(MapNamespace())
 
