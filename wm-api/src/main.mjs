@@ -48,6 +48,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { hexMapConfig } = await import(path.relative(__dirname, process.env.HEXMAP_CONFIG));
 const { HexmapFactory } = await import(path.relative(__dirname, '/opt/hexmap/hexmap.mjs'));
 const { default: config } = await import(path.relative(__dirname, process.env.CONFIG_PATH), { assert: { type: "json" } })
+config.kofi.verification_token = process.env.KOFI_VERIFICATION
 
 const ajv = new Ajv();
 const app = express();
@@ -236,7 +237,7 @@ app.post('/kofi/hook', express.urlencoded({ extended: true}), async (req, resp) 
                 { name: "Message", value: data.message},
             )
 
-        // await gm_channel.send({ embeds: [gm_embed] });
+        await gm_channel.send({ embeds: [gm_embed] });
 
         try {
             cache = JSON.parse(readFileSync(config.cache.donations.path, 'utf-8'));
