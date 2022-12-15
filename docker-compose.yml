@@ -160,7 +160,6 @@ services:
       dockerfile: dev.Dockerfile
     volumes:
       - ./:/opt/project
-      - ./wm-infra/deploy/local/data/cache:/var/cache/westmarches
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}

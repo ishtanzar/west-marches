@@ -193,6 +193,18 @@ class Questions:
         await self.review()
 
 
+class Donations:
+
+    def __init__(self, config):
+        self._logger = logging.getLogger(type(self).__name__)
+        self._config = config
+
+    async def reset(self):
+        self._logger.info('Reset donations cache file')
+        with open(self._config.donations.filename, 'w') as fp:
+            json.dump({}, fp)
+
+
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
@@ -211,6 +223,7 @@ async def main():
 
     kanka = Kanka(config, client, queue)
     questions = Questions(config, client)
+    donations = Donations(config)
 
     @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
@@ -222,6 +235,11 @@ async def main():
         logging.getLogger('cron.questions.review').debug('Queued')
         await queue.put(questions.cron)
 
+    @aiocron.crontab(config.cron.donations.reset, loop=asyncio.get_event_loop())
+    async def donations_reset():
+        logging.getLogger('cron.donations.reset').debug('Queued')
+        await queue.put(donations.reset)
+
     async def worker():
         logger = logging.getLogger('worker')
 
@@ -232,7 +250,7 @@ async def main():
             try:
                 await routine()
             except Exception as e:
-                logger.warning(str(e))
+                logger.warning(str(e), exc_info=True)
 
     @app.route('/health')
     async def health():
