@@ -6,6 +6,6 @@ all:
     management_api_image: ishtanzar/wm-management-api:0.7.0
     api_image: ishtanzar/wm-api:0.2.0
     discordbot_image: ishtanzar/wm-discord-bot:0.12.1
-    worker_image: ishtanzar/wm-worker:0.1.0
+    worker_image: ishtanzar/wm-worker:0.2.0
     discord_workaround_image: ishtanzar/wm-discord-workaround:0.4.2
     foundry_extensible_plugin_version: 2.3.0

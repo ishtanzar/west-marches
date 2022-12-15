@@ -9,6 +9,7 @@
     - "{{ westmarches_data_path }}/workaround"
     - "{{ westmarches_data_path }}/worker"
     - "{{ westmarches_data_path }}/worker/cache"
+    - "{{ foundry_data_path }}/Config"
     - /opt/data/www/.well-known
 
 - name: Template config files
@@ -35,23 +36,23 @@
     - { src: workaround-config.json, dest: "{{ westmarches_data_path }}/workaround/config.json" }
 
 - ansible.builtin.file:
-    path: "{{ westmarches_data_path }}/nginx-entrypoint.sh"
+    path: "{{ item }}"
     mode: '0755'
+    state: touch
+  loop:
+    - "{{ westmarches_data_path }}/nginx-entrypoint.sh"
+    - "{{ westmarches_data_path }}/worker/cache/donations.cache.json"
 
 - name: Upload compose env file
   ansible.builtin.copy:
     dest: "{{ westmarches_data_path }}/.env"
     content: "COMPOSE_PROJECT_NAME=west-marches"
 
-- ansible.builtin.file:
-    path: "{{ foundry_data_path }}/Config"
-    state: directory
-
 - name: Upload S3 config
   ansible.builtin.copy:
     dest: "{{ foundry_data_path }}/Config/s3config.json"
     content: "{{ foundry_s3_config | to_nice_json }}"
-  
+
 - name: Fetch foundry-extensible-plugin
   ansible.builtin.get_url:
     url: "{{ lookup('env', 'FOUNDRY_EXTENSIBLE_PLUGIN_URL')|default(extensible_plugin_url, True) }}"

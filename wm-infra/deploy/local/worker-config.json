@@ -9,6 +9,9 @@
     "questions_channel": 859433172704690186,
     "token": ""
   },
+  "donations": {
+    "filename": "donations.cache.json"
+  },
   "cache": {
     "base_path": "/opt/project/wm-infra/deploy/local/data/cache/worker"
   },
