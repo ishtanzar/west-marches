@@ -1,0 +1,15 @@
+{
+  "cache": {
+    "donations": {
+      "path": "/var/cache/westmarches/worker/donations.cache.json"
+    }
+  },
+  "kofi": {
+    "verification_token": "",
+    "monthly_fee": 30
+  },
+  "discord": {
+    "gm_notif_channel": "1051269735146340453",
+    "progress_channel": "1018861629779226634"
+  }
+}

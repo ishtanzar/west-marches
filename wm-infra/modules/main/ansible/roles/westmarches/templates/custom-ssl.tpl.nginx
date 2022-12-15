@@ -194,31 +194,31 @@ server {
   return 301 https://$server_name$request_uri;
 }
 
-#server {
-#  listen 443 ssl;
-#  listen [::]:443 ssl;
-#
-#  server_name "api.{{ foundry_fqdn }}";
-#
-#  ssl_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/fullchain.pem";
-#  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/privkey.pem";
-#  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/chain.pem";
-#
-#  location / {
-#    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-#    proxy_set_header Host $host;
-#    proxy_hide_header Access-Control-Allow-Origin;
-#    add_header Access-Control-Allow-Credentials "true";
-#    add_header Access-Control-Allow-Origin "$http_origin";
-#
-#    proxy_pass http://api:3000;
-#
-#    proxy_http_version 1.1;
-#    proxy_set_header Upgrade $http_upgrade;
-#    proxy_set_header Connection "upgrade";
-#  }
-#
-#}
+server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+
+  server_name "api.{{ foundry_fqdn }}";
+
+  ssl_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/fullchain.pem";
+  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/privkey.pem";
+  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/chain.pem";
+
+  location / {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $host;
+    proxy_hide_header Access-Control-Allow-Origin;
+    add_header Access-Control-Allow-Credentials "true";
+    add_header Access-Control-Allow-Origin "$http_origin";
+
+    proxy_pass http://api:3000;
+
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+
+}
 
 server {
   listen 443 ssl;

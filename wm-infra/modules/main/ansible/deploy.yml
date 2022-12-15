@@ -25,6 +25,7 @@
           - lookup('env', 'FOUNDRY_ADMIN_KEY')
           - lookup('env', 'KANKA_TOKEN')
           - lookup('env', 'KANKA_CAMPAIGN')
+          - lookup('env', 'KOFI_VERIFICATION')
     - ansible.builtin.wait_for:
         host: "{{ ansible_host }}"
         port: 22
@@ -58,6 +59,7 @@
         BACKUP_S3_BUCKET: "{{ lookup('env', 'BACKUP_S3_BUCKET') }}"
         BACKUP_S3_ENDPOINT: "{{ lookup('env', 'BACKUP_S3_ENDPOINT') }}"
         FOUNDRY_ADMIN_KEY: "{{ lookup('env', 'FOUNDRY_ADMIN_KEY') }}"
+        KOFI_VERIFICATION: "{{ lookup('env', 'KOFI_VERIFICATION') }}"
         foundry_version: "{{ lookup('env', 'FOUNDRY_VERSION') }}"
         management_api_secret: "{{ lookup('password', '/dev/null') }}"
 

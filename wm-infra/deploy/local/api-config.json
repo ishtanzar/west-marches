@@ -1,0 +1,15 @@
+{
+  "cache": {
+    "donations": {
+      "path": "/opt/project/wm-infra/deploy/local/data/cache/worker/donations.cache.json"
+    }
+  },
+  "kofi": {
+    "verification_token": "",
+    "monthly_fee": 30
+  },
+  "discord": {
+    "gm_notif_channel": "859433172704690186",
+    "progress_channel": "859433172704690186"
+  }
+}

@@ -10,7 +10,7 @@
     "token": ""
   },
   "cache": {
-    "base_path": "/var/cache/westmarches/worker"
+    "base_path": "/opt/project/wm-infra/deploy/local/data/cache/worker"
   },
   "cron": {
     "kanka": {

@@ -129,6 +129,7 @@ services:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
+      - KOFI_VERIFICATION=${KOFI_VERIFICATION}
   discordbot:
     build:
       context: wm-discord-bot/

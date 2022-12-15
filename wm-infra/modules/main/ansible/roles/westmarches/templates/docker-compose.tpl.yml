@@ -93,6 +93,7 @@ services:
       - CONFIG_PATH=/opt/api/config.json
       - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
       - DISCORD_BOT_PUBLIC_KEY={{ DISCORD_BOT_PUBLIC_KEY }}
+      - KOFI_VERIFICATION={{ KOFI_VERIFICATION }}
   foundry:
     environment:
       - "FOUNDRY_AWS_CONFIG=/data/Config/s3config.json"
