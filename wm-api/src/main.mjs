@@ -219,6 +219,8 @@ app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PU
 app.post('/kofi/hook', express.urlencoded({ extended: true}), async (req, resp) => {
     const data = JSON.parse(req.body.data)
     if(data.verification_token === config.kofi.verification_token) {
+        console.log('Ko-fi payload: {0}'.format(req.body.data))
+
         /** @type {TextChannel} */
         const gm_channel = await discord.channels.fetch(config.discord.gm_notif_channel);
 
@@ -232,7 +234,7 @@ app.post('/kofi/hook', express.urlencoded({ extended: true}), async (req, resp) 
             .setColor(0x58b9ff)
             .setTitle("Nouveau don Ko-fi !")
             .addFields(
-                { name: "Nom", value: '```{0}```'.format(data.from_name), inline: true},
+                { name: "Nom", value: '```{0}```'.format(data.from_name || 'Anonyme'), inline: true},
                 { name: "Montant", value: '```{0} {1}```'.format(data.amount, data.currency), inline: true},
                 { name: "Message", value: data.message},
             )
