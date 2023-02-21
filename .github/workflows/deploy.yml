@@ -78,6 +78,9 @@ jobs:
           DISCORD_AWS_REGION: eu-west-3
           OAUTH_CLIENT: ${{ secrets.OAUTH_CLIENT }}
           OAUTH_SECRET: ${{ secrets.OAUTH_SECRET }}
+          KOFI_VERIFICATION: ${{ secrets.KOFI_VERIFICATION }}
+          KANKA_TOKEN: ${{ secrets.KANKA_TOKEN }}
+          KANKA_CAMPAIGN: ${{ secrets.KANKA_CAMPAIGN }}
           FOUNDRY_ADMIN_KEY: ${{ secrets.FOUNDRY_ADMIN_KEY }}
           BACKUP_S3_ENDPOINT: https://s3.fr-par.scw.cloud
           
