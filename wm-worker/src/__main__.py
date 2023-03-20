@@ -1,3 +1,9 @@
+import sys
+
+import argparse
+
+import cmd
+
 import aiocron
 import asyncio
 import discord
@@ -67,11 +73,15 @@ class Kanka:
 
         self.init_cache()
 
-    def fetch(self, page=1):
+    def fetch(self, endpoint, last_sync=None, page=1):
         data = []
+        params = {"page": page}
 
-        resp = requests.get(self.config.kanka.api_endpoint + '/entities',
-                            params={"page": page, "lastSync": self.entities_cache["last_sync"]},
+        if last_sync:
+            params["lastSync"] = last_sync
+
+        resp = requests.get(endpoint,
+                            params=params,
                             headers={
                                 'Authorization': 'Bearer ' + self.config.kanka.token,
                                 'User-Agent': 'kanka-sync/0.0.1'
@@ -84,13 +94,14 @@ class Kanka:
             if resp_json['links']['next']:
                 query = urlparse(resp_json['links']['next']).query
                 if query:
-                    data += self.fetch(parse_qs(query)['page'])
-            self.entities_cache["last_sync"] = resp_json['sync']
+                    next_data, _ = self.fetch(endpoint, last_sync, parse_qs(query)['page'])
+                    data += next_data
+            last_sync = resp_json['sync'] if 'sync' in resp_json else None
         else:
             self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
-            raise Exception('Unable to fetch entities')
+            raise Exception('Unable to fetch from API')
 
-        return data
+        return data, last_sync
 
     async def get_user(self, user_id):
         users = await self.get_users()
@@ -105,29 +116,23 @@ class Kanka:
         if not self.user_cache:
             cache = {}
 
-            for user in await self.fetch_users():
+            users, _ = self.fetch_users()
+            for user in users:
                 cache[user['id']] = user['name']
 
             self.user_cache = cache
         return self.user_cache
 
-    async def fetch_users(self):
-        resp = requests.get(self.config.kanka.api_endpoint + '/users',
-                            headers={
-                                'Authorization': 'Bearer ' + self.config.kanka.token,
-                                'User-Agent': 'kanka-sync/0.0.1'
-                            })
+    def fetch_entities(self):
+        return self.fetch(self.config.kanka.api_endpoint + '/entities', self.entities_cache["last_sync"])
 
-        if resp.status_code == 200:
-            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
-            return resp.json()['data']
-
-        self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
-        raise Exception('Unable to fetch users')
+    def fetch_users(self):
+        return self.fetch(self.config.kanka.api_endpoint + '/users')
 
     async def cron(self):
         print('[Kanka] syncing')
-        entities = self.fetch()
+        entities, last_sync = self.fetch_entities()
+        self.entities_cache["last_sync"] = last_sync
         print(f'[Kanka] sync ok, entities={len(entities)}, lastSync={self.entities_cache["last_sync"]}')
 
         await self.notify(entities)
@@ -205,6 +210,13 @@ class Donations:
             json.dump({}, fp)
 
 
+class WorkerShell(cmd.Cmd):
+    prompt = "worker> "
+
+    def default(self, line: str) -> None:
+        print('Hello')
+
+
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
@@ -212,6 +224,9 @@ async def main():
 
     # Ugly SN to dict converted
     logging.config.dictConfig(json.loads(json.dumps(config.log, default=lambda x: vars(x))))
+
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
 
     app = Quart(__name__)
     queue = asyncio.Queue()
@@ -256,10 +271,20 @@ async def main():
     async def health():
         return 'hello'
 
-    await asyncio.gather(
-        client.start(config.discord.token),
-        app.run_task(),
-        worker())
+    subparsers.add_parser('kanka.live').set_defaults(func=kanka.cron)
+    subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
+    args = parser.parse_args()
+
+    if "func" in args:
+        await client.login(config.discord.token)
+        await args.func()
+    else:
+        WorkerShell().cmdloop()
+
+        await asyncio.gather(
+            client.start(config.discord.token),
+            app.run_task(),
+            worker())
 
 
 if __name__ == "__main__":
