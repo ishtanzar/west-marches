@@ -1,10 +1,5 @@
-import sys
-
-import argparse
-
-import cmd
-
 import aiocron
+import argparse
 import asyncio
 import discord
 import json
@@ -210,13 +205,6 @@ class Donations:
             json.dump({}, fp)
 
 
-class WorkerShell(cmd.Cmd):
-    prompt = "worker> "
-
-    def default(self, line: str) -> None:
-        print('Hello')
-
-
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
@@ -279,8 +267,6 @@ async def main():
         await client.login(config.discord.token)
         await args.func()
     else:
-        WorkerShell().cmdloop()
-
         await asyncio.gather(
             client.start(config.discord.token),
             app.run_task(),
