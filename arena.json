@@ -1,0 +1,13 @@
+{
+  "queues": [
+    {
+      "name": "kofi_payloads",
+      "type": "bee",
+      "hostId": "redis",
+      "redis": {
+        "host": "redis",
+        "port": 6379
+      }
+    }
+  ]
+}

@@ -31,11 +31,9 @@ services:
     image: nginx:1.21.0
     volumes:
       - ./:/opt/project:ro
-      - ./wm-infra/deploy/local/custom.tpl.nginx:/etc/nginx/conf.d/custom.conf:ro
+      - ./wm-infra/deploy/local/custom.nginx:/etc/nginx/conf.d/custom.conf:ro
       - ./wm-infra/deploy/local/rootCA.pem:/etc/ssl/private/rootCA.pem:ro
       - ./wm-infra/deploy/local/rootCA-key.pem:/etc/ssl/private/rootCA-key.pem:ro
-      - ./wm-infra/deploy/local/westmarches.localhost.lan+1.pem:/etc/ssl/private/westmarches.localhost.lan+1.pem:ro
-      - ./wm-infra/deploy/local/westmarches.localhost.lan+1-key.pem:/etc/ssl/private/westmarches.localhost.lan+1-key.pem:ro
     links:
       - foundry
       - api
@@ -53,6 +51,7 @@ services:
       - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
       - twig-cache:/var/cache/website
     environment:
+      - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
       - DISCORD_OAUTH_CLIENT=${OAUTH_CLIENT}
       - DISCORD_OAUTH_SECRET=${OAUTH_SECRET}
       - DISCORD_OAUTH_REDIRECT=${WEBSITE_DISCORD_OAUTH_REDIRECT}
@@ -63,6 +62,8 @@ services:
       - MINIO_ROOT_USER=BUH8JVS2CJYK8HH22UI6-XIP
       - MINIO_ROOT_PASSWORD=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
     command: server /data
+  redis:
+    image: redis:7-alpine
   foundry:
     build:
       context: wm-infra/docker/foundry
@@ -120,16 +121,29 @@ services:
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs
-      - ./wm-website/public/wm-scripts/hexmap.mjs:/opt/hexmap/hexmap.mjs
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-api/pm2.config.js"]
+      - ./wm-website/public/scripts/hexmap.mjs:/opt/hexmap/hexmap.mjs
+    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-api/pm2.config.cjs"]
     ports:
       - "3000:3000"
       - "9228:9228"
+    links:
+      - redis
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
+      - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
+      - FOW_PATH=/opt/project/wm-infra/deploy/local/fow.jpg
+      - FINAL_MAP=/opt/project/wm-infra/deploy/local/charted.jpg
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
       - KOFI_VERIFICATION=${KOFI_VERIFICATION}
+  arena:
+    image: mixmaxhq/arena:latest
+    links:
+      - redis
+    volumes:
+      - ./arena.json:/opt/arena/index.json
+    ports:
+      - "4567:4567"
   discordbot:
     build:
       context: wm-discord-bot/

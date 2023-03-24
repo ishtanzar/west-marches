@@ -2,6 +2,7 @@
     "name": "wm-websocket-server",
     "version": "0.0.1",
     "description": "A websocket server for the campaign",
+    "type": "module",
     "dependencies": {
         "@svgdotjs/svg.js": "^3.1.2",
         "ajv": "^8.11.0",
@@ -16,6 +17,18 @@
         "sharp": "^0.31.1",
         "socket.io": "^4.5.2",
         "dayjs": "^1.11.7",
-        "svgdom": "github:TomFalkner/svgdom#fix_getElementById_is_not_a_function"
+        "svgdom": "github:TomFalkner/svgdom#fix_getElementById_is_not_a_function",
+        "bee-queue": "^1.5.0",
+        "winston": "~3.8.2"
+    },
+    "devDependencies": {
+        "jest": "~29.5.0",
+        "@jest/globals": "~29.5.0",
+        "supertest": "~6.3.3",
+        "redis-mock": "~0.56.3"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "transform": {}
     }
 }
