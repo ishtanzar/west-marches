@@ -36,6 +36,7 @@
     "kanka.reports.not_found": "Impossible de trouver le rapport demandé.",
 
     "foundry.activity.users": "Utilisateurs connectés : %s.",
+    "foundry.activity.no_users": "Aucun utilisateur connecté.",
 
     "foundry.backup.started": "Bon allez, tout le monde dehors, on ferme la taverne pour ce soir.",
     "foundry.backup.failed": "La porte de la réserve est restée coincée, on a pas rangé la dernière livraison",

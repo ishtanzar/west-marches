@@ -181,7 +181,10 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
         """List users connected to Foundry"""
         async with self.config.messages() as messages:
             users = await self.api_client.foundry.activity()
-            await ctx.send(messages['foundry.activity.users'] % ', '.join(users['users']))
+            if users['users']:
+                await ctx.send(messages['foundry.activity.users'] % ', '.join(users['users']))
+            else:
+                await ctx.send(messages['foundry.activity.no_users'])
 
     @command_foundry.command(name="restart")
     async def command_restart(self, ctx: commands.Context):
