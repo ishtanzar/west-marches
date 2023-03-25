@@ -66,6 +66,10 @@ const kofiPayloads = new BeeQueue('kofi_payloads', {
     }
 });
 
+kofiPayloads.on('job succeeded', async (jobId, _) => {
+   await kofiPayloads.removeJob(jobId);
+});
+
 let ioSocket;
 
 await discord.login(process.env.DISCORD_BOT_SECRET);
