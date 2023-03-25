@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         
       - name: Github tag
         id: github_tag
         run: echo ::set-output name=GITHUB_TAG::${GITHUB_REF/refs\/tags\/releases\/foundry-extensible-plugin\/v/}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 14
 
@@ -30,7 +30,7 @@ jobs:
         working-directory: foundry-extensible-plugin
       
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: contains(github.ref, 'main')
         with:
           name: foundry-extensible-plugin-main
