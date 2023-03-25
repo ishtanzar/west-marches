@@ -256,6 +256,14 @@ server {
 }
 
 server {
+  listen 80;
+  listen [::]:80;
+
+  server_name "{{ foundry_fqdn }}";
+  return 301 https://$server_name$request_uri;
+}
+
+server {
   listen 443 ssl;
   listen [::]:443 ssl;
 
