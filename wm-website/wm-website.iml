@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="App\" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="honeycomb-grid" level="application" />
+    <orderEntry type="library" name="leaflet" level="application" />
+    <orderEntry type="library" name="svg" level="application" />
+    <orderEntry type="library" name="svg.js" level="application" />
+    <orderEntry type="library" name="browse" level="application" />
+    <orderEntry type="library" name="lodash" level="application" />
+    <orderEntry type="library" name="bootstrap" level="application" />
+    <orderEntry type="library" name="jose" level="application" />
+    <orderEntry type="library" name="js-cookie" level="application" />
+    <orderEntry type="library" name="jquery" level="application" />
+  </component>
+</module>

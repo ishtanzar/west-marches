@@ -1,0 +1,49 @@
+#map { height: 800px; }
+.leaflet-mouse-marker {
+    background-color: #fff;
+    cursor: crosshair;
+}
+
+.leaflet-wm-actions {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    left: 26px; /* leaflet-draw-toolbar.left + leaflet-draw-toolbar.width */
+    top: 0;
+    white-space: nowrap;
+}
+
+.leaflet-wm-actions li {
+    display: inline-block;
+}
+
+.leaflet-wm-actions a {
+    border-left: 1px solid #AAA;
+    background-color: #919187;
+    border-radius: 0;
+    color: #fff;
+}
+
+.leaflet-wm-actions a:hover, .leaflet-wm-actions a:focus {
+    background-color: #A0A098;
+}
+
+.leaflet-bar .leaflet-wm-actions a {
+    width: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.leaflet-touch .leaflet-bar .leaflet-wm-actions a {
+    border-radius: 0;
+}
+
+.leaflet-bar .leaflet-wm-actions li:first-of-type a {
+    border-left: 0;
+}
+
+.leaflet-bar .leaflet-wm-actions li:last-of-type a {
+    border-radius: 0 2px 2px 0;
+}

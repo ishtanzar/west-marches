@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ parent() }}
+    <title>Map du Cairne</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+          integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin=""/>
+    <link rel="stylesheet" href="/styles/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<div id="map"></div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMap" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body"></div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+        <div class="toast-header">
+            <strong class="me-auto">Connexion Kanka</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Certaines fonctionnalités de cette carte utilisent Kanka en arrière-plan, merci de vous connecter à votre compte Kanka.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{{ parent() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+<script type="module" src="https://unpkg.com/leaflet@1.9.1/dist/leaflet-src.js" ></script>
+
+<script src="/honeycomb/dist/honeycomb.js"></script>
+<script type="module" src="/scripts/leaflet_utils.mjs"></script>
+<script type="module" src="/scripts/leaflet_gm.mjs"></script>
+<script type="module" src="/scripts/leaflet_player.mjs"></script>
+<script type="module">
+    import {WestMarchesMap} from "/scripts/map.mjs";
+
+    WestMarchesMap.build();
+</script>
+{% endblock %}
