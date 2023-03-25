@@ -204,6 +204,17 @@ services:
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
+#    command:
+#      - /usr/local/bin/python
+#      - -m
+#      - pydevd
+#      - --port
+#      - "5680"
+#      - --client
+#      - 172.17.0.1
+#      - --file
+#      - /opt/project/wm-worker/src/__main__.py
+#      - kanka.live
   discordbot_workaround:
     build:
       context: ./
