@@ -3,33 +3,10 @@
   hosts: all
   gather_facts: no
   pre_tasks:
-    - assert:
-        that:
-          - lookup('env', 'SCW_VOLUME_ID')
-          - lookup('env', 'SCW_ACCESS_KEY')
-          - lookup('env', 'SCW_SECRET_KEY')
-          - lookup('env', 'SCW_REGION')
-          - lookup('env', 'FOUNDRY_VERSION')
-          - lookup('env', 'FOUNDRY_BUCKET_ACCESS_KEY_ID')
-          - lookup('env', 'FOUNDRY_BUCKET_SECRET_ACCESS_KEY')
-          - lookup('env', 'OAUTH_CLIENT')
-          - lookup('env', 'OAUTH_SECRET')
-          - lookup('env', 'DISCORD_BOT_SECRET')
-          - lookup('env', 'DISCORD_OWNER_ID')
-          - lookup('env', 'DISCORD_AWS_ACCESS_KEY_ID')
-          - lookup('env', 'DISCORD_AWS_SECRET_KEY')
-          - lookup('env', 'INFLUXDB_ADMIN_SECRET')
-          - lookup('env', 'INFLUXDB_ADMIN_TOKEN')
-          - lookup('env', 'BACKUP_S3_BUCKET')
-          - lookup('env', 'BACKUP_S3_ENDPOINT')
-          - lookup('env', 'FOUNDRY_ADMIN_KEY')
-          - lookup('env', 'KANKA_TOKEN')
-          - lookup('env', 'KANKA_CAMPAIGN')
-          - lookup('env', 'KOFI_VERIFICATION')
     - ansible.builtin.wait_for:
         host: "{{ ansible_host }}"
         port: 22
-        delay: 10
+        sleep: 5
       delegate_to: localhost
     - ansible.builtin.setup:
   roles:
@@ -37,32 +14,6 @@
     - docker
     - telegraf
   post_tasks:
-    - ansible.builtin.set_fact:
-        SCW_ACCESS_KEY: "{{ lookup('env', 'SCW_ACCESS_KEY') }}"
-        SCW_SECRET_KEY: "{{ lookup('env', 'SCW_SECRET_KEY') }}"
-        SCW_REGION: "{{ lookup('env', 'SCW_REGION') }}"
-        FOUNDRY_BUCKET_ACCESS_KEY_ID: "{{ lookup('env', 'FOUNDRY_BUCKET_ACCESS_KEY_ID') }}"
-        FOUNDRY_BUCKET_SECRET_ACCESS_KEY: "{{ lookup('env', 'FOUNDRY_BUCKET_SECRET_ACCESS_KEY') }}"
-        SCW_VOLUME_ID: "{{ lookup('env', 'SCW_VOLUME_ID') }}"
-        OAUTH_CLIENT: "{{ lookup('env', 'OAUTH_CLIENT') }}"
-        OAUTH_SECRET: "{{ lookup('env', 'OAUTH_SECRET') }}"
-        DISCORD_BOT_SECRET: "{{ lookup('env', 'DISCORD_BOT_SECRET') }}"
-        DISCORD_OWNER_ID: "{{ lookup('env', 'DISCORD_OWNER_ID') }}"
-        DISCORD_BOT_PUBLIC_KEY: "{{ lookup('env', 'DISCORD_BOT_PUBLIC_KEY') }}"
-        DISCORD_AWS_ACCESS_KEY_ID: "{{ lookup('env', 'DISCORD_AWS_ACCESS_KEY_ID') }}"
-        DISCORD_AWS_SECRET_KEY: "{{ lookup('env', 'DISCORD_AWS_SECRET_KEY') }}"
-        DISCORD_AWS_REGION: "{{ lookup('env', 'DISCORD_AWS_REGION') }}"
-        KANKA_TOKEN: "{{ lookup('env', 'KANKA_TOKEN') }}"
-        KANKA_CAMPAIGN: "{{ lookup('env', 'KANKA_CAMPAIGN') }}"
-        INFLUXDB_ADMIN_SECRET: "{{ lookup('env', 'INFLUXDB_ADMIN_SECRET') }}"
-        INFLUXDB_ADMIN_TOKEN: "{{ lookup('env', 'INFLUXDB_ADMIN_TOKEN') }}"
-        BACKUP_S3_BUCKET: "{{ lookup('env', 'BACKUP_S3_BUCKET') }}"
-        BACKUP_S3_ENDPOINT: "{{ lookup('env', 'BACKUP_S3_ENDPOINT') }}"
-        FOUNDRY_ADMIN_KEY: "{{ lookup('env', 'FOUNDRY_ADMIN_KEY') }}"
-        KOFI_VERIFICATION: "{{ lookup('env', 'KOFI_VERIFICATION') }}"
-        foundry_version: "{{ lookup('env', 'FOUNDRY_VERSION') }}"
-        management_api_secret: "{{ lookup('password', '/dev/null') }}"
-
     - name: AWS config
       ansible.builtin.template:
         src: aws_config

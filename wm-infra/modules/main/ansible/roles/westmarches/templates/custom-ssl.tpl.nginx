@@ -40,9 +40,9 @@ server {
 
   # Use Mozilla's guidelines for SSL/TLS settings
   # https://mozilla.github.io/server-side-tls/ssl-config-generator/
-  ssl_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/fullchain.pem";
-  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/privkey.pem";
-  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/chain.pem";
+  ssl_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/fullchain.pem";
+  ssl_certificate_key "/etc/letsencrypt/live/{{ base_fqdn }}/privkey.pem";
+  ssl_trusted_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/chain.pem";
 
   # HSTS settings
   # WARNING: Only add the preload option once you read about
@@ -190,19 +190,54 @@ server {
   listen 80;
   listen [::]:80;
 
-  server_name "{{ foundry_fqdn }}";
+  server_name "{{ base_fqdn }}";
   return 301 https://$server_name$request_uri;
 }
+
+#server {
+#  listen 443 ssl;
+#  listen [::]:443 ssl;
+#
+#  server_name "{{ base_fqdn }}";
+#
+#  ssl_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/fullchain.pem";
+#  ssl_certificate_key "/etc/letsencrypt/live/{{ base_fqdn }}/privkey.pem";
+#  ssl_trusted_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/chain.pem";
+#
+#  location /monitoring {
+#    proxy_set_header Host $host;
+#    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#    proxy_set_header X-Forwarded-Proto $scheme;
+#
+#    proxy_pass http://grafana:3000;
+#  }
+#
+#  location /5etools {
+#    root /opt/data;
+#  }
+#
+#  location / {
+#    proxy_pass http://website:9000;
+#
+#    proxy_set_header Host $host;
+#    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#    proxy_set_header X-Forwarded-Proto $scheme;
+#    proxy_set_header Upgrade $http_upgrade;
+#    proxy_set_header Connection "Upgrade";
+#    proxy_http_version 1.1;
+#  }
+#
+#}
 
 server {
   listen 443 ssl;
   listen [::]:443 ssl;
 
-  server_name "api.{{ foundry_fqdn }}";
+  server_name "{{ api_fqdn }}";
 
-  ssl_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/fullchain.pem";
-  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/privkey.pem";
-  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/chain.pem";
+  ssl_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/fullchain.pem";
+  ssl_certificate_key "/etc/letsencrypt/live/{{ base_fqdn }}/privkey.pem";
+  ssl_trusted_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/chain.pem";
 
   location / {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -228,9 +263,9 @@ server {
 
   root /usr/share/nginx/html;
 
-  ssl_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/fullchain.pem";
-  ssl_certificate_key "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/privkey.pem";
-  ssl_trusted_certificate "/etc/letsencrypt/live/{{ foundry_fqdn }}-0001/chain.pem";
+  ssl_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/fullchain.pem";
+  ssl_certificate_key "/etc/letsencrypt/live/{{ base_fqdn }}/privkey.pem";
+  ssl_trusted_certificate "/etc/letsencrypt/live/{{ base_fqdn }}/chain.pem";
 
   location /.well-known {}
 

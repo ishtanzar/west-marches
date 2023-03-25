@@ -1,6 +1,6 @@
 server {
   listen 80;
-  server_name "{{ foundry_fqdn }}" "{{ nextcloud_fqdn }}" "{{ foundry_hostname }}-vouch.{{ foundry_domain }}";
+  server_name "{{ base_fqdn }}" "{{ foundry_fqdn }}" "{{ api_fqdn }}" "{{ nextcloud_fqdn }}";
   client_max_body_size 300M;
   root /usr/share/nginx/html;
 }

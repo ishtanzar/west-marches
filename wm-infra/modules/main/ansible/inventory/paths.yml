@@ -1,0 +1,7 @@
+all:
+  vars:
+    foundry_data_path: /opt/data/foundry
+    nextcloud_data_path: /opt/data/nextcloud
+    westmarches_data_path: /opt/data/westmarches
+    discordbot_data_path: /opt/data/discordbot
+

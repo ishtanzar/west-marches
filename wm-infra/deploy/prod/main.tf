@@ -23,10 +23,15 @@ variable "gandi_key" {}
 
 variable scw_ssh_key_id {}
 
+variable "FOUNDRY_HOSTNAME" {
+  default = "westmarchesdelacave"
+}
+
 module "main" {
   source = "../../modules/main"
 
   gandi_key = var.gandi_key
   ssh_key_id = var.scw_ssh_key_id
   instance_type = "DEV1-M"
+  host_name = var.FOUNDRY_HOSTNAME
 }

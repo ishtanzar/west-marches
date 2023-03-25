@@ -30,8 +30,8 @@ services:
       - "{{ westmarches_data_path }}/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
       - "{{ westmarches_data_path }}/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml"
     environment:
-      - GF_SERVER_DOMAIN={{ foundry_fqdn }}
-      - GF_SERVER_ROOT_URL=https://{{ foundry_fqdn }}/monitoring
+      - GF_SERVER_DOMAIN={{ base_fqdn }}
+      - GF_SERVER_ROOT_URL=https://{{ base_fqdn }}/monitoring
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_AUTH_GENERIC_OAUTH_NAME=Discord
       - GF_AUTH_GENERIC_OAUTH_ENABLED=true
