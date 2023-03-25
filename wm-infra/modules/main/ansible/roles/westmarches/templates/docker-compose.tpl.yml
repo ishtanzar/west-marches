@@ -137,18 +137,3 @@ services:
     volumes:
       - "{{ nextcloud_data_path }}:/var/www/html:rw"
       - "{{ nextcloud_data_path }}:/opt/data/nextcloud:rw"
-#  oauth:
-#    image: voucher/vouch-proxy
-#    restart: "unless-stopped"
-#    ports:
-#      - 9090
-#    environment:
-#      - VOUCH_ALLOWALLUSERS=true
-#      - "VOUCH_COOKIE_DOMAIN={{ foundry_domain }}"
-#      - "VOUCH_DOMAINS={{ foundry_domain }}"
-#      - VOUCH_HEADERS_CLAIMS=id, discriminator, email
-#      - OAUTH_PROVIDER=oidc
-#      - OAUTH_CLIENT_ID=
-#      - OAUTH_CLIENT_SECRET=
-#      - "OAUTH_CALLBACK_URL=https://{{ foundry_hostname }}-vouch.{{ foundry_domain }}/auth"
-#      - OAUTH_SCOPES=identify, email

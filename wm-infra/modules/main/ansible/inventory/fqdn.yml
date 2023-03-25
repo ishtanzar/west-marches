@@ -1,10 +1,7 @@
 all:
   vars:
-    foundry_hostname: "{{ lookup('env', 'FOUNDRY_HOSTNAME')|default('westmarchesdelacave', True) }}"
-    foundry_domain: ishtanzar.net
-    base_fqdn: "{{ foundry_hostname }}.{{ foundry_domain }}"
-    #foundry_fqdn: "play.{{ base_fqdn }}"
-    foundry_fqdn: "{{ base_fqdn }}"
+    base_fqdn: westmarchesdelacave.ishtanzar.net
+    foundry_fqdn: "play.{{ base_fqdn }}"
     api_fqdn: "api.{{ base_fqdn }}"
     nextcloud_fqdn: "nextcloud.{{ base_fqdn }}"
 
