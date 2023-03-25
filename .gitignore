@@ -8,6 +8,7 @@ checkpoint
 vendor
 /wm-infra/modules/main/ansible/roles/.galaxy/
 wm-infra/deploy/local/data/
+composer.phar
 
 ### Node template
 # Logs
