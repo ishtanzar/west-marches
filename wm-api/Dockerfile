@@ -6,7 +6,7 @@ LABEL updated_at="202209211000"
 
 RUN apk add git
 
-COPY wm-website/public/scripts/hexmap.mjs /opt/hexmap/hexmap.mjs
+COPY wm-website/public/wm-scripts/hexmap.mjs /opt/hexmap/hexmap.mjs
 COPY wm-api/package.json ./
 COPY wm-api/src ./
 
