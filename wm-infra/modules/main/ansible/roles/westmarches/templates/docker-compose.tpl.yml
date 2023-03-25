@@ -51,6 +51,8 @@ services:
       timeout: 2s
       retries: 3
       start_period: 10s
+  redis:
+    image: redis:7-alpine
   proxy:
     image: nginx:1.21.0
     restart: "unless-stopped"
@@ -94,6 +96,14 @@ services:
       - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
       - DISCORD_BOT_PUBLIC_KEY={{ DISCORD_BOT_PUBLIC_KEY }}
       - KOFI_VERIFICATION={{ KOFI_VERIFICATION }}
+    links:
+      - redis
+    healthcheck:
+      test: wget -qO - http://localhost:3000/health || exit -1
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
   foundry:
     environment:
       - "FOUNDRY_AWS_CONFIG=/data/Config/s3config.json"
