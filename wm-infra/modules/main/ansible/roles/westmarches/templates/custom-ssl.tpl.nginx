@@ -213,6 +213,9 @@ server {
   }
 
   location /5etools {
+    add_header Access-Control-Allow-Origin $http_origin;
+    add_header Access-Control-Allow-Methods "OPTIONS, HEAD, GET";
+
     root /opt/data;
   }
 
