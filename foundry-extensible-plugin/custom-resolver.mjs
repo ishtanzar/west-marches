@@ -1,7 +1,7 @@
-
 import winston from "winston";
 import path from "path";
 import fs from "fs";
+import url from "url";
 
 const logger = (global.extensibleLogger || winston.createLogger({
   level: 'info',
@@ -22,6 +22,7 @@ const logger = (global.extensibleLogger || winston.createLogger({
 }));
 
 global.extensibleLogger = logger;
+global.extensiblePluginRoot = path.dirname(url.fileURLToPath(import.meta.url));
 
 export async function resolve(specifier, context, defaultResolve) {
   const { parentURL = null } = context;
