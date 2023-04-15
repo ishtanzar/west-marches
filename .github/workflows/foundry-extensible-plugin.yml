@@ -6,7 +6,7 @@ on:
       - .github/workflows/foundry-extensible-plugin.yml
       - foundry-extensible-plugin/**
     branches:
-      - main
+      - '**'
     tags:
       - 'releases/foundry-extensible-plugin/*'
 
