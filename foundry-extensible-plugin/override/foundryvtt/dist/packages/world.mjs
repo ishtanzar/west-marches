@@ -1,7 +1,17 @@
 import World from 'foundry:dist/packages/world.mjs';
-import {USER_ROLES} from 'foundry:common/constants.mjs';
 
 export default class ExtensibleWorld extends World {
+
+  async setup() {
+    await super.setup();
+    await extensibleFoundry.hooks.callAsync('post.world.setup');
+  }
+
+  async updateActivePacks() {
+    await extensibleFoundry.hooks.callAsync('pre.world.updateActivePacks');
+    await super.updateActivePacks();
+    await extensibleFoundry.hooks.callAsync('post.world.updateActivePacks');
+  }
 
   get modules() {
     const modules = super.modules;
@@ -10,14 +20,14 @@ export default class ExtensibleWorld extends World {
   }
 
   static async vend(userId) {
-    const {config, db, demo, game, ver} = global, world = game.world;
+    const {config, db, demo, game, release, logger} = global, world = game.world;
     const user = game.users.find((user => user.id === userId));
 
     if (!user) throw new Error(`The requested user ID ${userId} does not exist`);
 
     const worldObject = {
       userId: userId,
-      version: ver,
+      release: release,
       world: game.world.toObject(),
       system: game.world.system,
       modules: game.world.modules,
@@ -64,6 +74,13 @@ export default class ExtensibleWorld extends World {
         .filter(a => a.testUserPermission(user, "OBSERVER"))
         .map(a => a.toObject()))));
 
+    // promises.push(db.Cards.dump({sort: "name"}).then((e => worldObject.cards = e)))
+    promises.push(seeAll ?
+      db.Cards.dump({sort: "name"}).then((e => worldObject.cards = e)) :
+      db.Cards.find({}, {sort: "name"}).then((e => worldObject.cards = e
+        .filter(a => a.testUserPermission(user, "OBSERVER"))
+        .map(a => a.toObject()))));
+
     // promises.push(db.Item.dump({sort: "name"}).then((e => worldObject.items = e)))
     promises.push(seeAll ?
       db.Item.dump({sort: "name"}).then((e => worldObject.items = e)) :
@@ -99,7 +116,7 @@ export default class ExtensibleWorld extends World {
     promises.push(db.Playlist.dump({sort: "name"}).then((e => worldObject.playlists = e)))
     promises.push(db.Scene.dump({sort: "name"}).then((e => worldObject.scenes = e)))
     promises.push(db.Setting.dump().then((e => worldObject.settings = e)))
-    promises.push(config.updater.getUpdateNotification().then((e => worldObject.coreUpdate = e)))
+    promises.push(config.updater.checkCoreUpdateAvailability().then((e => worldObject.coreUpdate = e)))
     promises.push(worldObject.system.getUpdateNotification().then((e => worldObject.systemUpdate = e)))
 
     const moduleConfig = await global.db.Setting.getValue("core.moduleConfiguration") || {};

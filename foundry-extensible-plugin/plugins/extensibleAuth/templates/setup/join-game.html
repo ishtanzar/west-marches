@@ -5,7 +5,7 @@
 
     <section class="join-body flexrow">
         <div class="left flexcol">
-            {{#each auth_methods}}{{{this}}}{{/each}}
+            {{#each rendered_methods}}{{{this}}}{{/each}}
             <div class="app">
                 <h1>{{ localize "JOIN.HeaderSetup" }}</h1>
                 {{#if isAdmin }}

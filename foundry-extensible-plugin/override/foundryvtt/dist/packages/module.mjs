@@ -1,14 +1,16 @@
 import Module from 'foundry:dist/packages/module.mjs';
 import Files from 'foundry:dist/files/files.mjs';
+import LocalFileStorage from 'foundry:dist/files/local.mjs';
 import path from "path";
+import fs from "fs";
 
 export default class ExtensibleModule extends Module {
 
   constructor(opts) {
     super(opts);
 
-    if(opts.root) {
-      this.path = path.join(opts.root, 'modules', this.id);
+    if(opts.path) {
+      this.path = opts.path;
     }
   }
 
@@ -19,28 +21,22 @@ export default class ExtensibleModule extends Module {
   }
 
   _getStaticFiles(scripts) {
-    if (!scripts) return [];
+    const files = super._getStaticFiles(scripts);
 
-    const e = [{
-      root: global.paths.data,
-      dirs: [path.join(this.constructor.collection, this.id)]
-    }, {
-      root: global.paths.public,
-      dirs: ["scripts"]
-    }];
-
-    if(this._baseDir) {
-      e.push({
-        root: this._baseDir,
-        dirs: [path.join('modules', this.id)]
-      });
+    if(this.data.flags && this.data.flags.hasOwnProperty('webRoot')) {
+      return files.concat(scripts.reduce((exists, script) => {
+        const p = path.join(this.data.flags.webRoot, script);
+        if (fs.existsSync(p)) {
+          exists.push(path.join(this.data.flags.webPrefix || "", script))
+        }
+        return exists;
+      }, []))
     }
-
-    return Files.getStaticFiles(scripts, e, {allowHTTP: !0})
+    return files;
   }
 
-  static getPackages({system: system} = {}) {
-    const packages = Module.getPackages({system: system});
+  static getPackages({system: system, coreTranslation: coreTranslation = false} = {}) {
+    const packages = Module.getPackages({system: system, coreTranslation: coreTranslation});
     extensibleFoundry.hooks.call('post.module.getPackages', packages);
     return packages;
   }
@@ -51,4 +47,10 @@ export default class ExtensibleModule extends Module {
     return packages;
   }
 
+  static socketListeners(e) {
+    extensibleFoundry.hooks.call('pre.module.socketListeners', e);
+    Module.socketListeners(e);
+    extensibleFoundry.hooks.call('post.module.socketListeners', e);
+  }
 }
+

@@ -1,1 +1,0 @@
-console.log("ExtensibleAuth AccessKey Client | Initialising");

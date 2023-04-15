@@ -4,6 +4,8 @@ import Module from "foundry:dist/packages/module.mjs";
 
 export default class ExtensibleAuthFoundryPlugin {
 
+  static MODULE_NAME = 'extensibleAuth';
+
   /**
    *
    * @param {ExtensibleFoundryPlugin} base
@@ -13,70 +15,108 @@ export default class ExtensibleAuthFoundryPlugin {
     this._base = base;
     this._methods = [{
       id: 'access_key',
-      module_name: 'extensible-auth-access_key-client',
-      title: 'ExtensibleAuth Password Plugin',
-      scripts: [],
+      name: this.constructor.MODULE_NAME,
+      title: 'ExtensibleAuth Plugin',
+      esmodules: [
+        'modules/main.mjs'
+      ],
       languages: [
         { lang: "en", name: "English", path: "languages/en.json" }
       ],
-      root: path.join(this._pluginRoot)
+      path: this._pluginRoot
     }];
 
-    base.addTemplateDirectory(this._pluginRoot);
-    base.addStaticFilesDirectory(path.join(this._pluginRoot, 'public'));
-
-    base.hooks.on('post.express.CORE_VIEW_SCRIPTS', this.viewScripts);
+    base.hooks.on('post.views.join.getStaticContent', this.getStaticContent);
+    base.hooks.on('extensiblePlugins.clientModules.register', this.registerClientModules.bind(this));
+    base.hooks.on('extensiblePlugins.migrate', this.migrate.bind(this));
+    base.hooks.on('post.express.middleware', this.middleware.bind(this));
     base.hooks.on('pre.express.staticFiles', this.staticFiles.bind(this));
-    base.hooks.on('pre.express.defineRoutes', this.defineRoutes.bind(this));
-    base.hooks.on('post.initialize', this.post_initialize.bind(this));
+    base.hooks.on('post.express.listen', this.listen.bind(this));
+
+    base.hooks.on('post.extensiblePlugin.loadPlugins', async () => {
+      await base.hooks.callAsync('extensibleAuth.method.register', this.registerMethod.bind(this));
+    });
   }
 
-  viewScripts(modules) {
-    modules.push('scripts/extensibleAuth.js');
-  }
-
-  staticFiles(router) {
-    this._base.hooks.call('extensibleAuth.register_method', this.register_method.bind(this));
-
+  async registerClientModules() {
     this._methods.forEach(method => {
-      const modulePath = path.join('modules', method.module_name);
-      this._base.addStaticFilesDirectory(path.join(method.root, modulePath), '/' + modulePath);
+      this._base.addTemplateDirectory(method.path);
+      this._base.addViewsDirectory(path.join(method.path, 'templates', 'views'));
+
       this._base.addClientModule(new Module({
-        name: method.module_name,
+        name: method.name,
         title: method.title,
         scripts: method.scripts,
-        root: method.root,
-        languages: method.languages
+        esmodules: method.esmodules,
+        path: method.path,
+        languages: method.languages,
+        flags: {
+          webRoot: path.join(method.path, 'public'),
+          webPrefix: `/modules/${method.name}/`
+        }
       }));
     });
   }
 
-  defineRoutes(router) {
-    router.get('/oauth/authenticate/:service', this.route_oauth_authenticate);
+  staticFiles() {
+    this._methods.forEach(method => {
+      this._base.addStaticFilesDirectory(path.join(method.path, 'public'), `/modules/${method.name}/`);
+    });
   }
 
-  async post_initialize() {
-    const settingName = 'core.moduleConfiguration', {db} = global;
-    const [moduleConfigSetting] = (await db.Setting.dump()).filter(s => s.key === 'core.moduleConfiguration')
-    const authAccessKeyModuleSetting = {
-      "extensible-auth-access_key-client": true
+  async listen(express) {
+    const authPlugin = this;
+
+    express.io.on('connection', socket => {
+      socket.on('getLoginData', authPlugin.getLoginData.bind(this));
+    })
+  }
+
+  async getLoginData(resolve) {
+    const {db} = global;
+
+    const enabled_methods = (await db.Setting.find({'key': new RegExp(`^${this.constructor.MODULE_NAME}\.method\..*\.enabled$`), value: 'true'})).map(e => e.key);
+    const methods = this._methods
+        .reduce((filtered, m) => {
+          if(enabled_methods.includes(`${this.constructor.MODULE_NAME}.method.${m.id}.enabled`)) {
+            filtered.push(m.id)
+          }
+          return filtered;
+        }, []);
+
+    const data = {
+      methods: methods.length > 0 ? methods : ['access_key']
     };
+    await global.extensibleFoundry.hooks.callAsync('post.extensibleAuth.getLoginData', data);
+    resolve(data);
+  }
 
-    await db.Setting.set(settingName, Object.assign(await db.Setting.getValue(settingName), authAccessKeyModuleSetting));
+  getStaticContent(opts) {
+    opts.result.scripts.push({src: 'modules/extensibleAuth/scripts/join.js', type: 'script', priority: 0, isModule: false});
+  }
 
-    this._base.hooks.on('pre.setting.save', async (setting) => {
-      if(setting.id === moduleConfigSetting['_id']) {
-        setting.data.update({value: JSON.stringify(Object.assign(setting.value, authAccessKeyModuleSetting))});
-      }
-    });
+  middleware(router) {
+    router.get('/oauth/authenticate/:service', this.route_oauth_authenticate);
   }
 
   async route_oauth_authenticate(req, resp) {
     global.extensibleFoundry.hooks.call('extensibleAuth.route_oauth_authenticate', req, resp);
   }
 
-  register_method(opts) {
+  registerMethod(opts) {
     this._methods.push(opts);
+  }
+
+  async migrate() {
+    let enabled = false, migrated = false;
+    for(let setting of await db.Setting.find({key: /extensible-auth.*access_key/})) {
+      migrated = true;
+      enabled = enabled || setting.value;
+      await setting.delete();
+    }
+    if(migrated) {
+      await db.Setting.set(`${this.constructor.MODULE_NAME}.method.access_key.enabled`, enabled);
+    }
   }
 
 }

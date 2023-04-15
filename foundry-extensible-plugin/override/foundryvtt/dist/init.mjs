@@ -1,5 +1,4 @@
 import path from "path";
-import url from "url";
 import fs from "fs";
 import express from "express";
 import os from "os";
@@ -157,15 +156,14 @@ class ExtensibleFoundryPlugin {
   _clientModules = [];
 
   constructor() {
+    this.hooks.on('pre.setting.save', this.preSettingSave.bind(this));
     this.hooks.on('post.files.loadTemplate', this.loadTemplate.bind(this));
-    this.hooks.on('post.express.staticFiles', this.staticFiles.bind(this));
-    this.hooks.once('post.express.createApp', this.createApp.bind(this));
-    this.hooks.on('post.module.getPackages', this.getPackages.bind(this));
+    this.hooks.on('post.world.modules', this.getModules.bind(this));
+    this.hooks.on('post.world.setup', this.postWorldSetup.bind(this));
+    this.hooks.on('extensiblePlugins.clientModules.register', this.registerClientModule.bind(this));
+    this.hooks.on('post.initialize', this.postInitialize.bind(this));
 
-
-    // const entities = [];
-    // this._instance.hooks.call('setup_entities', entities);
-    // overrideRequire.add_overrides(entities);
+    this.addStaticFilesDirectory(path.join(global.extensiblePluginRoot, 'public'), '/modules/foundry-extensible-plugin/');
   }
 
   static async initialize(pluginsPath) {
@@ -215,6 +213,7 @@ class ExtensibleFoundryPlugin {
       const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
       this._plugins.push(new plugin.default(this));
     }
+    await this.hooks.callAsync('post.extensiblePlugin.loadPlugins');
   }
 
   addTemplateDirectory(dir) {
@@ -249,25 +248,63 @@ class ExtensibleFoundryPlugin {
     }
   }
 
-  staticFiles(app) {
+  getModules(modules) {
+    this._clientModules.forEach(module => {
+      if (modules.filter(pkg => pkg.id === module.id).length === 0) {
+        modules.push(module);
+      }
+    });
+  }
+
+  async postWorldSetup() {
+    await extensibleFoundry.hooks.callAsync('extensiblePlugins.migrate');
+    await extensibleFoundry.hooks.callAsync('extensiblePlugins.clientModules.register');
+
+    const app = global.config.express.app;
+
+    for(let viewsRoot of this._viewsPath) {
+      app.set('views', [viewsRoot].concat(app.get('views')));
+    }
+
     for(let entry of this._staticPath) {
       app.use(entry.prefix, express.static(entry.path));
     }
   }
 
-  createApp(app) {
-    for(let viewsRoot of this._viewsPath) {
-      app.set('views', [viewsRoot].concat(app.get('views')));
+  async registerClientModule() {
+    const { default: Module } = await import("foundry:dist/packages/module.mjs");
+
+    this.addClientModule(new Module({
+      name: 'foundry-extensible-plugin',
+      title: 'Foundry Extensible Plugin',
+      minimumCoreVersion: global.release.generation,
+      compatibleCoreVersion: global.release.generation,
+      path: global.extensiblePluginRoot
+    }));
+  }
+
+  async postInitialize() {
+    const {db} = global, settingName = 'core.moduleConfiguration';
+
+    const setting = await db.Setting.getValue(settingName);
+    for(let module of this._clientModules) {
+      setting[module.id] = true;
+    }
+    await db.Setting.set(settingName, setting);
+  }
+
+  async preSettingSave(setting) {
+    const settingName = 'core.moduleConfiguration';
+
+    if(setting.key === settingName) {
+      for(let module of this._clientModules) {
+        setting.value[module.id] = true;
+      }
+
+      setting.data.update({value: JSON.stringify(setting.value)});
     }
   }
 
-  getPackages(packages) {
-    this._clientModules.forEach(module => {
-      if(packages.filter(pkg => pkg.id === module.id).length === 0) {
-        packages.push(module);
-      }
-    });
-  }
 }
 
 export default async function initialize({args: args = [], root: root, messages: messages = [], debug: debug = false} = {}) {

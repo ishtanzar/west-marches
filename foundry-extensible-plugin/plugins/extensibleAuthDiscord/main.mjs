@@ -19,19 +19,18 @@ export default class ExtensibleDiscordOAuthPlugin {
     base.hooks.on('post.user.defineSchema', this.updateUserSchema);
     base.hooks.on('pre.api.user.create', this.create_user);
     base.hooks.on('extensibleAuth.route_oauth_authenticate', this.route_oauth_authenticate.bind(this));
-    base.hooks.on('extensibleAuth.register_method', callback => callback({
+    base.hooks.on('post.extensibleAuth.getLoginData', this.getLoginData.bind(this));
+    base.hooks.on('extensiblePlugins.migrate', this.migrate.bind(this));
+    base.hooks.on('extensibleAuth.method.register', register => register({
       id: 'discord',
-      module_name: 'extensible-auth-discord-client',
+      name: 'extensibleAuthDiscord',
       title: 'ExtensibleAuth Discord Plugin',
-      scripts: ['./scripts/init.js'],
+      esmodules: ['modules/main.mjs'],
       languages: [
         { lang: "en", name: "English", path: "languages/en.json" }
       ],
-      root: path.join(pluginRoot)
+      path: pluginRoot,
     }));
-
-    base.addTemplateDirectory(pluginRoot);
-    base.addViewsDirectory(path.join(pluginRoot, 'templates', 'views'));
   }
 
   updateUserSchema(schema) {
@@ -48,6 +47,48 @@ export default class ExtensibleDiscordOAuthPlugin {
     user_data['discord'] = req.body.discord || {};
   }
 
+  async getLoginData(data) {
+    data.discord = {
+      client_id: await db.Setting.getValue('extensibleAuth.method.discord.clientId'),
+      redirect_uri: await db.Setting.getValue('extensibleAuth.method.discord.redirectUri'),
+      scopes: 'identify'
+    }
+  }
+
+  async migrate() {
+    const v0Settings = {}, v1Settings = {}, v2Settings = {};
+    const settingKeys = ['clientId', 'clientSecret', 'redirectUri', 'enabled'];
+
+    for(let setting of await db.Setting.find({key: /extensible-?[Aa]uth.*discord/})) {
+      for(let key of settingKeys) {
+        if(setting.key.match(new RegExp(`^foundry-extensible.*${key}$`))) {
+          v0Settings[key] = setting.value;
+          await setting.delete();
+          continue;
+        }
+        if(setting.key.match(new RegExp(`^extensible-auth.*${key}$`))) {
+          v1Settings[key] = setting.value;
+          await setting.delete();
+          continue;
+        }
+        if(setting.key.match(new RegExp(`^extensibleAuth.*${key}$`))) {
+          v2Settings[key] = setting.value;
+        }
+      }
+    }
+
+    if(Object.keys(v0Settings).length || Object.keys(v1Settings).length) {
+      for(let key of settingKeys) {
+        const existingValue = v2Settings.hasOwnProperty(key) ? v2Settings[key] : undefined;
+        v2Settings[key] = v2Settings.hasOwnProperty(key) ? v2Settings[key] : v1Settings.hasOwnProperty(key) ? v1Settings[key] : v0Settings.hasOwnProperty(key) ? v0Settings[key] : undefined;
+
+        if(existingValue !== v2Settings[key]) {
+          await db.Setting.set(`extensibleAuth.method.discord.${key}`, JSON.stringify(v2Settings[key]));
+        }
+      }
+    }
+  }
+
   async route_oauth_authenticate(req, resp) {
     const {db, game, extensibleLogger, logger} = global;
 
@@ -55,12 +96,12 @@ export default class ExtensibleDiscordOAuthPlugin {
     const service = req.params.service;
 
     if(service === 'discord') {
-      const redirect_uri = await db.Setting.getValue('extensible-auth.method.discord.redirectUri');
+      const redirect_uri = await db.Setting.getValue('extensibleAuth.method.discord.redirectUri');
       const oauthResult = await fetch('https://discord.com/api/oauth2/token', {
         method: 'POST',
         body: new URLSearchParams({
-          client_id: await db.Setting.getValue('extensible-auth.method.discord.clientId'),
-          client_secret: await db.Setting.getValue('extensible-auth.method.discord.clientSecret'),
+          client_id: await db.Setting.getValue('extensibleAuth.method.discord.clientId'),
+          client_secret: await db.Setting.getValue('extensibleAuth.method.discord.clientSecret'),
           code,
           grant_type: 'authorization_code',
           redirect_uri: redirect_uri,
