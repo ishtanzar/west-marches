@@ -31,9 +31,8 @@ jobs:
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
-        if: contains(github.ref, 'main')
         with:
-          name: foundry-extensible-plugin-main
+          name: foundry-extensible-plugin-${{ github.ref_name }}
           path: foundry-extensible-plugin
 
       - name: Create release archive
