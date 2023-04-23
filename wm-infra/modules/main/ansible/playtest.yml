@@ -129,7 +129,7 @@
         name: westmarches
         tasks_from: ingress.yml
       vars:
-        playtest_ip: "{{ docker_compose | json_query('values(values(services.foundry)[0].networks)[0].IPAddress') }}"
+        playtest_ip: "{{ docker_compose | json_query('values(values(services.playtest)[0].networks)[0].IPAddress') }}"
       tags: always
 
     - ansible.builtin.include_role:
