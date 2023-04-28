@@ -89,7 +89,7 @@ class Kanka:
             self.logger.debug(f'GET {resp.url} - {resp.status_code}')
             resp_json = resp.json()
             data += resp_json['data'] if isinstance(resp_json['data'], list) else [resp_json['data']]
-            if resp_json['links']['next']:
+            if 'links' in resp_json and 'next' in resp_json['links']:
                 query = urlparse(resp_json['links']['next']).query
                 if query:
                     next_data, _ = self.fetch(endpoint, last_sync, parse_qs(query)['page'])
