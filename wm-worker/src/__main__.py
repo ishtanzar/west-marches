@@ -15,6 +15,7 @@ from zipfile import BadZipFile, ZipFile
 import aiocron
 import discord
 import requests
+from elasticsearch import AsyncElasticsearch as Elasticsearch, ApiError
 from quart import Quart
 
 
@@ -63,12 +64,14 @@ class Kanka:
     def __init__(self,
                  config,
                  discord: discord.Client,
-                 queue: asyncio.Queue) -> None:
+                 queue: asyncio.Queue,
+                 es: Elasticsearch) -> None:
         super().__init__()
 
         self.config = config
         self.queue = queue
         self.discord = discord
+        self.es = es
         self.discord_notification_channel = None
         self.discord_calendar_notification_channels = None
         self.logger = logging.getLogger('kanka')
@@ -250,6 +253,7 @@ async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
     config.discord.token = os.environ.get('DISCORD_BOT_SECRET', config.discord.token)
+    es = Elasticsearch('http://elasticsearch:9200')
 
     # Ugly SN to dict converted
     logging.config.dictConfig(json.loads(json.dumps(config.log, default=lambda x: vars(x))))
@@ -265,7 +269,7 @@ async def main():
 
     client = discord.Client(intents=intents)
 
-    kanka = Kanka(config, client, queue)
+    kanka = Kanka(config, client, queue, es)
     questions = Questions(config, client)
     donations = Donations(config)
 
