@@ -3,15 +3,19 @@ import random
 import aiocron
 import argparse
 import asyncio
-import discord
 import json
 import logging.config
 import os
-import requests
+import re
 from pathlib import Path
-from quart import Quart
 from types import SimpleNamespace
 from urllib.parse import urlparse, parse_qs
+from zipfile import BadZipFile, ZipFile
+
+import aiocron
+import discord
+import requests
+from quart import Quart
 
 
 class Config:
@@ -306,7 +310,7 @@ async def main():
     else:
         await asyncio.gather(
             client.start(config.discord.token),
-            app.run_task(),
+            app.run_task('0.0.0.0'),
             worker())
 
 
