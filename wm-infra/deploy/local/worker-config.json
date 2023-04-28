@@ -2,12 +2,31 @@
   "kanka": {
     "endpoint": "https://kanka.io/fr/campaign/67312",
     "api_endpoint": "https://kanka.io/api/1.0/campaigns/67312",
+    "calendar_entity_id": 2156802,
     "token": ""
   },
   "discord": {
     "kanka_notify_channel": 859433172704690186,
     "questions_channel": 859433172704690186,
-    "token": ""
+    "kanka_calendar_notification_channels": [859433172704690186],
+    "token": "",
+    "random": {
+      "date_announce": [
+        "Oyez, oyez ! Nous sommes le %(day)s %(month)s en ce jour !",
+        "Salutations à tous ! Le %(day)s %(month)s est arrivé avec la nouvelle journée.",
+        "Bonnes nouvelles, citoyens d'Aberdeen ! Nous sommes le %(day)s %(month)s de l'an de grâce %(year)s.",
+        "Soyez informés, messieurs et mesdames ! Nous sommes le %(day)s %(month)s, en cette année de tourments.",
+        "Honneur et gloire à tous ! Le %(day)s %(month)s est maintenant parmi nous ",
+        "Que tous les citoyens d'Aberdeen écoutent ! Aujourd'hui est le %(day)s %(month)s !",
+        "Bonne nouvelle, peuple d'Aberdeen ! Nous sommes aujourd'hui le %(day)s %(month)s.",
+        "Par les dieux, faites attention ! Le jour est venu, nous sommes le %(day)s %(month)s !",
+        "Attention, braves gens ! Le jour est arrivé, nous sommes le %(day)s %(month)s !",
+        "Écoutez bien, nobles dames et seigneurs ! Nous sommes le %(day)s %(month)s, en cette année difficile.",
+        "En ce jour, le %(day)s %(month)s, nous saluons le peuple d'Aberdeen !",
+        "Que tous entendent ! Aujourd'hui, nous sommes le %(day)s %(month)s, en ce temps de troubles.",
+        "Bonne nouvelle, mes amis ! Nous sommes le %(day)s %(month)s, en cette année sombre."
+      ]
+    }
   },
   "donations": {
     "filename": "donations.cache.json"
@@ -17,10 +36,13 @@
   },
   "cron": {
     "kanka": {
-      "live": "*/5 * * * *"
+      "live": "* 12 * * * *"
     },
     "questions": {
       "review": "0 12 * * *"
+    },
+    "donations": {
+      "reset": "0 12 * * *"
     }
   },
   "log": {

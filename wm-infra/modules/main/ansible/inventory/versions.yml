@@ -8,5 +8,5 @@ all:
     management_api_image: ishtanzar/wm-management-api:0.7.0
     api_image: ishtanzar/wm-api:0.4.0
     discordbot_image: ishtanzar/wm-discord-bot:0.13.0
-    worker_image: ishtanzar/wm-worker:0.2.2
+    worker_image: ishtanzar/wm-worker:0.3.1
     discord_workaround_image: ishtanzar/wm-discord-workaround:0.4.2
