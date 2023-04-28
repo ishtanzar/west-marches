@@ -173,7 +173,7 @@ class Kanka:
         calendar_id, calendar_channels = await self.get_calendar_notification_config()
 
         count = len(entities)
-        if count > 100:
+        if count > 50:
             self.logger.warning(f'{count} entities modified, no notifications')
         else:
             for entity in entities:
