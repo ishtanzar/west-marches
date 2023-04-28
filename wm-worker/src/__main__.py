@@ -141,8 +141,8 @@ class Kanka:
     def get_date_announce(self, day, month, year):
         return random.choice(self.config.discord.random.date_announce) % {'day': day, 'month': month, 'year': year}
 
-    def fetch_entity(self, _id: int):
-        [entity], __ = self.fetch(self.config.kanka.api_endpoint + f'/entities/{_id}')
+    def fetch_entity(self, id:int):
+        [entity], __ = self.fetch(self.config.kanka.api_endpoint + f'/entities/{id}')
         return entity
 
     def fetch_entities(self):
