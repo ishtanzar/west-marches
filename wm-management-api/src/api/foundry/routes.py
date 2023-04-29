@@ -1,9 +1,12 @@
+import logging
+
 from quart import request
 
 from api import WestMarchesApi
 from services.docker import NoSuchService
 
 app = WestMarchesApi.instance
+logger = logging.getLogger('foundry')
 
 
 @app.route('/foundry/restart', methods=['POST'])
@@ -12,6 +15,7 @@ async def restart(user):
     try:
         app.compose.restart('foundry')
     except NoSuchService as nse:
+        logger.exception(nse)
         return nse.msg, 404
 
     return 'Done', 204

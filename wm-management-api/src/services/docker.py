@@ -31,7 +31,7 @@ class FoundryProject:
             self.log.info("Stopping docker-compose service %s", service_name)
             self.compose.stop(service_name)
         else:
-            raise
+            raise NoSuchService(service_name)
 
     def restart(self, service_name):
         if self._validate_service(service_name):
@@ -42,3 +42,5 @@ class FoundryProject:
             cmd += [service_name]
 
             run(cmd)
+        else:
+            raise NoSuchService(service_name)

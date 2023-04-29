@@ -1,9 +1,12 @@
+import logging
+
 from typing import Optional
 
 from api import WestMarchesApi
 from services.docker import NoSuchService
 
 app = WestMarchesApi.instance
+logger = logging.getLogger('backup')
 
 
 @app.route('/backup/list')
@@ -35,9 +38,11 @@ async def backup_perform(user):
             raise error
         return 'Done', 204
     except NoSuchService as nse:
+        logger.exception(nse)
         return nse.msg, 404
-    except Exception as nse:
-        return str(nse), 500
+    except Exception as e:
+        logger.exception(e)
+        return str(e), 500
 
 
 @app.route('/backup/restore/<backup_id>', methods=['POST'])
@@ -60,7 +65,9 @@ async def backup_restore(user, backup_id):
             raise error
         return 'Done', 204
     except NoSuchService as nse:
+        logger.exception(nse)
         return nse.msg, 404
-    except Exception as ex:
-        return str(ex), 500
+    except Exception as e:
+        logger.exception(e)
+        return str(e), 500
 
