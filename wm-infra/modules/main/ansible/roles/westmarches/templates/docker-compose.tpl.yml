@@ -77,7 +77,11 @@ services:
   management_api:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
+      - "{{ discordbot_data_path }}-compose.yml:/opt/discordbot-compose.yml"
+      - "{{ nextcloud_data_path }}-compose.yml:/opt/nextcloud-compose.yml"
+      - "{{ westmarches_data_path }}/docker-compose.yml:/opt/westmarches-compose.yml"
     environment:
+      - COMPOSE_FILES=/opt/foundry-compose.yml,/opt/discordbot-compose.yml,/opt/nextcloud-compose.yml,/opt/westmarches-compose.yml
       - BACKUP_S3_ENDPOINT={{ BACKUP_S3_ENDPOINT }}
       - AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}
       - AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}

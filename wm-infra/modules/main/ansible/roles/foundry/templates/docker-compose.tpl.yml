@@ -38,7 +38,7 @@ services:
     restart: "unless-stopped"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "{{ foundry_data_path }}-compose.yml:/opt/docker-compose.yml"
+      - "{{ foundry_data_path }}-compose.yml:/opt/foundry-compose.yml"
       - "{{ foundry_data_path }}/.htpasswd:/opt/.htpasswd"
       - "{{ foundry_data_path }}/api-logging.yml:/opt/api-logging.yml"
       - "{{ foundry_data_path }}/Data:/opt/data/foundry"
@@ -49,6 +49,7 @@ services:
     ports:
       - "5000"
     environment:
+      - COMPOSE_FILES=/opt/foundry-compose.yml
       - COMPOSE_DIR=/opt
       - HTPASSWD_PATH=/opt/.htpasswd
       - FOUNDRY_DATA_PATH=/opt/data/foundry
