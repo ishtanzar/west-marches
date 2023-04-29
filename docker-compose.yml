@@ -52,10 +52,10 @@ services:
       - twig-cache:/var/cache/website
     environment:
       - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
-      - DISCORD_OAUTH_CLIENT=${OAUTH_CLIENT}
-      - DISCORD_OAUTH_SECRET=${OAUTH_SECRET}
-      - DISCORD_OAUTH_REDIRECT=${WEBSITE_DISCORD_OAUTH_REDIRECT}
-      - KANKA_OAUTH_REDIRECT=${WEBSITE_KANKA_OAUTH_REDIRECT}
+      - DISCORD_OAUTH_CLIENT=${DISCORD_OAUTH_CLIENT}
+      - DISCORD_OAUTH_SECRET=${DISCORD_OAUTH_SECRET}
+#      - DISCORD_OAUTH_REDIRECT=${WEBSITE_DISCORD_OAUTH_REDIRECT}
+#      - KANKA_OAUTH_REDIRECT=${WEBSITE_KANKA_OAUTH_REDIRECT}
   minio:
     image: minio/minio:latest
     environment:
@@ -73,9 +73,9 @@ services:
       - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
       - FOUNDRY_ADMIN_KEY=atropos
     volumes:
-#      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app
-      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app
-  #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-9.269/resources/app:/home/foundry/resources/app
+#      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
+      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app:ro
+  #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-9.269/resources/app:/home/foundry/resources/app:ro
       - ./wm-infra/deploy/local/data/foundry/Data:/data/Data
       - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
       - foundry-logs:/data/Logs
@@ -97,15 +97,12 @@ services:
       - "5000:5000"
 #      - "5678:5678" # VScode
     environment:
-      - COMPOSE_DIR=/opt/project
+      - COMPOSE_FILES=/opt/project/docker-compose.yml
       - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
       - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
       - BACKUP_S3_ENDPOINT=http://minio:9000/
-      - DISCORD_SECRET=${DISCORD_BOT_SECRET}
-      - KANKA_TOKEN=${KANKA_TOKEN}
-      - KANKA_CAMPAIGN=${KANKA_CAMPAIGN}
       - DATABASE_ENDPOINT=lightning:///opt/project/wm-infra/deploy/local/data/api/westmarches.db
       - INTENT_MODEL_DIR=/opt/project/wm-infra/deploy/local/data/api/intents
       - LOGGING_CONFIG=/opt/project/wm-infra/deploy/local/api-logging.yml
@@ -133,9 +130,6 @@ services:
       - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
       - FOW_PATH=/opt/project/wm-infra/deploy/local/fow.jpg
       - FINAL_MAP=/opt/project/wm-infra/deploy/local/charted.jpg
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
-      - KOFI_VERIFICATION=${KOFI_VERIFICATION}
   arena:
     image: mixmaxhq/arena:latest
     links:
@@ -162,9 +156,6 @@ services:
       - AWS_ACCESS_KEY_ID=${DISCORD_AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${DISCORD_AWS_SECRET_KEY}
       - AWS_DEFAULT_REGION=${DISCORD_AWS_REGION}
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
-      - KANKA_TOKEN=${KANKA_TOKEN}
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-bot/pm2.config.js"]
 #    ports:
 #      - "5679:5679" # VScode
@@ -176,8 +167,6 @@ services:
       - ./:/opt/project
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
-      - KANKA_TOKEN=${KANKA_TOKEN}
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
   discordbot_workaround:
@@ -191,7 +180,6 @@ services:
 #      - ./wm-management-api-client:/opt/wm-management-api-client
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/workaround-config.json
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - WM_API_SECRET=changeme
       - WM_API_ENDPOINT=http://management_api:5000
       - PYTHONUNBUFFERED=1
