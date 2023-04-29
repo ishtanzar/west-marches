@@ -2,7 +2,6 @@ import datetime
 import logging
 import os
 import random
-import re
 import string
 from abc import abstractmethod
 from discord import Embed, Member
@@ -32,16 +31,6 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     @property
     def foundry_auth(self):
         return 'foundry_manager', os.environ['MANAGER_API_SECRET']
-
-    @staticmethod
-    async def fetch_user_from_mention(ctx: commands.Context, mention: str):
-        match = re.search(r'<@!?(\d{17,19})>', str(mention))
-        if match:
-            user: Member = ctx.guild.get_member(int(match.group(1)))
-            if user:
-                return user
-
-        await ctx.send("Unknown user")
 
     async def fetch_foundry_user_from_discord(self, discord_user: Optional[Member]):
         foundry_users = await self.api_client.foundry.users({'discord.id': discord_user.id})
@@ -96,85 +85,84 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
             await ctx.send(messages['foundry.roster.search.class'] % (pc_class, ', '.join(heroes)))
 
     @command_foundry.command()
-    async def player_add(self, ctx: commands.Context, user_str: str):
+    async def player_add(self, ctx: commands.Context, user: Member):
         """Add a new user to Foundry from Discord"""
-        user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
-        if user:
-            await self.api_client.foundry.users_add(user.name, discord={
-                "id": str(user.id),
-                "username": user.name,
-                "avatar": user.avatar,
-                "discriminator": str(user.discriminator),
-            })
+        await self.api_client.foundry.users_add(user.name, discord={
+            "id": str(user.id),
+            "username": user.name,
+            "avatar": user.avatar,
+            "discriminator": str(user.discriminator),
+        })
 
-            async with self.config.messages() as messages:
-                await ctx.send(messages['foundry.player.add.done'] % user.name)
+        async with self.config.messages() as messages:
+            await ctx.send(messages['foundry.player.add.done'] % user.name)
 
     @command_foundry.command()
-    async def player_link(self, ctx: commands.Context, user_str: str, foundry_username: str = None):
+    async def player_link(self, ctx: commands.Context, foundry_username: Optional[str], user: Optional[Member]):
         """Link a Discord user with a Foundry user"""
-        user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
-        if user:
-            foundry_users = await self.api_client.foundry.users(
-                {'name': foundry_username if foundry_username else user.name})
+        if not user:
+            user = ctx.message.author
 
-            foundry_user = next(iter(foundry_users['users']), None)
+        foundry_users = await self.api_client.foundry.users(
+            {'name': foundry_username if foundry_username else user.name})
 
-            async with self.config.messages() as messages:
-                if foundry_user:
-                    await self.api_client.foundry.users_update(foundry_user['_id'], discord={
-                        "id": str(user.id),
-                        "username": user.name,
-                        "avatar": user.avatar,
-                        "discriminator": str(user.discriminator),
-                    })
-                    await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
-                else:
-                    await ctx.send(messages['foundry.player.discord.not_found'] % user.name)
+        foundry_user = next(iter(foundry_users['users']), None)
+
+        async with self.config.messages() as messages:
+            if foundry_user:
+                await self.api_client.foundry.users_update(foundry_user['_id'], discord={
+                    "id": str(user.id),
+                    "username": user.name,
+                    "avatar": user.avatar,
+                    "discriminator": str(user.discriminator),
+                })
+                await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
+            else:
+                await ctx.send(messages['foundry.player.discord.not_found'] % user.name)
 
     @command_foundry.command()
-    async def player_set_gm(self, ctx: commands.Context, user_str: str):
+    async def player_set_gm(self, ctx: commands.Context, discord_user: Optional[Member]):
         """Switch a Foundry user as GM (need the Discord user to be linked with a Foundry user either by login or
         by using the link command)"""
-        discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
-        if discord_user:
-            foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
-            async with self.config.messages() as messages:
-                if foundry_user:
-                    await self.api_client.foundry.users_update(foundry_user['_id'], role=4)
-                    await ctx.send(messages['foundry.player.toggle_gm.activate'] % discord_user.name)
-                else:
-                    await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
+        if not discord_user:
+            discord_user = ctx.message.author
+
+        foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
+        async with self.config.messages() as messages:
+            if foundry_user:
+                await self.api_client.foundry.users_update(foundry_user['_id'], role=4)
+                await ctx.send(messages['foundry.player.toggle_gm.activate'] % discord_user.name)
+            else:
+                await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
 
     @command_foundry.command()
-    async def player_remove_gm(self, ctx: commands.Context, user_str: str):
+    async def player_remove_gm(self, ctx: commands.Context, discord_user: Optional[Member]):
         """Switch a Foundry user as Player (need the Discord user to be linked with a Foundry user either by login or
         by using the link command)"""
-        discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
-        if discord_user:
-            foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
-            async with self.config.messages() as messages:
-                if foundry_user:
-                    await self.api_client.foundry.users_update(foundry_user['_id'], role=1)
-                    await ctx.send(messages['foundry.player.toggle_gm.deactivate'] % discord_user.name)
-                else:
-                    await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
+        if not discord_user:
+            discord_user = ctx.message.author
+
+        foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
+        async with self.config.messages() as messages:
+            if foundry_user:
+                await self.api_client.foundry.users_update(foundry_user['_id'], role=1)
+                await ctx.send(messages['foundry.player.toggle_gm.deactivate'] % discord_user.name)
+            else:
+                await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
 
     @command_foundry.command(name="reset_password")
-    async def player_reset_password(self, ctx: commands.Context, user_str: str):
+    async def player_reset_password(self, ctx: commands.Context, discord_user: Member):
         """Update a Foundry user with a random password and send it to you via PM"""
-        discord_user: Optional[Member] = await self.fetch_user_from_mention(ctx, user_str)
-        if discord_user:
-            foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
-            async with self.config.messages() as messages:
-                if foundry_user:
-                    new_password = ''.join(
-                        random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(12))
-                    await self.api_client.foundry.users_update(foundry_user['_id'], password=new_password)
-                    await discord_user.send(messages['foundry.player.password.reset'] % new_password)
-                    await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
-                else:
-                    await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
+        foundry_user = await self.fetch_foundry_user_from_discord(discord_user)
+        async with self.config.messages() as messages:
+            if foundry_user:
+                new_password = ''.join(
+                    random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(12))
+                await self.api_client.foundry.users_update(foundry_user['_id'], password=new_password)
+                await discord_user.send(messages['foundry.player.password.reset'] % new_password)
+                await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
+            else:
+                await ctx.send(messages['foundry.player.discord.not_found'] % discord_user.name)
 
     @command_foundry.command(name="online")
     async def activity_users(self, ctx: commands.Context):

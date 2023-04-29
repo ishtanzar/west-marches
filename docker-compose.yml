@@ -75,8 +75,9 @@ services:
     volumes:
 #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
       - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app:ro
-  #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-9.269/resources/app:/home/foundry/resources/app:ro
-      - ./wm-infra/deploy/local/data/foundry/Data:/data/Data
+#        - /home/pgmillon/workspace/ishtanzar/foundryvtt-9.269/resources/app:/home/foundry/resources/app:ro
+      - ./wm-infra/deploy/local/data/foundry/Data-8.x:/data/Data
+#      - ./wm-infra/deploy/local/data/foundry/Data-9.x:/data/Data
       - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
       - foundry-logs:/data/Logs
       - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
@@ -96,6 +97,8 @@ services:
     ports:
       - "5000:5000"
 #      - "5678:5678" # VScode
+    env_file:
+      - .env
     environment:
       - COMPOSE_FILES=/opt/project/docker-compose.yml
       - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
@@ -148,6 +151,8 @@ services:
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json
+    env_file:
+      - .env
     environment:
       - WM_API_SECRET=changeme
       - WM_API_ENDPOINT=http://management_api:5000
