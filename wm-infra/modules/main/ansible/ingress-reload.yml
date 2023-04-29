@@ -1,0 +1,20 @@
+
+- name: Ingress reload
+  hosts: foundry
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: westmarches
+        tasks_from: playtest-facts.yml
+
+    - include_role:
+        name: westmarches
+        tasks_from: ingress.yml
+      vars:
+        playtest_ip: "{{ playtest_container_facts | json_query('values(container.NetworkSettings.Networks)[0].IPAddress') | default('127.0.0.1') }}"
+
+    - include_role:
+        name: westmarches
+        tasks_from: certbot.yml
+
+    - ansible.builtin.shell: "/usr/bin/docker compose {{ compose_files | map('regex_replace', '^(.*)$', '-f \\1') | join(' ') }} restart proxy"

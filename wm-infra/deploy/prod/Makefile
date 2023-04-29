@@ -21,8 +21,13 @@ else ifdef ANSIBLE_SKIP
 ANSIBLE_OPTS := $(ANSIBLE_OPTS) --skip-tags $(ANSIBLE_SKIP)
 endif
 
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS = false
+
 modules:
 	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(ANSIBLE_LIMIT) ../../modules/main/ansible/foundry-modules.yml
 
+ingress:
+	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) ../../modules/main/ansible/ingress-reload.yml
+
 playtest:
-	ANSIBLE_DISPLAY_SKIPPED_HOSTS=false ansible-playbook -i ../../modules/main/ansible/inventory/ -l par1 $(ANSIBLE_OPTS) ../../modules/main/ansible/playtest.yml
+	ansible-playbook -i ../../modules/main/ansible/inventory/ -l par1 $(ANSIBLE_OPTS) ../../modules/main/ansible/playtest.yml

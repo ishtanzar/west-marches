@@ -5,11 +5,11 @@
     containers_filters:
       label:
         - com.docker.compose.project=playtest
-        - com.docker.compose.service=foundry
+        - com.docker.compose.service=playtest
   register: docker_facts
 
 - name: Gather playtest container facts
   community.docker.docker_container_info:
     name: "{{ docker_facts | json_query('containers[0].Id') }}"
-  when: "{{ docker_facts | json_query('containers[0].Id') | length > 0 }}"
+  when: docker_facts | json_query('containers[0].Id') | length > 0
   register: playtest_container_facts
