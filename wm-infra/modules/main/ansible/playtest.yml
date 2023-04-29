@@ -1,0 +1,140 @@
+
+- name: FoundryVTT
+  hosts: playtest
+  gather_facts: no
+  vars:
+    foundry_version: 9.269
+    extensible_plugin_url: https://api.github.com/repos/ishtanzar/west-marches/actions/artifacts/649349873/zip
+    suexec_sha: 4c3bb42b093f14da70d8ab924b487ccfbb1397af
+    backup_file: worlds-2023-04-21-07-38-973177.zip
+  tasks:
+    - tags: always
+      block:
+        - ansible.builtin.stat:
+            path: "{{ playtest_data_path }}/docker-compose.yml"
+          register: compose_stat
+        - community.docker.docker_compose:
+            project_src: "{{ playtest_data_path }}"
+            state: absent
+          when: compose_stat.stat.exists
+
+    - block:
+      - ansible.builtin.include_role:
+          name: foundry
+          tasks_from: foundry.yml
+        tags: foundry
+      - ansible.builtin.include_role:
+          name: foundry
+          tasks_from: module_install.yml
+        tags: modules
+        loop: "{{ foundry_modules }}"
+        loop_control:
+          loop_var: module
+      - ansible.builtin.include_role:
+          name: westmarches
+          tasks_from: extensible-plugin.yml
+        tags: modules
+      vars:
+        foundry_data_path: "{{ playtest_data_path }}"
+        westmarches_data_path: "{{ playtest_data_path }}"
+
+    - ansible.builtin.copy:
+        content: |
+          # Ansible managed: docker-compose.yml modified on {{ '%Y-%m-%d %H:%M:%S' | strftime }}
+          {{ docker_compose | to_nice_yaml }}
+        dest: "{{ playtest_data_path }}/docker-compose.yml"
+      vars:
+        docker_compose:
+          version: "3.8"
+
+          services:
+            playtest:
+              image: "felddy/foundryvtt:release-{{ foundry_version }}"
+              init: true
+              restart: "unless-stopped"
+              volumes:
+                - "./:/data"
+              hostname: foundry
+              environment:
+                - CONTAINER_CACHE=/data/container_cache
+                - CONTAINER_PATCHES=/data/container_patches
+                - "TIMEZONE={{ foundry_timezone }}"
+                - "FOUNDRY_HOSTNAME={{ playtest_fqdn }}"
+                - "FOUNDRY_LANGUAGE={{ foundry_language }}"
+                - "FOUNDRY_WORLD={{ foundry_world }}"
+                - FOUNDRY_PROXY_PORT=443
+                - FOUNDRY_PROXY_SSL=true
+                - NODE_OPTIONS=--loader=/data/foundry-extensible-plugin/custom-resolver.mjs
+              healthcheck:
+                test: curl localhost:30000/api/status || exit -1
+                interval: 10s
+                timeout: 2s
+                retries: 3
+                start_period: 10s
+
+          networks:
+            default:
+              external: true
+              name: west-marches_default
+
+    - tags: backup
+      block:
+        - name: Fetch su-exec
+          ansible.builtin.unarchive:
+            src: https://github.com/ncopa/su-exec/archive/{{ suexec_sha }}.zip
+            dest: /opt/data/su-exec-{{ suexec_sha }}
+            remote_src: yes
+            creates: /opt/data
+
+        - ansible.builtin.stat:
+            path: /opt/data/su-exec-{{ suexec_sha }}/su-exec
+          register: make_stat
+
+        - name: Build su-exec
+          community.general.make:
+            chdir: /opt/data/su-exec-{{ suexec_sha }}
+          when: not make_stat.stat.exists
+
+        - name: Fetch backup
+          ansible.builtin.shell: |
+            AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }} \
+            AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }} \
+            AWS_DEFAULT_REGION={{ SCW_REGION }} \
+            aws s3 cp --endpoint-url {{ BACKUP_S3_ENDPOINT }} \
+              s3://westmarches-backups/{{ backup_file }} {{ playtest_data_path }}/{{ backup_file }}
+          register: aws_output
+          args:
+            creates: "{{ playtest_data_path }}/{{ backup_file }}"
+
+        - ansible.builtin.stat:
+            path: "{{ playtest_data_path }}/Data/worlds/{{ foundry_world }}"
+          register: world_stat
+
+        - when: aws_output.changed or not world_stat.stat.exists
+          block:
+            - ansible.builtin.file:
+                path: "{{ playtest_data_path }}/Data/worlds"
+                state: absent
+
+            - ansible.builtin.shell: |
+                /opt/data/su-exec-{{ suexec_sha }}/su-exec 421:421 unzip -d {{ playtest_data_path }}/Data/ {{ playtest_data_path }}/{{ backup_file }}
+
+    - community.docker.docker_compose:
+        project_src: "{{ playtest_data_path }}"
+        state: present
+      register: docker_compose
+      tags: always
+
+    - ansible.builtin.include_role:
+        name: westmarches
+        tasks_from: ingress.yml
+      vars:
+        playtest_ip: "{{ docker_compose | json_query('values(values(services.foundry)[0].networks)[0].IPAddress') }}"
+      tags: always
+
+    - ansible.builtin.include_role:
+        name: westmarches
+        tasks_from: certbot.yml
+      tags: cert
+
+    - ansible.builtin.shell: "/usr/bin/docker compose {{ compose_files | map('regex_replace', '^(.*)$', '-f \\1') | join(' ') }} restart proxy"
