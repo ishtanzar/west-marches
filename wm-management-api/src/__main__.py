@@ -1,14 +1,11 @@
-import asyncio
-import concurrent.futures
 import logging.config
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
 import boto3
-import hypercorn.asyncio
 import yaml
-from concurrent import futures
 from montydb import set_storage, MontyClient
 
 from api import WestMarchesApi
@@ -19,7 +16,7 @@ from services.docker import FoundryProject
 from services.foundryvtt import FoundryService
 from services.kanka import KankaService
 
-project_path = os.environ['COMPOSE_DIR']
+compose_files = os.environ['COMPOSE_FILES'] if 'COMPOSE_FILES' in os.environ.keys() else ''
 foundry_data_path = os.environ['FOUNDRY_DATA_PATH']
 foundry_endpoint = os.environ['FOUNDRY_ENDPOINT']
 backup_bucket = os.environ['BACKUP_S3_BUCKET']
@@ -41,7 +38,7 @@ Engine._client = MontyClient(db_url.path)
 
 app = WestMarchesApi(
     __name__,
-    FoundryProject(project_path),
+    FoundryProject(re.split(r', ?', compose_files)),
     BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint)),
     FoundryService(foundry_endpoint),
     KankaService(kanka_token, kanka_campaign),

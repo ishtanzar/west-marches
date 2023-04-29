@@ -14,4 +14,4 @@
 #pyOpenSSL==17.5.0
 
 debugpy==1.6.3
-pydevd-pycharm~=222.4167.29
+pydevd-pycharm~=231.8109.175

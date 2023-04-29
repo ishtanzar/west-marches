@@ -1,23 +1,44 @@
-import logging
-
-from compose.cli.command import get_project
+from python_on_whales import DockerClient
+from python_on_whales.utils import run
 
 from utils import get_logger
 
 
+class NoSuchService(Exception):
+
+    def __init__(self, service):
+        self._service = service
+
+    @property
+    def msg(self):
+        return f'No such service {self._service}'
+
+
 class FoundryProject:
 
-    def __init__(self, compose_file) -> None:
+    def __init__(self, compose_files) -> None:
         self.log = get_logger(self)
-        self.compose_file = compose_file
-        self.project = get_project(compose_file, project_name='west-marches')
+        self.compose_files = compose_files
+
+        docker = DockerClient(compose_files=compose_files, compose_project_name="west-marches")
+        self.compose = docker.compose
+
+    def _validate_service(self, service):
+        return service in self.compose.config().services
 
     def stop(self, service_name):
-        self.project.validate_service_names([service_name])
-        self.log.info("Stopping docker-compose service %s", service_name)
-        self.project.stop([service_name])
+        if self._validate_service(service_name):
+            self.log.info("Stopping docker-compose service %s", service_name)
+            self.compose.stop(service_name)
+        else:
+            raise
 
     def restart(self, service_name):
-        self.project.validate_service_names([service_name])
-        self.log.info("Restarting docker-compose service %s", service_name)
-        self.project.restart([service_name])
+        if self._validate_service(service_name):
+            self.log.info("Restarting docker-compose service %s", service_name)
+
+            cmd = self.compose.docker_compose_cmd + ['restart']
+            cmd.add_flag('--no-deps', True)
+            cmd += [service_name]
+
+            run(cmd)

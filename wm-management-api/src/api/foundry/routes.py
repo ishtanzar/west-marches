@@ -1,7 +1,7 @@
-from compose.project import NoSuchService
+from quart import request
 
 from api import WestMarchesApi
-from quart import request
+from services.docker import NoSuchService
 
 app = WestMarchesApi.instance
 

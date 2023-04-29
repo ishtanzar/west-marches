@@ -1,8 +1,7 @@
 from typing import Optional
 
-from compose.project import NoSuchService
-
 from api import WestMarchesApi
+from services.docker import NoSuchService
 
 app = WestMarchesApi.instance
 
