@@ -72,17 +72,11 @@
     src: default-intents.json
     dest: "{{ foundry_data_path }}/default-intents.json"
 
-# Broken somehow
-#
-#- name: Manager API htpasswd file
-#  community.general.htpasswd:
-#    name: foundry_manager
-#    password: "{{ management_api_secret }}"
-#    path: "{{ foundry_data_path }}/.htpasswd"
-
 - name: Manager API htpasswd file
-  ansible.builtin.shell: >
-    echo "foundry_manager:$(openssl passwd -apr1 {{ management_api_secret }})" > {{ foundry_data_path }}/.htpasswd
+  community.general.htpasswd:
+    name: foundry_manager
+    password: "{{ management_api_secret }}"
+    path: "{{ foundry_data_path }}/.htpasswd"
 
 - name: Template docker-compose file
   ansible.builtin.template:

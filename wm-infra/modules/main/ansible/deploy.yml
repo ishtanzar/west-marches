@@ -32,6 +32,8 @@
         name: westmarches.service
         state: stopped
       when: ansible_facts.services['westmarches.service'] is defined
+    - ansible.builtin.set_fact:
+        management_api_secret: "{{ management_api_secret }}"
 
   roles:
     - foundry
