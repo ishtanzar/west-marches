@@ -1,5 +1,6 @@
 # {{ ansible_managed }}
 version: "3.8"
+name: "west-marches"
 
 services:
   influxdb:
@@ -143,7 +144,7 @@ services:
 #      - management_api
     environment:
       - CONFIG_PATH=/opt/discord_workaround/config.json
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
       - WM_API_SECRET=changeme
       - WM_API_ENDPOINT=http://management_api:5000
       - PYTHONUNBUFFERED=1

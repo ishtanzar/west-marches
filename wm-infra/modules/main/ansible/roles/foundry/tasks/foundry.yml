@@ -1,0 +1,23 @@
+
+- name: Create some paths
+  ansible.builtin.file:
+    path: "{{ foundry_data_path }}/{{ item }}"
+    state: directory
+    owner: 421
+    group: 421
+  loop:
+    - container_cache
+    - container_patches/resources
+    - Data/systems
+    - Data/modules
+    - Config
+
+- name: Fetch foundry
+  amazon.aws.aws_s3:
+    bucket: "{{ foundry_s3_bucket }}"
+    object: "private/foundryvtt/{{ foundryvtt_zip }}"
+    dest: "{{ foundry_data_path }}/container_cache/{{ foundryvtt_zip }}"
+    region: eu-west-3
+    aws_access_key: "{{ FOUNDRY_BUCKET_ACCESS_KEY_ID }}"
+    aws_secret_key: "{{ FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}"
+    mode: get

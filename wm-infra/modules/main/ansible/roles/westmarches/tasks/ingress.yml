@@ -1,0 +1,19 @@
+
+- name: Create data path
+  ansible.builtin.file:
+    path: /opt/data/www/.well-known
+    state: directory
+
+- name: Template nginx files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: custom.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-custom.conf" }
+    - { src: custom-ssl.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-ssl.conf" }
+    - { src: nginx-entrypoint.sh, dest: "{{ westmarches_data_path }}/nginx-entrypoint.sh" }
+
+- ansible.builtin.file:
+    path: "{{ westmarches_data_path }}/nginx-entrypoint.sh"
+    mode: '0755'
+    state: touch

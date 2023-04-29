@@ -1,0 +1,18 @@
+
+- name: Install certbot snap
+  community.general.snap:
+    name: certbot
+    classic: yes
+
+- name: Wait for port 80 to become open on the host
+  ansible.builtin.wait_for:
+    port: 80
+    delay: 10
+
+- name: SSL certificate
+  ansible.builtin.shell: >
+    certbot certonly -n --agree-tos --keep --expand --webroot
+    --email webmaster@ishtanzar.net
+    --cert-name {{ base_fqdn }}
+    -w /opt/data/www/
+    -d {{ base_fqdn }},{{ foundry_fqdn }},{{ api_fqdn }},{{ nextcloud_fqdn }},{{ playtest_fqdn }}

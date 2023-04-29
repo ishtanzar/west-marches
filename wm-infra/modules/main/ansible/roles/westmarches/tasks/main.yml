@@ -10,16 +10,12 @@
     - "{{ westmarches_data_path }}/worker"
     - "{{ westmarches_data_path }}/worker/cache"
     - "{{ foundry_data_path }}/Config"
-    - /opt/data/www/.well-known
 
 - name: Template config files
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   loop:
-    - { src: custom.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-custom.conf" }
-    - { src: custom-ssl.tpl.nginx, dest: "{{ westmarches_data_path }}/nginx-ssl.conf" }
-    - { src: nginx-entrypoint.sh, dest: "{{ westmarches_data_path }}/nginx-entrypoint.sh" }
     - { src: docker-compose.tpl.yml, dest: "{{ westmarches_data_path }}/docker-compose.yml" }
     - { src: telegraf.tpl.toml, dest: "/etc/telegraf/telegraf.d/custom.conf" }
     - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/datasources.yml" }
@@ -36,12 +32,9 @@
     - { src: workaround-config.json, dest: "{{ westmarches_data_path }}/workaround/config.json" }
 
 - ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ westmarches_data_path }}/worker/cache/donations.cache.json"
     mode: '0755'
     state: touch
-  loop:
-    - "{{ westmarches_data_path }}/nginx-entrypoint.sh"
-    - "{{ westmarches_data_path }}/worker/cache/donations.cache.json"
 
 - name: Upload compose env file
   ansible.builtin.copy:
@@ -53,33 +46,13 @@
     dest: "{{ foundry_data_path }}/Config/s3config.json"
     content: "{{ foundry_s3_config | to_nice_json }}"
 
-- name: Fetch foundry-extensible-plugin
-  ansible.builtin.get_url:
-    url: "{{ lookup('env', 'FOUNDRY_EXTENSIBLE_PLUGIN_URL')|default(extensible_plugin_url, True) }}"
-    dest: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
-    url_username: "{{ lookup('env', 'GITHUB_USER') }}"
-    url_password: "{{ lookup('env', 'GITHUB_PASSWORD') }}"
-    force_basic_auth: yes
-    timeout: 60
-    force: yes
-    
-- ansible.builtin.file:
-    path: "{{ westmarches_data_path }}/foundry-extensible-plugin"
-    state: absent
-    
-- ansible.builtin.file:
-    path: "{{ westmarches_data_path }}/foundry-extensible-plugin"
-    state: directory
-    
-- name: Unarchive foundry-extensible-plugin
-  ansible.builtin.unarchive:
-    src: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
-    dest: "{{ westmarches_data_path }}/foundry-extensible-plugin"
-    remote_src: yes
+- include_tasks: extensible-plugin.yml
 
-- ansible.builtin.file:
-    path: "{{ westmarches_data_path }}/foundry-extensible-plugin.zip"
-    state: absent
+- include_tasks: playtest-facts.yml
+
+- include_tasks: ingress.yml
+  vars:
+    playtest_ip: "{{ playtest_container_facts | json_query('values(container.NetworkSettings.Networks)[0].IPAddress') | default('127.0.0.1') }}"
 
 - name: Create grafana data paths
   ansible.builtin.file:
@@ -105,12 +78,6 @@
     owner: root
     group: root
     mode: '0644'
-  vars:
-    compose_files:
-      - "{{ foundry_data_path }}-compose.yml"
-      - "{{ discordbot_data_path }}-compose.yml"
-      - "{{ nextcloud_data_path }}-compose.yml"
-      - "{{ westmarches_data_path }}/docker-compose.yml"
   register: unit_file_status
 
 - name: Reload Systemd
@@ -124,24 +91,8 @@
   ansible.builtin.systemd:
     name: westmarches.service
     state: started
-    
-- name: Install certbot snap
-  community.general.snap:
-    name: certbot
-    classic: yes
-    
-- name: Wait for port 80 to become open on the host
-  ansible.builtin.wait_for:
-    port: 80
-    delay: 10
-    
-- name: SSL certificate
-  ansible.builtin.shell: >
-    certbot certonly -n --agree-tos --keep --expand --webroot
-    --email webmaster@ishtanzar.net
-    --cert-name {{ base_fqdn }}
-    -w /opt/data/www/
-    -d {{ base_fqdn }},{{ foundry_fqdn }},{{ api_fqdn }},{{ nextcloud_fqdn }}
+
+- include_tasks: certbot.yml
 
 - name: Restart units
   ansible.builtin.systemd:

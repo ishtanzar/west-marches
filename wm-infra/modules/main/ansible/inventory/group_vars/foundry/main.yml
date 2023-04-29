@@ -1,0 +1,9 @@
+foundry_timezone: Europe/Paris
+foundry_world: west-marches-de-la-cave
+foundry_language: fr.tidy5e-sheet
+
+compose_files:
+  - "{{ foundry_data_path }}-compose.yml"
+  - "{{ discordbot_data_path }}-compose.yml"
+  - "{{ nextcloud_data_path }}-compose.yml"
+  - "{{ westmarches_data_path }}/docker-compose.yml"
