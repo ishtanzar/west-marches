@@ -2,6 +2,7 @@ all:
   vars:
     base_fqdn: westmarchesdelacave.ishtanzar.net
     foundry_fqdn: "play.{{ base_fqdn }}"
+    playtest_fqdn: "playtest.{{ base_fqdn }}"
     api_fqdn: "api.{{ base_fqdn }}"
     nextcloud_fqdn: "nextcloud.{{ base_fqdn }}"
 

@@ -7,4 +7,4 @@ variables:
   ansible_host: public_ip.address
 tags:
   - foundry
-  - kanka
+  - playtest

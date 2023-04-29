@@ -1,0 +1,15 @@
+
+- name: Look for playtest container info
+  community.docker.docker_host_info:
+    containers: true
+    containers_filters:
+      label:
+        - com.docker.compose.project=playtest
+        - com.docker.compose.service=foundry
+  register: docker_facts
+
+- name: Gather playtest container facts
+  community.docker.docker_container_info:
+    name: "{{ docker_facts | json_query('containers[0].Id') }}"
+  when: "{{ docker_facts | json_query('containers[0].Id') | length > 0 }}"
+  register: playtest_container_facts

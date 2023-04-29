@@ -83,7 +83,7 @@ resource "scaleway_instance_server" "main" {
   type = var.instance_type
   image = "ubuntu_focal"
   ip_id = scaleway_instance_ip.public_ip.id
-  tags = ["foundry"]
+  tags = ["foundry", "playtest"]
   additional_volume_ids = [scaleway_instance_volume.data.id]
   security_group_id = scaleway_instance_security_group.front.id
 }
