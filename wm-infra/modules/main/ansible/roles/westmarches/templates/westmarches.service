@@ -6,10 +6,10 @@ Requires=docker.service
 
 [Service]
 TimeoutStartSec=0
-ExecStartPre=-/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} kill
-ExecStartPre=-/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} rm
-ExecStart=/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} up
-ExecStop=/usr/local/bin/docker-compose {% for f in compose_files %} -f {{ f }} {% endfor %} down
+ExecStartPre=-/usr/bin/docker compose {% for f in compose_files %} -f {{ f }} {% endfor %} kill
+ExecStartPre=-/usr/bin/docker compose {% for f in compose_files %} -f {{ f }} {% endfor %} rm
+ExecStart=/usr/bin/docker compose {% for f in compose_files %} -f {{ f }} {% endfor %} up
+ExecStop=/usr/bin/docker compose {% for f in compose_files %} -f {{ f }} {% endfor %} down
 Restart=always
 RestartSec=5
 
