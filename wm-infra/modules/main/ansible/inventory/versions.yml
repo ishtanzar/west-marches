@@ -7,6 +7,6 @@ all:
     foundry_docker_image: ishtanzar/wm-docker-foundry:2.0.0
     management_api_image: ishtanzar/wm-management-api:0.8.1
     api_image: ishtanzar/wm-api:0.4.0
-    discordbot_image: ishtanzar/wm-discord-bot:0.13.0
+    discordbot_image: ishtanzar/wm-discord-bot:0.14.0
     worker_image: ishtanzar/wm-worker:0.3.1
     discord_workaround_image: ishtanzar/wm-discord-workaround:0.4.2
