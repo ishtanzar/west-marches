@@ -5,6 +5,13 @@ export default class ExtensibleExpress extends Express {
   _defineRoutes(router) {
     extensibleFoundry.hooks.call('pre.express.defineRoutes', router);
     super._defineRoutes(router);
+    extensibleFoundry.hooks.call('post.express.defineRoutes', router);
+  }
+
+  _middleware(router) {
+    extensibleFoundry.hooks.call('pre.express.middleware', router);
+    super._middleware(router);
+    extensibleFoundry.hooks.call('post.express.middleware', router);
   }
 
   _createApp({isProxy: isProxy = false} = {}) {
@@ -23,6 +30,14 @@ export default class ExtensibleExpress extends Express {
     const scripts = Express.CORE_VIEW_SCRIPTS;
     extensibleFoundry.hooks.call('post.express.CORE_VIEW_SCRIPTS', scripts);
     return scripts;
+  }
+
+  static _userSessionMiddleware(req, resp, next) {
+    if(req.path.startsWith('/api')) {
+      next()
+    } else {
+      Express._userSessionMiddleware(req, resp, next);
+    }
   }
 
   _staticFiles(express) {
