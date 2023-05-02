@@ -5,6 +5,7 @@ RUN npm install \
     override-require@^1.1.1 \
     express-handlebars@^5.3.0 \
     jsonwebtoken@^8.5.1 \
-    cookie@^0.4.1
+    cookie@^0.4.1 \
+    morgan@^1.10.0
 
 RUN npm install -g pm2
