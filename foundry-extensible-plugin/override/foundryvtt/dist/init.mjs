@@ -2,6 +2,7 @@ import path from "path";
 import url from "url";
 import fs from "fs";
 import express from "express";
+import os from "os";
 
 /**
  * A simple event framework used throughout Foundry Virtual Tabletop.
@@ -178,10 +179,39 @@ class ExtensibleFoundryPlugin {
     return Hooks;
   }
 
+  // Duplicate paths._getEnvDataPath
+  _getEnvDataPath() {
+    const t = os.homedir(), o = "FoundryVTT";
+    switch (process.platform) {
+      case"win32":
+        return path.join(process.env.LOCALAPPDATA || path.join(t, "AppData", "Local"), o);
+      case"darwin":
+        return path.join(t, "Library", "Application Support", o);
+      default:
+        let a = process.env.XDG_DATA_HOME || path.join(t, ".local", "share");
+        if (!fs.existsSync(a)) try {
+          mkdirp(a)
+        } catch (t) {
+          a = "/local"
+        }
+        return path.join(a, o)
+    }
+  }
+
   async loadPlugins(pluginsPath) {
-    // TODO: dynamic plugin list
-    // for(let plugin of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord', 'extensibleAuthJwt', 'kankaSync', 'westmarchesBackend']) {
-    for(let pluginId of ['api', 'metrics', 'extensibleAuth', 'extensibleAuthDiscord']) {
+    // Duplicated code from foundry
+    const n = this._getEnvDataPath(), i = path.join(n, "Config"), p = path.join(i, "options.json");
+    let r = process.argv.find((t => t.startsWith("--dataPath"))) || null;
+    r && (r = r.split("=")[1]);
+    let h = null;
+    if (fs.existsSync(p)) {
+      h = JSON.parse(fs.readFileSync(p, "utf8")).dataPath || null
+    }
+    let l = r || process.env.FOUNDRY_VTT_DATA_PATH || h || n;
+    const optionsPath = path.join(l, "Config", "options.json");
+    const options = JSON.parse(fs.readFileSync(optionsPath, "utf8"));
+
+    for(let pluginId of options['extensiblePlugins'] || []) {
       const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
       this._plugins.push(new plugin.default(this));
     }

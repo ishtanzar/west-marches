@@ -1,0 +1,20 @@
+{
+  "awsConfig": "/data/Config/s3config.json",
+  "dataPath": "/data",
+  "fullscreen": false,
+  "hostname": "{{ foundry_fqdn }}",
+  "language": "{{ foundry_language }}",
+  "localHostname": null,
+  "minifyStaticFiles": false,
+  "passwordSalt": null,
+  "port": 30000,
+  "proxyPort": 443,
+  "proxySSL": true,
+  "routePrefix": null,
+  "sslCert": null,
+  "sslKey": null,
+  "updateChannel": "release",
+  "upnp": false,
+  "upnpLeaseDuration": null,
+  "world": "{{ foundry_world }}"
+}

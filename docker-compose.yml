@@ -68,8 +68,7 @@ services:
     build:
       context: wm-infra/docker/foundry
     environment:
-      - FOUNDRY_WORLD=west-marches-de-la-cave
-      - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
+      - CONTAINER_PRESERVE_CONFIG=true
       - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
       - FOUNDRY_ADMIN_KEY=atropos
     volumes:
