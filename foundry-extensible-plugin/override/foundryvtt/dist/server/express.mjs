@@ -33,7 +33,7 @@ export default class ExtensibleExpress extends Express {
   }
 
   static _userSessionMiddleware(req, resp, next) {
-    if(req.path.startsWith('/api')) {
+    if(req.path.startsWith('/api') || req.path.startsWith('/metrics')) {
       next()
     } else {
       Express._userSessionMiddleware(req, resp, next);
