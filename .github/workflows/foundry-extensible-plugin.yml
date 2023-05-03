@@ -30,9 +30,17 @@ jobs:
         working-directory: foundry-extensible-plugin
       
       - name: Upload artifacts
+        if: "!contains(github.ref, 'refs/tags')"
         uses: actions/upload-artifact@v3
         with:
           name: foundry-extensible-plugin-${{ github.ref_name }}
+          path: foundry-extensible-plugin
+
+      - name: Upload release artifacts
+        if: contains(github.ref, 'refs/tags')
+        uses: actions/upload-artifact@v3
+        with:
+          name: foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}
           path: foundry-extensible-plugin
 
       - name: Create release archive
@@ -44,4 +52,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: contains(github.ref, 'refs/tags')
         with:
-          files: foundry-extensible-plugin/foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip
+          files: foundry-extensible-plugin-${{ steps.github_tag.outputs.GITHUB_TAG }}.zip
