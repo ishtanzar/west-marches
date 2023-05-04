@@ -118,3 +118,9 @@ foundry_modules:
 ##    version: 0.5.0
 ##    url: https://github.com/ishtanzar/west-marches/releases/download/releases/wm-foundry-module/v{version}/wm-foundry-module-{version}.zip
 
+extensibleModules:
+  - accessLogs
+  - api
+  - metrics
+  - extensibleAuth
+  - extensibleAuthDiscord

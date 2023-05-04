@@ -16,5 +16,6 @@
   "updateChannel": "release",
   "upnp": false,
   "upnpLeaseDuration": null,
-  "world": "{{ foundry_world }}"
+  "world": "{{ foundry_world }}",
+  "extensiblePlugins": "{{ extensibleModules | to_json }}"
 }
