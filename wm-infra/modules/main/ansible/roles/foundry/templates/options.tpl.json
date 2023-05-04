@@ -17,5 +17,5 @@
   "upnp": false,
   "upnpLeaseDuration": null,
   "world": "{{ foundry_world }}",
-  "extensiblePlugins": "{{ extensibleModules | to_json }}"
+  "extensiblePlugins": {{ extensibleModules | to_json }}
 }
