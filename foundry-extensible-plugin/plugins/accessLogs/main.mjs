@@ -8,7 +8,15 @@ export default class AccessLogsPlugin {
      */
     constructor(base) {
         const stream = {
-            write: (message) => global.logger.http(message)
+            write: (message) => {
+                //remove last \n from message: https://github.com/expressjs/morgan/blob/1.10.0/index.js#L130
+                const index = message.lastIndexOf("\n");
+                if(index > 0) {
+                    message = message.substring(0, index) + message.substring(index + 1)
+                }
+
+                global.logger.http(message)
+            }
         };
 
         morgan.token('req-headers', (req, res) => JSON.stringify(req.headers))
