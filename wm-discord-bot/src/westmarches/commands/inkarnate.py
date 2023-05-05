@@ -20,32 +20,36 @@ class InkarnateApiClient:
         self._token = None
         self._endpoint = endpoint
 
-    def login(self, email: str, password: str):
-        resp = requests.post(self._endpoint + '/tokens', json={
-            'email': email,
-            'password': password
-        })
+    def _request(self, method, url, **kwargs):
+        resp = requests.request(method, self._endpoint + url, **kwargs)
+
+        log.info('%s %s - %i', method.upper(), url, resp.status_code)
+
         if resp.ok:
-            json_resp = resp.json()
-            self._token = json_resp['authToken']
-            return json_resp
+            return resp
         else:
             raise HTTPException(resp)
 
+    def login(self, email: str, password: str):
+        resp = self._request('post', '/tokens', json={
+            'email': email,
+            'password': password
+        })
+
+        json_resp = resp.json()
+        self._token = json_resp['authToken']
+        return json_resp
+
     def change_password(self, current: str, update: str):
-        resp = requests.post(self._endpoint + '/user/changePassword', json={
+        self._request('post', '/user/changePassword', json={
             'oldPassword': current,
             'newPassword': update
         }, headers={
             'Authorization': 'Token ' + self._token
         })
-        if not resp.ok:
-            raise HTTPException(resp)
 
     def logout(self, token: str = None):
-        resp = requests.delete(self._endpoint + '/tokens/' + (token if token else self._token))
-        if not resp.ok:
-            raise HTTPException(resp)
+        self._request('delete', '/tokens/' + (token if token else self._token))
 
 
 class InkarnateCommands(MixinMeta, metaclass=CompositeMetaClass):

@@ -182,8 +182,22 @@ class WestMarchesApiClient:
         self._intents = IntentsApi(self)
         self._reports = ReportsApi(self)
 
-    async def _request(self, method, *args, **kwargs):
-        resp = requests.request(method, auth=self._auth(), *args, **kwargs)
+    async def _request(self, method, url, **kwargs):
+        log.debug(
+            'req_headers=%s, req_json=%s',
+            str(kwargs['headers'] if 'headers' in kwargs else {}),
+            str(kwargs['json'] if 'json' in kwargs else {})
+        )
+
+        resp = requests.request(method, url, auth=self._auth(), **kwargs)
+
+        log.info('%s %s - %i', method.upper(), url, resp.status_code)
+        log.debug(
+            'resp_code=%i, resp_headers=%s, resp_body=%s',
+            resp.status_code,
+            str(resp.headers),
+            resp.text
+        )
 
         return self.on_response(resp)
 
