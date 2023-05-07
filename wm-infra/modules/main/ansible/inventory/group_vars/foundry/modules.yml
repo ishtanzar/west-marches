@@ -7,11 +7,12 @@ foundry_modules:
 
   - name: betterrolls5e
     version: 1.6.16
-    url: https://github.com/RedReign/FoundryVTT-BetterRolls5e/archive/v{version}.zip
+    url: https://github.com/RedReign/FoundryVTT-BetterRolls5e/releases/download/v{version}/module.zip
     rename: true
   - name: dnd5e-status-icons
     version: 1.0.0
     url: https://github.com/orangetruth/dnd5e-status-icons/archive/baac7aff65b06b242f60033a242627ccd6b50187.zip
+    rename: true
   - name: downtime-ethck
     version: 0.6.3
     url: https://github.com/Ethck/Ethck-s-Downtime-Tracking/releases/download/{version}/downtime-ethck.zip
@@ -59,8 +60,7 @@ foundry_modules:
     rename: true
   - name: ActiveAuras
     version: 0.3.08
-    url: https://github.com/kandashi/Active-Auras/archive/refs/tags/{version}.zip
-    rename: true
+    url: https://github.com/kandashi/Active-Auras/releases/download/{version}/module.zip
   - name: zoom-pan-options
     version: 1.7.0
     url: https://github.com/itamarcu/ZoomPanOptions/archive/{version}.zip
@@ -74,12 +74,12 @@ foundry_modules:
     url: https://github.com/ardittristan/VTTColorSettings/archive/refs/tags/{version}.zip
     rename: true
   - name: splatter
-    version: 2.6
-    url: https://github.com/theripper93/Splatter/archive/{version}.zip
-    rename: true
+    version: "2.6"
+    url: https://github.com/theripper93/Splatter/releases/download/{version}/module.zip
   - name: quick-insert
     version: 2.5.3
-    url: https://gitlab.com/fvtt-modules-lab/quick-insert/-/jobs/artifacts/v{version}/raw/quick-insert-v{version}.zip?job=build-module
+    url: https://gitlab.com/fvtt-modules-lab/quick-insert/-/archive/v{version}/quick-insert-v{version}.zip
+    rename: true
   - name: pdf-sheet
     version: 0.18.1
     url: https://github.com/arcanistzed/pdf-sheet/releases/download/{version}/module.zip
@@ -97,9 +97,11 @@ foundry_modules:
   - name: enhanced-terrain-layer
     version: 1.0.34
     url: https://github.com/ironmonk88/enhanced-terrain-layer/archive/{version}.zip
+    rename: true
   - name: terrain-ruler
     version: 1.5.0
     url: https://github.com/manuelVo/foundryvtt-terrain-ruler/archive/v{version}.zip
+    rename: true
 
   - name: stairways
     version: 0.7.5

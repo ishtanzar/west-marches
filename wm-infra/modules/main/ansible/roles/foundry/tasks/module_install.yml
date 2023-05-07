@@ -1,24 +1,31 @@
-- ansible.builtin.stat:
+- name: "Search form system.json file"
+  ansible.builtin.stat:
     path: "{{ '{}/{}/system.json'.format(module.install_path|default(foundry_modules_path), module.name) }}"
   register: system_json_stat
 
-- ansible.builtin.stat:
+- name: "Search form module.json file"
+  ansible.builtin.stat:
     path: "{{ '{}/{}/module.json'.format(module.install_path|default(foundry_modules_path), module.name) }}"
   register: module_json_stat
 
-- ansible.builtin.slurp:
+- name: "Read system.json/module.json file"
+  ansible.builtin.slurp:
     src: "{{ system_json_stat.stat.path if system_json_stat.stat.exists else module_json_stat.stat.path }}"
   register: module_json
   when: system_json_stat.stat.exists or module_json_stat.stat.exists
 
 - block:
-  
-    - ansible.builtin.stat:
+    - name: "Current version of {{ module.name }}"
+      debug:
+        msg: "Current/Expected version: {{ module_json.content|b64decode|from_json|json_query('version') }}/{{ module.version }}"
+
+    - name: "Check for existing {{ module.name }}-{{ module.version }}.zip"
+      ansible.builtin.stat:
         path: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}-{{ module.version }}.zip"
       register: package_stat
   
     - block:
-      - name: "Fetch {{ module.name }}-{{ module.version }}"
+      - name: "Fetch {{ module.name }}-{{ module.version }}.zip"
         ansible.builtin.get_url:
           url: "{{ module.url.format(**module) }}"
           dest: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}-{{ module.version }}.zip"
@@ -28,16 +35,18 @@
           timeout: 60
       when: package_stat.stat.exists  == False
 
-    - ansible.builtin.file:
+    - name: "Deleted existing module"
+      ansible.builtin.file:
         path: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}"
         state: absent
 
-    - ansible.builtin.file:
+    - name: "Prepare module folder"
+      ansible.builtin.file:
         path: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}"
         state: directory
       when: module.rename|default(False) == False
 
-    - name: "Unarchive {{ module.name }}-{{ module.version }}"
+    - name: "Unarchive {{ module.name }}-{{ module.version }}.zip"
       ansible.builtin.unarchive:
         src: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name }}-{{ module.version }}.zip"
         dest: "{{ module.install_path|default(foundry_modules_path) }}/{{ module.name if not module.rename|default(False) else '' }}"
