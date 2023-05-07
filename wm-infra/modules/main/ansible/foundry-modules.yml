@@ -20,3 +20,8 @@
       loop: "{{ foundry_modules }}"
       loop_control:
         loop_var: module
+
+    - name: Install extensible module
+      include_role:
+        name: westmarches
+        tasks_from: extensible-plugin.yml

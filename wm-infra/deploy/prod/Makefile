@@ -24,10 +24,10 @@ endif
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS = false
 
 modules:
-	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(ANSIBLE_LIMIT) ../../modules/main/ansible/foundry-modules.yml
+	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) ../../modules/main/ansible/foundry-modules.yml
 
 ingress:
 	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) ../../modules/main/ansible/ingress-reload.yml
 
 playtest:
-	ansible-playbook -i ../../modules/main/ansible/inventory/ -l par1 $(ANSIBLE_OPTS) ../../modules/main/ansible/playtest.yml
+	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) $(ANSIBLE_OPTS) ../../modules/main/ansible/playtest.yml
