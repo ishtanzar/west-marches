@@ -14,7 +14,23 @@ class FoundryService:
         self._endpoint = endpoint
 
     def _request(self, method, url, **kwargs) -> requests.Response:
+        self.log.debug(
+            'req_method=%s, req_url=%s, req_headers=%s, req_json=%s',
+            method,
+            url,
+            str(kwargs['headers'] if 'headers' in kwargs else {}),
+            str(kwargs['json'] if 'json' in kwargs else {})
+        )
+
         resp: requests.Response = requests.request(method, url, **kwargs)
+        self.log.info('%s %s - %i', method.upper(), url, resp.status_code)
+
+        self.log.debug(
+            'resp_code=%i, resp_headers=%s, resp_body=%s',
+            resp.status_code,
+            str(resp.headers),
+            resp.text
+        )
 
         if resp.status_code >= 400:
             self.log.warning('Failed to get %s', url,
