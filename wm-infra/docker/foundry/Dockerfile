@@ -9,3 +9,5 @@ RUN npm install \
     morgan@^1.10.0
 
 RUN npm install -g pm2
+
+RUN apk add python3 unzip
