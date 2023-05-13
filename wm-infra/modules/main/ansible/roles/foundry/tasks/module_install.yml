@@ -1,14 +1,14 @@
-- name: "Search form system.json file"
+- name: "Search for {{ module.name }}/system.json file"
   ansible.builtin.stat:
     path: "{{ '{}/{}/system.json'.format(module.install_path|default(foundry_modules_path), module.name) }}"
   register: system_json_stat
 
-- name: "Search form module.json file"
+- name: "Search for {{ module.name }}/module.json file"
   ansible.builtin.stat:
     path: "{{ '{}/{}/module.json'.format(module.install_path|default(foundry_modules_path), module.name) }}"
   register: module_json_stat
 
-- name: "Read system.json/module.json file"
+- name: "Read {{ module.name }} system.json or module.json"
   ansible.builtin.slurp:
     src: "{{ system_json_stat.stat.path if system_json_stat.stat.exists else module_json_stat.stat.path }}"
   register: module_json
@@ -18,6 +18,7 @@
     - name: "Current version of {{ module.name }}"
       debug:
         msg: "Current/Expected version: {{ module_json.content|b64decode|from_json|json_query('version') }}/{{ module.version }}"
+      when: system_json_stat.stat.exists or module_json_stat.stat.exists
 
     - name: "Check for existing {{ module.name }}-{{ module.version }}.zip"
       ansible.builtin.stat:
@@ -74,4 +75,4 @@
         path: "{{ module.install_path|default(foundry_modules_path) }}/{{ unarchive_result.files | first }}"
         state: absent
       when: module.rename|default(False) and (system_folder != module.name)
-  when: module_json.skipped|default(False) or (module_json.content|b64decode|from_json|json_query('version') != module.version)
+  when: module_json.skipped|default(False) or (module_json.content|b64decode|from_json|json_query('version')|string != module.version)
