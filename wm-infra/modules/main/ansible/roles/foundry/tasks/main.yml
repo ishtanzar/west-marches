@@ -67,6 +67,9 @@
     - { src: secrets.tpl.json, dest: "{{ foundry_data_path }}/secrets.json" }
     - { src: options.tpl.json, dest: "{{ foundry_data_path }}/Config/options.json" }
 
+- name: Cleanup modules
+  include_tasks: modules_cleanup.yml
+
 - name: Install modules
   include_tasks: module_install.yml
   loop: "{{ foundry_modules }}"

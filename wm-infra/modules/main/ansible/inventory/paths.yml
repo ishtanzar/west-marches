@@ -4,4 +4,5 @@ all:
     nextcloud_data_path: /opt/data/nextcloud
     westmarches_data_path: /opt/data/westmarches
     discordbot_data_path: /opt/data/discordbot
+    foundry_modules_path: "{{ foundry_data_path }}/Data/modules"
 

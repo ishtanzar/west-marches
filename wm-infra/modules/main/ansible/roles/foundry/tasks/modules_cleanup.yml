@@ -1,0 +1,18 @@
+
+- name: Find installed modules
+  ansible.builtin.find:
+    paths: "{{ foundry_modules_path }}"
+    recurse: no
+    file_type: directory
+  register: foundry_installed_modules
+
+- ansible.builtin.set_fact:
+    foundry_modules_names: "{{ foundry_modules | community.general.json_query('[*].name') }}"
+
+- ansible.builtin.file:
+    path: "{{ module.path }}"
+    state: absent
+  loop: "{{ foundry_installed_modules.files }}"
+  loop_control:
+    loop_var: module
+  when: module.path.replace(foundry_modules_path + "/", "") not in foundry_modules_names

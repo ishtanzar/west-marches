@@ -12,7 +12,12 @@
         - Data/systems
         - Data/modules
         - Config
-  
+
+    - name: Cleanup modules
+      include_role:
+        name: foundry
+        tasks_from: modules_cleanup.yml
+
     - name: Install modules
       include_role:
         name: foundry
@@ -21,7 +26,8 @@
       loop_control:
         loop_var: module
 
-    - name: Install extensible module
-      include_role:
-        name: westmarches
-        tasks_from: extensible-plugin.yml
+# Broken for some reason
+#    - name: Install extensible module
+#      include_role:
+#        name: westmarches
+#        tasks_from: extensible-plugin.yml
