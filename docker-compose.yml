@@ -86,6 +86,8 @@ services:
       context: wm-infra/docker/foundry
     environment:
       - CONTAINER_PRESERVE_CONFIG=true
+      - FOUNDRY_WORLD=west-marches-de-la-cave
+      - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
       - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
       - FOUNDRY_ADMIN_KEY=atropos
     volumes:
@@ -113,8 +115,6 @@ services:
     ports:
       - "5000:5000"
 #      - "5678:5678" # VScode
-    env_file:
-      - .env
     environment:
       - COMPOSE_FILES=/opt/project/docker-compose.yml
       - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
@@ -122,6 +122,9 @@ services:
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
       - BACKUP_S3_ENDPOINT=http://minio:9000/
+      - DISCORD_SECRET=${DISCORD_BOT_SECRET}
+      - KANKA_TOKEN=${KANKA_TOKEN}
+      - KANKA_CAMPAIGN=${KANKA_CAMPAIGN}
       - DATABASE_ENDPOINT=lightning:///opt/project/wm-infra/deploy/local/data/api/westmarches.db
       - INTENT_MODEL_DIR=/opt/project/wm-infra/deploy/local/data/api/intents
       - LOGGING_CONFIG=/opt/project/wm-infra/deploy/local/api-logging.yml
@@ -149,6 +152,9 @@ services:
       - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
       - FOW_PATH=/opt/project/wm-infra/deploy/local/fow.jpg
       - FINAL_MAP=/opt/project/wm-infra/deploy/local/charted.jpg
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
+      - KOFI_VERIFICATION=${KOFI_VERIFICATION}
   arena:
     image: mixmaxhq/arena:latest
     links:
@@ -177,6 +183,9 @@ services:
       - AWS_ACCESS_KEY_ID=${DISCORD_AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${DISCORD_AWS_SECRET_KEY}
       - AWS_DEFAULT_REGION=${DISCORD_AWS_REGION}
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
+      - KANKA_TOKEN=${KANKA_TOKEN}
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-bot/pm2.config.js"]
 #    ports:
 #      - "5679:5679" # VScode
@@ -190,6 +199,8 @@ services:
       - elasticsearch
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
+      - KANKA_TOKEN=${KANKA_TOKEN}
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
   discordbot_workaround:
@@ -203,6 +214,7 @@ services:
 #      - ./wm-management-api-client:/opt/wm-management-api-client
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/workaround-config.json
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
       - WM_API_SECRET=changeme
       - WM_API_ENDPOINT=http://management_api:5000
       - PYTHONUNBUFFERED=1
