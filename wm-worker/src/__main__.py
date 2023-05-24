@@ -3,9 +3,12 @@ import asyncio
 import json
 import logging.config
 import os
+import re
+from zipfile import ZipFile, BadZipFile
 
 import aiocron
 import discord
+import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 from quart import Quart
 
@@ -39,6 +42,8 @@ async def main():
     questions = Questions(config, client)
     donations = Donations(config)
 
+    await kanka.initialize()
+
     @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
         logging.getLogger('cron.kanka.live').debug('Queued')
@@ -59,10 +64,17 @@ async def main():
 
         while True:
             logger.debug('Waiting item')
-            routine = await queue.get()
+            job = await queue.get()
             logger.debug('Processing item')
             try:
-                await routine()
+                if isinstance(job, tuple):
+                    routine, _args, _kwargs = job
+                else:
+                    routine = job
+                    _args = []
+                    _kwargs = {}
+
+                await routine(*_args, **_kwargs)
             except Exception as e:
                 logger.warning(str(e), exc_info=True)
 
@@ -70,7 +82,41 @@ async def main():
     async def health():
         return 'hello'
 
+    @app.route('/kanka/reindex')
+    async def kanka_reindex():
+        url = "https://kanka.io/api/1.0/campaigns/67312/entities?related=1"
+        headers = {"Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNDcwMzQ3ZWFiNzdiMTZkOGMyNDE3MTczYTgyYTZhMGE2NGFmMDYyMDUwZTk1Y2YwNzFhOTVjOWFkNDJhMWQ5ZDEwMjM2YWJkZmZiYmNlYWIiLCJpYXQiOjE2NjcxNjA4OTguNDc5OTk3LCJuYmYiOjE2NjcxNjA4OTguNDgwMDAxLCJleHAiOjE2OTg2OTY4OTguNDcyNTIsInN1YiI6IjY5MTk2Iiwic2NvcGVzIjpbXX0.aXwbgS37aQIyvNkTOmd_CejE9peEsaxqolT1swqcoLsPJHmt2awnIa-5CdqefRzs0FqGHsklarQwiNypimhFDpFut0rKyx0EtjgZe69aq0ziBDyJYFQZv3haoWh6VJTHmrC186svnFIBVmJZIRFFfkkeEVOTK9J1VUwsg-Lrm9tcpgjvzhU_Oe5iIWM-tD3fjr7_LoRMht_oA2lVVf20k6Djr88l7V1ulvRhjon65vIyG3EyBZAl3-pa3UnRV8JfErSJVuv3_pWAZARCkGUpSlF_sMxzflSC54cPJd0B32edBmOEHoi9T9GQEOm9_y93vCVkD1r7CPspBER9Iap9ZCYS1DSM8mkBsKsO5SLO23JaOG24_Ra_bueKTS7MgzEGeAYw1T1JzEZx6u07MCPF7gDG2Rd82OZ2_o5u80ohfwNyNDNZOZBdjwxI1Bz2xYKlGTl6cf08x9M3dfXcctLkwbMxVXgTwHfgx2dtVG55RCzKJJoVPXDOrwmB3buAJFd7qflgZnpECgopuXWQ_vJ7GTTrtT5uMX8pmqRrTH3c5Y4xRZaFXJtLMSfXShZS8f_lwDHVICAfFSGy7orDOzZeVqTbMxRZ2bWyp4UEiSt-mWdJf0VWxNYUd40cCFB-8aD7Q_ZfdHeHWLmVvfBjUA2QCLIWKJfb5b4P64Zy3nF_98o"}
+
+        response = requests.request("GET", url, data='', headers=headers)
+
+        entity = response.json()['data']
+        # es.index(index="kanka_entities", id=entity['entity_id'], document=entity)
+        indexed_docs = 0
+
+        # try:
+        #     with ZipFile('/opt/project/campaign_67312_6445aeb3e8a74_20230423_221827.zip', mode='r') as archive:
+        #         routines = []
+        #         # for filename in archive.namelist():
+        #         # for filename in ['journals/the-bad-batch-s01e04-ishtanzar.json']:
+        #         for filename in ['characters/aldail.json']:
+        #             match = re.search(r'(?P<type>\w+)s/(?P<name>.*).json', filename)
+        #             if match:
+        #                 doc = json.loads(archive.read(filename))
+        #
+        #                 # entity = doc.pop('entity')
+        #                 # entity['child'] = doc
+        #                 # entity['type'] = doc_types[entity['type_id']]
+        #
+        #                 routines.append(kanka.index(entity=entity))
+        #         result = await asyncio.gather(*routines, return_exceptions=True)
+        #         indexed_docs = len([r for r in result if r is not None and not isinstance(r, Exception)])
+        # except BadZipFile:
+        #     return 'KO'
+
+        return f'Indexed {indexed_docs} documents'
+
     subparsers.add_parser('kanka.live').set_defaults(func=kanka.cron)
+    subparsers.add_parser('es.update_mentions').set_defaults(func=kanka.recompute)
     subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
     args = parser.parse_args()
 
