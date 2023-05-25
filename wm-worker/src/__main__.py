@@ -116,7 +116,7 @@ async def main():
         return f'Indexed {indexed_docs} documents'
 
     subparsers.add_parser('kanka.live').set_defaults(func=kanka.cron)
-    subparsers.add_parser('es.update_mentions').set_defaults(func=kanka.recompute)
+    subparsers.add_parser('es.recompute').set_defaults(func=kanka.recompute)
     subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
     args = parser.parse_args()
 

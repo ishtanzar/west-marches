@@ -18,7 +18,7 @@ class Kanka:
     _doc_types = {}
     _users = {}
     _roles = {
-        195421: 'Public'  # todo: find API endpoint for campaign roles
+        195421: 'Public'  # todo: https://trello.com/c/3zrtWskR/1007-api-roles
     }
 
     entities_cache = {}
@@ -295,7 +295,7 @@ class Kanka:
         docs = elasticsearch.helpers.async_scan(client=self.es, index='kanka_*', query={
             'query': {
                 'query_string': {
-                    'query': "_id:2259866"
+                    'query': "*"
                 }
             }
         })
