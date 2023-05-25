@@ -8,12 +8,16 @@ from .rumors import RumorsCommands
 from ..utils import CompositeMetaClass
 
 
-class Commands(RumorsCommands,
-               # ChatbotCommands,
-               FoundryCommands,
-               InkarnateCommands,
-               KankaCommands,
-               AgendaCommands,
-               Forward,
-               metaclass=CompositeMetaClass):
-    pass
+class Commands(
+    # RumorsCommands,
+    # ChatbotCommands,
+    FoundryCommands,
+    InkarnateCommands,
+    KankaCommands,
+    # AgendaCommands,
+    Forward,
+    metaclass=CompositeMetaClass
+):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)

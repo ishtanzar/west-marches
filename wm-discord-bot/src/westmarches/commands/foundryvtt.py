@@ -21,9 +21,6 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
         pass
 
-    def __init__(self) -> None:
-        super().__init__()
-
     @property
     def foundry_url(self):
         return 'http://%s:5000' % os.environ['FOUNDRY_HOST']

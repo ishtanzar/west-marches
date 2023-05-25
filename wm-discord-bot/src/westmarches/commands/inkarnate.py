@@ -58,8 +58,9 @@ class InkarnateCommands(MixinMeta, metaclass=CompositeMetaClass):
     async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
         pass
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
         self._inkarnate = InkarnateApiClient()
 
     @checks.has_permissions(administrator=True)

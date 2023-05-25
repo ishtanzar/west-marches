@@ -46,4 +46,8 @@ async def setup(bot: Red):
     # log.info("Connecting to API websocket")
     # await io.connect('ws://api:3000/')
 
-    bot.add_cog(WestMarchesCog(bot, io, config_dict))
+    bot.add_cog(WestMarchesCog(
+        bot=bot,
+        io=io,
+        config=config_dict
+    ))

@@ -6,6 +6,7 @@ from discord.ext.commands import Context
 from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import Cog
+from elasticsearch import AsyncElasticsearch as Elasticsearch
 
 from . import commands
 from .api import WestMarchesApiClient, BasicAuth, HTTPException
@@ -19,14 +20,21 @@ class WestMarchesCog(commands.Commands,
                      metaclass=CompositeMetaClass):
 
     def __init__(self, bot: Red, io: socketio.AsyncClient, config: dict):
-        super().__init__()
+        super(Cog, self).__init__()
 
         self.bot = bot
         self.io = io
-        self.setup_events()
+        self.es = Elasticsearch('http://elasticsearch:9200')
 
         self.config = Config.get_conf(self, identifier=567346224)
         self.config.register_global(**config)
+
+        # noinspection PyArgumentList
+        super(commands.Commands, self).__init__(
+            kanka_endpoint=config.get('kanka', {}).get('endpoint')
+        )
+
+        self.setup_events()
 
         api_auth = BasicAuth('foundry_manager', os.environ['WM_API_SECRET'])
         self.api_client = WestMarchesApiClient(api_auth, os.environ['WM_API_ENDPOINT'])

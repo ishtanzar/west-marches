@@ -1,7 +1,8 @@
-import discord
 import os
-import requests
 from abc import abstractmethod
+
+import discord
+import requests
 from discord.ext.commands import Context
 from discord.raw_models import RawReactionActionEvent
 from redbot.core import commands, checks
@@ -30,9 +31,13 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
     async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
         pass
 
-    def __init__(self, endpoint='https://kanka.io/api/1.0/campaigns/67312'):
+    def __init__(self, kanka_endpoint, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self._token = os.environ['KANKA_TOKEN']
-        self._endpoint = endpoint
+        self._endpoint = kanka_endpoint
+
+        # self._es = es
 
     @checks.has_permissions(administrator=True)
     @commands.group(name="kanka")
@@ -48,6 +53,37 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     # @command_kanka.command()
     # async def user_set_gm(self, ctx: commands.Context, user_str: str):
+
+    @command_kanka.command()
+    async def search(self, ctx: commands.Context, query: str):
+        resp = await self.es.search(index='kanka_*', query={
+            'query_string': {
+                'query': query,
+                'fields': ["name^5", "*.name^3", "child.entry"]
+            }
+        }, highlight={
+            'fields': {
+                '*.*': {}
+            }
+        }, size=50)
+
+        hits = {}
+        for doc in resp['hits']['hits']:
+            source = doc.get('_source', {})
+            type_ = source.get('type')
+
+            if type_ in hits and len(hits[type_]) <= 3:
+                hits[type_].append(source)
+            else:
+                hits[type_] = [source]
+
+        msg = ''
+        for type_ in hits:
+            msg += type_ + ' :\n'
+            for hit in hits[type_]:
+                msg += f'* {hit["name"]} - {hit["urls"]["view"]}\n'
+
+        await ctx.send(msg if msg else 'Aucun résultat')
 
     @command_kanka.command(name="reports_channel")
     async def set_reports_channel(self, ctx: commands.Context):

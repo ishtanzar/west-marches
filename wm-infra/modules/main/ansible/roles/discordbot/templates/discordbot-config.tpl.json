@@ -9,6 +9,9 @@
   ],
   "intents": [],
   "taverns": [],
+  "kanka": {
+    "endpoint": "https://kanka.io/api/1.0/campaigns/67312"
+  },
   "log": {
     "handlers": {
       "json": {

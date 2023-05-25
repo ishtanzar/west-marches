@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 
 from discord.ext.commands import Context
+from elasticsearch import AsyncElasticsearch as Elasticsearch
 from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import commands
@@ -53,6 +54,7 @@ class MixinMeta(ABC):
     config: Config
     io: AsyncClient
     api_client: WestMarchesApiClient
+    es: Elasticsearch
 
     @abstractmethod
     async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):

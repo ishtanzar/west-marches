@@ -5,3 +5,4 @@ validators==0.18.2
 requests==2.27.1
 boto3==1.23.10
 python-socketio[asyncio_client]==5.7.1
+elasticsearch[async]==8.7.0
