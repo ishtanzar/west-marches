@@ -3,6 +3,7 @@ import json
 import logging
 import random
 import re
+from io import StringIO
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
@@ -10,6 +11,7 @@ import discord
 import elasticsearch.helpers
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
+from elasticsearch.exceptions import ApiError
 
 from services.utils import Cache
 
@@ -43,6 +45,7 @@ class Kanka:
     async def initialize(self):
         await self.refresh_users()
         self._doc_types = await self.fetch_entity_types()
+        pass
 
     async def fetch(self, endpoint, last_sync=None, page=1, related=False):
         data = []
@@ -88,7 +91,8 @@ class Kanka:
 
     async def get_notification_channel(self):
         if not self.discord_notification_channel:
-            self.discord_notification_channel = await self.discord.fetch_channel(self.config.discord.kanka_notify_channel)
+            self.discord_notification_channel = await self.discord.fetch_channel(
+                self.config.discord.kanka_notify_channel)
         return self.discord_notification_channel
 
     async def get_calendar_notification_config(self):
@@ -290,7 +294,7 @@ class Kanka:
 
                 return entity_id
             except Exception as e:
-                self.logger.error(f'Failed to index {entity_type}/{entity_name}: {e}')
+                self.logger.error(f'Failed to index {entity_type}/{entity_name}', exc_info=e)
 
     async def recompute(self):
         docs = elasticsearch.helpers.async_scan(client=self.es, index='kanka_*', query={
@@ -304,6 +308,79 @@ class Kanka:
         async for doc in docs:
             await self.index(doc['_source'])
 
+    async def sync_tag_characters(self):
+        self.logger.debug('Fetching characters from foundry')
+        foundry = requests.get('http://foundry:30000/api/actors')
+
+        if foundry.status_code == 200:
+            missing_pcs = []
+            malformed_journals = []
+            warns = []
+
+            for foundry_pc in foundry.json().get('actors', []):
+                pc_name = foundry_pc.get('name')
+                tags = []
+                characters = []
+
+                self.logger.debug(f'Searching for a tag named "{pc_name}" in ES')
+                try:
+                    docs = await self.es.search(index=['kanka_tag', 'kanka_character'], query={
+                        'query_string': {
+                            'query': f'name:"{pc_name}"'
+                        }
+                    })
+
+                    for es_pc in docs.get('hits', {}).get('hits', []):
+                        if es_pc.get('_source', {}).get('type') == 'tag':
+                            tags.append(es_pc.get('_source', {}))
+                        else:
+                            characters.append(es_pc.get('_source', {}))
+
+                    if (pc_hits := len(characters)) == 0:
+                        self.logger.info(f'No Character matching Actor named "{pc_name}"')
+                        missing_pcs.append(foundry_pc)
+                    elif pc_hits > 1:
+                        self.logger.warning(warn := f'{pc_hits} Characters matching Actor named "{pc_name}"')
+                        warns.append(warn)
+                    elif pc_hits == 1:
+                        self.logger.debug(f'Found Character matching Actor named "{pc_name}", skipping')
+                        if (tag_hits := len(tags)) == 0:
+                            self.logger.info(f'No Tag matching Actor named "{pc_name}"')
+                        elif tag_hits > 1:
+                            self.logger.warning(warn := f'{tag_hits} Tags matching Actor named "{pc_name}"')
+                            warns.append(warn)
+                        elif tag_hits == 1:
+                            resp = await self.es.search(index=['kanka_journal'], query={
+                                'query_string': {'query': f'child.tags:{tags[0].get("child_id")}'}})
+                            journals_tag = resp.get('hits', {}).get('hits', [])
+
+                            resp = await self.es.search(index=['kanka_journal'], query={
+                                'query_string': {'query': f'child.mentions.id:{characters[0].get("child_id")}'}})
+                            journals_ids_character = [journal.get('_id') for journal in
+                                                      resp.get('hits', {}).get('hits', [])]
+
+                            for journal in journals_tag:
+                                if journal.get('_id') not in journals_ids_character:
+                                    malformed_journals.append(journal.get('_source', {}))
+
+                except ApiError as e:
+                    self.logger.error(f'Failed to search in ES: {e.message}')
+
+            msg = StringIO(
+                'Rapport de migration Tag => Character \n'
+                '======== \n'
+                'PJ n\'ayant pas de fiche Kanka du type Character : \n'
+                + ('\n'.join(['- ' + pc.get('name') for pc in missing_pcs])) +
+                'Journals utilisant un Tag alors que le personnage existe comme Character :\n'
+                + ('\n'.join(['- ' + journal_.get('name') for journal_ in malformed_journals]))
+            )
+
+            # channel = await self.discord.fetch_channel(859352329294577684)  # PM
+            channel = await self.discord.fetch_channel(859433172704690186)  # dvp-bot-test
+            await channel.send(file=discord.File(msg, filename='report.txt'))
+        else:
+            self.logger.error('Failed to fetch Player Characters from Foundry')
+
     def init_cache(self):
         users_cache_file = Path(self.config.cache.base_path) / 'users.cache.json'
         if users_cache_file.exists():
@@ -311,4 +388,3 @@ class Kanka:
                 self._users = json.load(fp)
 
         self.entities_cache = Cache(Path(self.config.cache.base_path) / 'entities.cache.json')
-
