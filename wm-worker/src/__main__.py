@@ -102,6 +102,8 @@ async def main():
     queue.register('questions.cron', questions.cron)
     queue.register('donations.reset', donations.reset)
 
+    subparsers.add_parser('kanka.live').set_defaults(func=kanka.sync)
+    subparsers.add_parser('kanka.sync_tags').set_defaults(func=kanka.sync_tag_characters)
     subparsers.add_parser('foundry.update').set_defaults(func=foundry.cron)
     subparsers.add_parser('foundry.backup').set_defaults(func=foundry.backup)
     subparsers.add_parser('foundry.upgrade_audit').set_defaults(func=foundry.upgrade_audit)
