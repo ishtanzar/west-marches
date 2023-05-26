@@ -224,6 +224,7 @@ services:
       - elasticsearch
       - api
       - redis
+      - foundry
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}
