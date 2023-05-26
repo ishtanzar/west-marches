@@ -1,24 +1,27 @@
 
+import Actor from 'foundry:dist/database/documents/actor.mjs';
+
 export default class Actors {
-  async get(req, res) {
+  async get(req, resp) {
     try {
-      res.set('Content-Type', 'application/json');
+      const vars = {
+        req: req,
+        resp: resp,
+        filter: req.query,
+        actors: []
+      };
 
-      const players = await db['User'].db.findMany({'role': { $lt: 4 }});
-      const users_ids = players.map(function(user) { return user._id });
+      await extensibleFoundry.hooks.callAsync('pre.api.actors.get', vars);
 
-      const actors = await db['Actor'].db.findMany({ $where: function () {
-          const owners = Object.entries(this.permission)
-            .map(function([user, level]) { return level === 3 ? user : null })
-            .filter(function(user) {
-              return users_ids.indexOf(user) !== -1;
-            });
-          return owners.length > 0;
-        }});
+      resp.set('Content-Type', 'application/json');
 
-      res.send({'actors': actors});
+      vars.actors = await Actor.find(Object.keys(vars.filter).length > 0 ? vars.filter : {'type': 'character'});
+
+      await extensibleFoundry.hooks.callAsync('post.api.actors.get', vars);
+
+      resp.send({ actors: vars.actors });
     } catch (ex) {
-      res.status(500).end(ex.toString());
+      resp.status(500).end(ex.toString());
     }
   }
 }
