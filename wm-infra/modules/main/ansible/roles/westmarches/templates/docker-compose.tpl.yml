@@ -136,6 +136,21 @@ services:
       - KANKA_TOKEN={{ KANKA_TOKEN }}
       - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
       - PYTHONUNBUFFERED=1
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    environment:
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
   discordbot_workaround:
     image: "{{ discord_workaround_image }}"
     volumes:
