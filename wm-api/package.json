@@ -6,26 +6,29 @@
     "dependencies": {
         "@svgdotjs/svg.js": "^3.1.2",
         "ajv": "^8.11.0",
+        "axios": "^1.4.0",
+        "bee-queue": "^1.5.0",
         "cors": "^2.8.5",
+        "dayjs": "^1.11.7",
         "discord-interactions": "^3.2.0",
         "discord.js": "^14.6.0",
         "express": "^4.18.2",
         "express-http-proxy": "^1.6.3",
         "honeycomb-grid": "^3.1.8",
+        "jsonwebtoken": "^9.0.0",
         "lmdb": "2.6.8-v1",
+        "lmdb-query": "^1.5.4",
         "lodash": "^4.17.21",
         "sharp": "^0.31.1",
         "socket.io": "^4.5.2",
-        "dayjs": "^1.11.7",
         "svgdom": "github:TomFalkner/svgdom#fix_getElementById_is_not_a_function",
-        "bee-queue": "^1.5.0",
         "winston": "~3.8.2"
     },
     "devDependencies": {
-        "jest": "~29.5.0",
         "@jest/globals": "~29.5.0",
-        "supertest": "~6.3.3",
-        "redis-mock": "~0.56.3"
+        "jest": "~29.5.0",
+        "redis-mock": "~0.56.3",
+        "supertest": "~6.3.3"
     },
     "jest": {
         "testEnvironment": "node",

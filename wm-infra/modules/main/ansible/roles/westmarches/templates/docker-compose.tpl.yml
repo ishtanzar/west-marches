@@ -95,12 +95,18 @@ services:
     volumes:
       - "{{ westmarches_data_path }}/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs"
       - "{{ westmarches_data_path }}/api/config.json:/opt/api/config.json"
+      - "{{ westmarches_data_path }}/api/data:/opt/data"
       - "{{ westmarches_data_path }}/worker/cache:/var/cache/westmarches/worker"
     environment:
       - CONFIG_PATH=/opt/api/config.json
       - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
       - DISCORD_BOT_PUBLIC_KEY={{ DISCORD_BOT_PUBLIC_KEY }}
       - KOFI_VERIFICATION={{ KOFI_VERIFICATION }}
+      - WEB_ROOT=https://{{ api_fqdn }}
+      - ADMIN_KEY={{ api_secret }}
+      - DISCORD_OAUTH_CLIENT={{ OAUTH_CLIENT }}
+      - DISCORD_OAUTH_SECRET={{ OAUTH_SECRET }}
+      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
     links:
       - redis
     healthcheck:
