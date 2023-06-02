@@ -142,7 +142,7 @@ class Kanka:
         self.logger.info('[Kanka] syncing')
         entities, last_sync = await self.fetch_entities()
 
-        # await self.notify(entities=entities)
+        await self.notify(entities=entities)
         await self.index(entities=entities)
 
         self.entities_cache["last_sync"] = last_sync
