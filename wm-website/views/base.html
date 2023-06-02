@@ -24,6 +24,14 @@
                     <a class="nav-link" href="/map">Carte</a>
                     <a class="nav-link" href="https://play.westmarches.localhost.lan">Jouer</a>
                 </div>
+                <div class="navbar-nav ms-auto">
+                    {% if discordLoggedIn %}
+                    <a href="/me" class="nav-link">Mon compte</a>
+                    {% else %}
+                    <a href="#" class="nav-link">Rejoindre</a>
+                    <a href="/login" class="nav-link">Se connecter</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>

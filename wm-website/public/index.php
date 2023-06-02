@@ -44,6 +44,16 @@ $twig = Twig::create(__DIR__ . '/../views', [
 //    'cache' => '/var/cache/wm-portal/twig'
 ]);
 
+$twig['discordLoggedIn'] = false;
+$twig['kankaLoggedIn'] = false;
+$userIdSalt = 'XFJsu4w3D';
+
+//dba_open()
+/*
+ * path: `/opt/data/api/westmarches.db/westmarches/users.mdb`,
+
+ */
+
 $app->addErrorMiddleware(true, true, true);
 $app->add(new SessionMiddleware());
 $app->add(TwigMiddleware::create($app, $twig));
@@ -68,6 +78,8 @@ $jwtKey = InMemory::file(getenv('JWT_CERTIFICATE'));
 class JwtContent {
     public string $kankaToken = '';
     public string $discordToken = '';
+    public string $username = '';
+    public string $user_id = '';
 
     public function __toArray(): array
     {
@@ -163,8 +175,7 @@ function performOAuth(Request $request, Response $response, OAuthOptions $option
     }
 }
 
-// Authenticated routes
-$app->group('', function (RouteCollectorProxy $group) {
+$app->group('', function (RouteCollectorProxy $group) use ($app) {
     // Home
     $group->get('/', function (Request $request, Response $response) {
         $view = Twig::fromRequest($request);
@@ -172,11 +183,49 @@ $app->group('', function (RouteCollectorProxy $group) {
         return $view->render($response, 'index.html', []);
     });
 
-    // Map
-    $group->get('/map', function (Request $request, Response $response) {
-        $view = Twig::fromRequest($request);
+    $group->group('', function (RouteCollectorProxy $group) {
+        // Map
+        $group->get('/map', function (Request $request, Response $response) {
+            $view = Twig::fromRequest($request);
 
-        return $view->render($response, 'map.html', []);
+            return $view->render($response, 'map.html', []);
+        });
+
+        // Account
+        $group->get('/me', function (Request $request, Response $response) {
+            $kanka_username = 'Inconnu';
+
+            $session = new SessionHelper();
+            $view = Twig::fromRequest($request);
+            $guzzle = new \GuzzleHttp\Client();
+            $resp = $guzzle->get('https://kanka.io/api/1.0/profile', [
+                'headers' => [
+                    'Authorization' => 'Bearer '.$session->get(KANKA_ACCESS_TOKEN_SESSION_KEY)
+                ]
+            ]);
+
+            if($resp->getStatusCode() == 200) {
+                $body_obj = json_decode($resp->getBody(), true);
+                $kanka_username = $body_obj['data']['name'];
+            }
+
+            return $view->render($response, 'account.html', [
+                'kanka_username' => $kanka_username
+            ]);
+        });
+    })->add(function (Request $request, RequestHandler $handler) use ($app) {
+        // Enforce authentication
+        $session = new SessionHelper();
+
+        if ($session->exists(DISCORD_ACCESS_TOKEN_SESSION_KEY)) {
+            return $handler->handle($request);
+        }
+
+        return $app->getResponseFactory()->createResponse(302)
+            ->withHeader('Location', (string)$request->getUri()
+                ->withPath('/login')
+                ->withQuery((string)Query::createFromParams(['redirect_uri' => (string)$request->getUri()]))
+            );
     });
 })->add(function (Request $request, RequestHandler $handler) use ($jwtKey, $jwtContent) {
     // Send JWT
@@ -207,28 +256,42 @@ $app->group('', function (RouteCollectorProxy $group) {
     // Kanka authentication middleware
     $session = new SessionHelper();
 
-    $twig['kankaLoggedIn'] = false;
-
     if($session->exists(KANKA_ACCESS_TOKEN_SESSION_KEY)) {
         $jwtContent->kankaToken = $session->get(KANKA_ACCESS_TOKEN_SESSION_KEY);
         $twig['kankaLoggedIn'] = true;
     }
 
     return $handler->handle($request);
-})->add(function (Request $request, RequestHandler $handler) use ($app, $jwtContent) {
+})->add(function (Request $request, RequestHandler $handler) use ($twig, $jwtContent, $userIdSalt) {
     // Authentication middleware
     $session = new SessionHelper();
+    $discordToken = $session->get(DISCORD_ACCESS_TOKEN_SESSION_KEY);
 
     if ($session->exists(DISCORD_ACCESS_TOKEN_SESSION_KEY)) {
+        $client = new \GuzzleHttp\Client();
+        $resp = $client->get('https://discord.com/api/oauth2/@me', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $discordToken
+            ]
+        ]);
+
+        if($resp->getStatusCode() == 200) {
+            $discordMe = json_decode($resp->getBody());
+            $discordUser = $discordMe->user;
+
+            $jwtContent->username = $discordUser->username;
+            $jwtContent->user_id = sha1($userIdSalt.$discordUser->id);
+        }
+
         $jwtContent->discordToken = $session->get(DISCORD_ACCESS_TOKEN_SESSION_KEY);
-        return $handler->handle($request);
+        $twig['discordLoggedIn'] = true;
+
+//        $db = dba_open('/opt/data/api/westmarches.db/westmarches/users.mdb', 'c', 'lmdb');
+
+
     }
 
-    return $app->getResponseFactory()->createResponse(302)
-        ->withHeader('Location', (string)$request->getUri()
-            ->withPath('/login')
-            ->withQuery((string) Query::createFromParams(['redirect_uri' => (string) $request->getUri()]))
-        );
+    return $handler->handle($request);
 })->add(function (Request $request, RequestHandler $handler) use ($jwtContent) {
     // Existing JWT cookie
     $session = new SessionHelper();
