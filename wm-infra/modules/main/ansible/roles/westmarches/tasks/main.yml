@@ -5,6 +5,7 @@
     state: directory
   loop:
     - "{{ westmarches_data_path }}/api"
+    - "{{ westmarches_data_path }}/api/data"
     - "{{ westmarches_data_path }}/influxdb"
     - "{{ westmarches_data_path }}/workaround"
     - "{{ westmarches_data_path }}/worker"

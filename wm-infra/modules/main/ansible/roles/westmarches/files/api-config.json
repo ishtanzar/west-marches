@@ -11,5 +11,15 @@
   "discord": {
     "gm_notif_channel": "1051269735146340453",
     "progress_channel": "1018861629779226634"
+  },
+  "oauth": {
+    "discord": {
+      "scopes": ["identify"]
+    }
+  },
+  "lmdb": {
+    "root": "/opt/data/lmdb/api",
+    "oauth_codes": "oauth_codes.mdb",
+    "users": "users.mdb"
   }
 }

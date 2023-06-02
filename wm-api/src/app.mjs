@@ -7,34 +7,23 @@ import {fileURLToPath} from 'url';
 import {readFile} from "fs/promises";
 
 import sharp from 'sharp';
-import { open } from 'lmdb';
-import {Client, EmbedBuilder, TextChannel} from "discord.js";
+import {open} from 'lmdb';
+import {Client, TextChannel} from "discord.js";
 
 import _ from 'lodash';
 import Honeycomb from 'honeycomb-grid';
 import {registerWindow, SVG} from '@svgdotjs/svg.js';
 import {createSVGWindow} from 'svgdom';
 import schema_hex from './schema_hex.mjs';
-import {verifyKeyMiddleware, InteractionResponseType} from "discord-interactions";
+import {InteractionResponseType, verifyKeyMiddleware} from "discord-interactions";
 import crypto from "crypto";
-import {readFileSync, writeFileSync} from "fs";
 import dayjs from "dayjs";
 import 'dayjs/locale/fr.js';
 import BeeQueue from "bee-queue";
 import {KofiDonationProcessor} from "./kofi.mjs";
-
-String.prototype.format = function () {
-    // store arguments in an array
-    const args = arguments;
-    // use replace to iterate over the string
-    // select the match and check if the related argument is present
-    // if yes, replace the match with the argument
-    return this.replace(/{([0-9]+)}/g, function (match, index) {
-        // check if the argument is present
-        return typeof args[index] == 'undefined' ? match : args[index];
-    });
-};
-
+import axios from "axios";
+import jwt from "jsonwebtoken";
+import {DatabaseService} from "./database.mjs";
 
 global._ = _;
 global.Honeycomb = Honeycomb;
@@ -51,8 +40,6 @@ const { default: config } = await import(path.relative(__dirname, process.env.CO
 config.kofi.verification_token = process.env.KOFI_VERIFICATION
 
 const ajv = new Ajv();
-export const app = express();
-
 const discord = new Client({intents: []});
 
 const validate_body_hex = ajv.compile(schema_hex)
@@ -67,21 +54,14 @@ const kofiPayloads = new BeeQueue('kofi_payloads', {
 });
 
 kofiPayloads.on('job succeeded', async (jobId, _) => {
-   await kofiPayloads.removeJob(jobId);
+    await kofiPayloads.removeJob(jobId);
 });
 
 let ioSocket;
 
 await discord.login(process.env.DISCORD_BOT_SECRET);
 
-app.use(cors());
-app.set('etag', true);
-app.use('/kanka_api', proxy('kanka.io', {
-    https: true,
-    proxyReqPathResolver: function (req) {
-        return '/api' + req.url
-    }
-}));
+const regex_uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const processor = new KofiDonationProcessor(config, discord);
 kofiPayloads.process(job => processor.process_kofi_payload(job.data));
@@ -149,92 +129,258 @@ function validate_param_zoom(param) {
     return param.match(/^[0-9]$/)
 }
 
-app.get('/health', async (req, res) => {
-    res.send('OK')
-})
+export class App {
 
-app.get('/map/:zoom/charted.json', async (req, res) => {
-    if(validate_param_zoom(req.params.zoom)) {
-        const db = getZoomDB(req.params.zoom)
-
-        res.json({
-            'charted': db.getRange().map(entry => entry.value)
-        })
-    } else {
-        res.status(400).json({message: "Bad Request"})
+    constructor(config) {
+        this.config = config;
+        this.app = express();
+        const db = this.db = new DatabaseService(config)
     }
-})
 
-app.post('/map/:zoom/charted.json', express.json(), async (req, res) => {
-    if(validate_param_zoom(req.params.zoom) && validate_body_hex(req.body)) {
-        const hexmap = req.body.hexmap || [req.body],
-            db = getZoomDB(req.params.zoom),
-            ops = []
+    get get() {
+        return this.app;
+    }
 
-        db.getRange().forEach(({ key, value }) => {
-            let index;
-            const hex = hexmap.filter((hex, idx) => {
-                if(hex.x === key[0] && hex.y === key[1]) {
-                    index = idx; return true
+    async initialize() {
+        await this.middlewares();
+        await this.routes();
+
+        return this;
+    }
+
+    async middlewares() {
+        this.app
+            .use(cors())
+            .use('/kanka_api', proxy('kanka.io', {
+                https: true,
+                proxyReqPathResolver: function (req) {
+                    return '/api' + req.url
+                }}))
+            .set('etag', true);
+    }
+
+    async routes() {
+        this.app.get('/health', this.health);
+        this.app.get('/oauth/discord', this.oauth_discord.bind(this));
+        this.app.get('/oauth/discord/perform', this.oath_discord_perform.bind(this));
+        this.app.post('/kofi/hook', express.urlencoded({ extended: true}), this.kofi);
+        this.app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PUBLIC_KEY), this.discord_interactions);
+
+        this.app.get('/users/:id', (req, res, next) => {
+            let header;
+            if ((header = req.header('Authorization')).startsWith('ApiKey-v1')) {
+                const [,apiKey] = header.split(' ');
+                if(apiKey === config.web.admin_key) {
+                    return next();
                 }
-            })
-            if(hex.length > 0) {
-                ops.push(db.put(key, _.merge(value, hex[0])))
-                hexmap.splice(index, 1);
+            }
+            res.status(401).send('Unauthorized');
+        }, this.get_user.bind(this));
+
+        this.app.get('/map/:zoom/charted.json', async (req, res) => {
+            if(validate_param_zoom(req.params.zoom)) {
+                const db = getZoomDB(req.params.zoom)
+
+                res.json({
+                    'charted': db.getRange().map(entry => entry.value)
+                })
+            } else {
+                res.status(400).json({message: "Bad Request"})
             }
         })
 
-        hexmap.forEach(hex => ops.push(db.put([hex.x, hex.y], hex)))
+        this.app.post('/map/:zoom/charted.json', express.json(), async (req, res) => {
+            if(validate_param_zoom(req.params.zoom) && validate_body_hex(req.body)) {
+                const hexmap = req.body.hexmap || [req.body],
+                    db = getZoomDB(req.params.zoom),
+                    ops = []
 
-        await Promise.all(ops)
-        await buildChartedMap();
+                db.getRange().forEach(({ key, value }) => {
+                    let index;
+                    const hex = hexmap.filter((hex, idx) => {
+                        if(hex.x === key[0] && hex.y === key[1]) {
+                            index = idx; return true
+                        }
+                    })
+                    if(hex.length > 0) {
+                        ops.push(db.put(key, _.merge(value, hex[0])))
+                        hexmap.splice(index, 1);
+                    }
+                })
 
-        res.status(200).json({message: "OK"})
-    } else {
-        res.status(400).json({message: "Bad Request"})
+                hexmap.forEach(hex => ops.push(db.put([hex.x, hex.y], hex)))
+
+                await Promise.all(ops)
+                await buildChartedMap();
+
+                res.status(200).json({message: "OK"})
+            } else {
+                res.status(400).json({message: "Bad Request"})
+            }
+        })
+
+        this.app.get('/map/:zoom/charted.jpg', async (req, res) => {
+            // 800/1019-389.png Aberdeen
+            // 12/90-25.png Aberdeeen
+
+            // res.type('.jpg')
+            // res.set('etag', crypto.createHmac('sha256', finalBuffer).digest('base64'))
+            res.sendFile(chartedMapFile)
+        });
+
+        this.app.get('/donations/progress.jpg', async (req, resp) => {
+            resp.sendFile('/opt/project/wm-api/src/progress.jpg');
+        })
     }
-})
 
-app.get('/map/:zoom/charted.jpg', async (req, res) => {
-    // 800/1019-389.png Aberdeen
-    // 12/90-25.png Aberdeeen
+    async health(req, res) {
+        res.send('OK')
+    }
 
-    // res.type('.jpg')
-    // res.set('etag', crypto.createHmac('sha256', finalBuffer).digest('base64'))
-    res.sendFile(chartedMapFile)
-});
+    async oauth_discord(req, res) {
+        const app_redirect = req.params.redirect_uri || null;
+        const key = crypto.randomUUID();
+        const db = this.db.open(this.config.lmdb.oauth_codes);
 
-app.get('/donations/progress.jpg', async (req, resp) => {
-    resp.sendFile('/opt/project/wm-api/src/progress.jpg');
-})
+        await db.put(key, {
+            redirect: app_redirect,
+            created_at: Date.now()
+        });
 
-app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PUBLIC_KEY), async (req, res) => {
-    switch (req.body.data?.custom_id) {
-        case 'generic_cancel':
-            /**
-             * @type {TextChannel}
-             */
-            const channel = await discord.channels.fetch(req.body.message.channel_id);
-            await channel.messages.delete(req.body.message.id);
-            break;
-        case 'map_set_location':
-            res.json({
-                type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
-                data: {}
+        res.redirect(`https://discord.com/api/oauth2/authorize` +
+            `?client_id=${this.config.oauth.discord.client_id}` +
+            `&redirect_uri=${encodeURIComponent(`${this.config.web.host}/oauth/discord/perform`)}` +
+            `&response_type=code&scope=${encodeURIComponent(this.config.oauth.discord.scopes.join(" "))}` +
+            `&state=${key}`)
+    }
+
+    async oath_discord_perform(req, res) {
+        const key = req.query.state;
+        const code = req.query.code;
+
+        if(key.match(regex_uuid)) {
+            let token_resp, identity_resp;
+
+            try {
+                token_resp = await axios.post(
+                    'https://discord.com/api/oauth2/token',
+                    new URLSearchParams({
+                        client_id: this.config.oauth.discord.client_id,
+                        client_secret: this.config.oauth.discord.client_secret,
+                        code: code,
+                        grant_type: 'authorization_code',
+                        redirect_uri: `${this.config.web.host}/oauth/discord/perform`,
+                        scope: 'identify',
+                    })
+                )
+            } catch (e) {
+                if(axios.isAxiosError(e)) {
+                    console.warn(e);
+                    res.status(401).send('Could not validate OAuth code');
+                } else {
+                    throw e;
+                }
+            }
+
+            try {
+                identity_resp = await axios.get('https://discord.com/api/users/@me', {
+                    headers: {
+                        Authorization: `Bearer ${token_resp.data.access_token}`
+                    }
+                });
+            } catch (e) {
+                if(axios.isAxiosError(e)) {
+                    console.warn(e);
+                    res.status(401).send('Invalid access_token');
+                } else {
+                    throw e;
+                }
+            }
+
+            const oauth_collection = this.db.open(this.config.lmdb.oauth_codes);
+            const users_collection = this.db.open(this.config.lmdb.users);
+
+            const redirect = await oauth_collection.pop(key).redirect;
+
+            const users = users_collection.find({discord: {id: identity_resp.data.id}});
+
+            let userId;
+
+            if(users.length >= 1) {
+                [{key: userId}] = users;
+            } else {
+                userId = crypto.randomUUID();
+                await users_collection.put(userId, {
+                    discord: identity_resp.data,
+                    oauth: {
+                        discord: token_resp.data
+                    }
+                });
+            }
+
+            const hostname = new URL(this.config.web.host).hostname;
+            const token = jwt.sign({ user_id: userId }, config.jwt.shared_key, {
+                expiresIn: '2d',
+                audience: hostname,
+                issuer: hostname
             })
-            break;
-        case 'map_fly_to':
-            break;
-        default:
 
-    }
-});
+            res.cookie('access_token', token, {
+                domain: hostname,
+                httpOnly: true,
+                secure: true
+            })
 
-app.post('/kofi/hook', express.urlencoded({ extended: true}), async (req, resp) => {
-    if(req.body.data) {
-        await kofiPayloads.createJob(JSON.parse(req.body.data)).save();
-        resp.send('OK');
-    } else {
-        resp.status(400).send('KO')
+            if(redirect) {
+                res.redirect(redirect);
+            }
+            res.send('OK')
+        } else {
+            res.status(401).send('Invalid state');
+        }
     }
-});
+
+    async get_user(req, res) {
+        const userId = req.params.id;
+
+        if(userId.match(regex_uuid)) {
+            const users = this.db.open(this.config.lmdb.users);
+
+            res.json(users.get(userId));
+        } else {
+            res.status(400).send('Invalid ID');
+        }
+    }
+
+    async discord_interactions(req, res) {
+        switch (req.body.data?.custom_id) {
+            case 'generic_cancel':
+                /**
+                 * @type {TextChannel}
+                 */
+                const channel = await discord.channels.fetch(req.body.message.channel_id);
+                await channel.messages.delete(req.body.message.id);
+                break;
+            case 'map_set_location':
+                res.json({
+                    type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
+                    data: {}
+                })
+                break;
+            case 'map_fly_to':
+                break;
+            default:
+
+        }
+    }
+
+    async kofi(req, resp) {
+        if(req.body.data) {
+            await kofiPayloads.createJob(JSON.parse(req.body.data)).save();
+            resp.send('OK');
+        } else {
+            resp.status(400).send('KO')
+        }
+    }
+
+}
