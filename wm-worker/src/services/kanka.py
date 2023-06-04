@@ -167,7 +167,8 @@ class Kanka:
                 self.logger.warning(f'{count} entities modified, no notifications')
             else:
                 for entity in entities:
-                    await self.queue.put((self.notify, [], {entity: entity}))
+                    logging.getLogger('kanka.notify').debug('Queued')
+                    await self.queue.put((self.notify, [], {'entity': entity}))
         elif entity:
             author = await self.get_user(entity["updated_by"])
             await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'

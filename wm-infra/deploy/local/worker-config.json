@@ -37,7 +37,7 @@
   },
   "cron": {
     "kanka": {
-      "live": "* 12 * * * *"
+      "live": "*/5 * * * *"
     },
     "questions": {
       "review": "0 12 * * *"
