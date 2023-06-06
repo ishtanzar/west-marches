@@ -1,0 +1,11 @@
+{
+  "ExtensibleAuth": {
+    "JWT": {
+      "Enabled.Name": "Enable JWT login",
+      "SharedKey.Name": "JWT shared key",
+      "APIEndpoint.Name": "JWT API endpoint",
+      "APIKey.Name": "JWT API Key",
+      "RedirectUri.Name": "JWT API login redirect URI"
+    }
+  }
+}

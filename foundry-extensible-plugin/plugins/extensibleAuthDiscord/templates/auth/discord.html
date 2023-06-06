@@ -9,8 +9,9 @@
 
 	const view = new ExtensibleAuthDiscord.JoinView(
 			'{{ auth.discord.client_id }}',
-			'{{ auth.discord.redirect_uri }}',
-			'{{ auth.discord.scopes }}'
+			'{{{ auth.discord.redirect_uri }}}',
+			'{{ auth.discord.scopes }}',
+			'{{{ auth.discord.oauth_endpoint }}}'
 	);
 
 	view.setupHook(Hooks);

@@ -24,6 +24,15 @@ export default class MetricsPlugin {
     }
 
     base.hooks.on('pre.express.defineRoutes', router => router.get('/metrics', this.get));
+
+    base.hooks.on('pre.express.userSessionMiddleware', (req, resp, next) => {
+      if(req.path.startsWith('/metrics')) {
+        next();
+        return false;
+      }
+      return true;
+    });
+
     this.setup().update().schedule();
   }
 

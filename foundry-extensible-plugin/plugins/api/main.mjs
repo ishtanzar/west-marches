@@ -20,5 +20,13 @@ export default class ApiPlugin {
       router.put('/api/users/:userId', foundryUsers.update);
       router.get('/api/activity', foundryActivity.get);
     });
+
+    base.hooks.on('pre.express.userSessionMiddleware', (req, resp, next) => {
+      if(req.path.startsWith('/api')) {
+        next();
+        return false;
+      }
+      return true;
+    });
   }
 }

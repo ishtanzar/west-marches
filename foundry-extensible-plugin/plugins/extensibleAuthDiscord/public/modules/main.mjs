@@ -1,10 +1,24 @@
 
 class JoinView {
 
-    constructor(client_id, redirect_uri, scopes) {
+    /**
+     *
+     * @param client_id
+     * @param redirect_uri
+     * @param scopes
+     * @param oauth_endpoint
+     */
+    constructor(client_id, redirect_uri, scopes, oauth_endpoint) {
         this.client_id = client_id;
         this.redirect_uri = redirect_uri;
         this.scopes = scopes;
+
+        this.oauth_endpoint = oauth_endpoint.replace(
+            /{([a-zA-Z_]+)}/g,
+            function (match, index) {
+                return this.hasOwnProperty(index) ? this[index] : match;
+            }.bind(this)
+        )
     }
 
     onClick(event) {
@@ -24,9 +38,9 @@ class JoinView {
         console.log(`ExtensibleAuthDiscord | JoinView | Join button clicked, opening Discord OAuth`);
 
         window.open(
-          `https://discord.com/api/oauth2/authorize?client_id=${this.client_id}&redirect_uri=${this.redirect_uri}&response_type=code&scope=${this.scopes}`,
-          "Authorization",
-          `width=${width},height=${height},top=${top},left=${left}`
+            this.oauth_endpoint,
+            "Authorization",
+            `width=${width},height=${height},top=${top},left=${left}`
         );
     }
 
@@ -60,7 +74,6 @@ export class ExtensibleAuthDiscord {
         game.settings.register("extensibleAuth", "method.discord.enabled", {
             name: "ExtensibleAuth.Discord.Enabled.Name",
             scope: "world",
-            default: false,
             type: Boolean,
             config: true
         });
@@ -85,6 +98,14 @@ export class ExtensibleAuthDiscord {
             name: "ExtensibleAuth.Discord.RedirectUri.Name",
             scope: "world",
             default: '',
+            type: String,
+            config: true
+        });
+
+        game.settings.register("extensibleAuth", "method.discord.oauthEndpoint", {
+            name: "ExtensibleAuth.Discord.OAuthEndpoint.Name",
+            scope: "world",
+            default: 'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}',
             type: String,
             config: true
         });

@@ -46,7 +46,7 @@ config.web = _.merge({
     admin_key: process.env.ADMIN_KEY
 }, config.web)
 
-const app = new App(config);
+const app = global.app = new App(config);
 
 await app.initialize();
 

@@ -20,11 +20,9 @@ export default class ExtensibleExpress extends Express {
     extensibleFoundry.hooks.call('post.express.middleware', router);
   }
 
-  static _userSessionMiddleware(req, resp, next) {
-    if(req.path.startsWith('/api') || req.path.startsWith('/metrics')) {
-      next()
-    } else {
-      Express._userSessionMiddleware(req, resp, next);
+  static async _userSessionMiddleware(req, resp, next) {
+    if(!(await extensibleFoundry.hooks.callAsync('pre.express.userSessionMiddleware', req, resp, next) === false)) {
+      await Express._userSessionMiddleware(req, resp, next);
     }
   }
 

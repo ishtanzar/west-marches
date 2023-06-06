@@ -151,6 +151,7 @@ export class App {
     async middlewares() {
         this.app
             .use(cors())
+            .use(express.json())
             .use('/kanka_api', proxy('kanka.io', {
                 https: true,
                 proxyReqPathResolver: function (req) {
@@ -166,16 +167,10 @@ export class App {
         this.app.post('/kofi/hook', express.urlencoded({ extended: true}), this.kofi);
         this.app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PUBLIC_KEY), this.discord_interactions);
 
-        this.app.get('/users/:id', (req, res, next) => {
-            let header;
-            if ((header = req.header('Authorization')).startsWith('ApiKey-v1')) {
-                const [,apiKey] = header.split(' ');
-                if(apiKey === config.web.admin_key) {
-                    return next();
-                }
-            }
-            res.status(401).send('Unauthorized');
-        }, this.get_user.bind(this));
+        this.app.get('/users', this.api_key_middleware, this.get_users.bind(this));
+        this.app.get('/users/:id', this.api_key_middleware, this.get_user.bind(this));
+        this.app.patch('/users/:id', this.api_key_middleware, this.patch_user.bind(this));
+        //todo: patch
 
         this.app.get('/map/:zoom/charted.json', async (req, res) => {
             if(validate_param_zoom(req.params.zoom)) {
@@ -233,12 +228,23 @@ export class App {
         })
     }
 
+    async api_key_middleware(req, res, next) {
+        let header;
+        if ((header = req.header('Authorization')).startsWith('ApiKey-v1')) {
+            const [, apiKey] = header.split(' ');
+            if (apiKey === config.web.admin_key) {
+                return await next();
+            }
+        }
+        res.status(401).send('Unauthorized');
+    }
+
     async health(req, res) {
         res.send('OK')
     }
 
     async oauth_discord(req, res) {
-        const app_redirect = req.params.redirect_uri || null;
+        const app_redirect = req.query.redirect_uri || null;
         const key = crypto.randomUUID();
         const db = this.db.open(this.config.lmdb.oauth_codes);
 
@@ -300,7 +306,7 @@ export class App {
             const oauth_collection = this.db.open(this.config.lmdb.oauth_codes);
             const users_collection = this.db.open(this.config.lmdb.users);
 
-            const redirect = await oauth_collection.pop(key).redirect;
+            const redirect = (await oauth_collection.pop(key)).redirect;
 
             const users = users_collection.find({discord: {id: identity_resp.data.id}});
 
@@ -319,14 +325,15 @@ export class App {
             }
 
             const hostname = new URL(this.config.web.host).hostname;
+            const domain = hostname.split('.').slice(1).join('.');
             const token = jwt.sign({ user_id: userId }, config.jwt.shared_key, {
                 expiresIn: '2d',
-                audience: hostname,
+                audience: domain,
                 issuer: hostname
             })
 
             res.cookie('access_token', token, {
-                domain: hostname,
+                domain: domain,
                 httpOnly: true,
                 secure: true
             })
@@ -340,6 +347,12 @@ export class App {
         }
     }
 
+    async get_users(req,res) {
+        const users = this.db.open(this.config.lmdb.users);
+
+        res.json(users.find());
+    }
+
     async get_user(req, res) {
         const userId = req.params.id;
 
@@ -347,6 +360,21 @@ export class App {
             const users = this.db.open(this.config.lmdb.users);
 
             res.json(users.get(userId));
+        } else {
+            res.status(400).send('Invalid ID');
+        }
+    }
+
+    async patch_user(req, res) {
+        const userId = req.params.id;
+
+        if(userId.match(regex_uuid)) {
+            const users = this.db.open(this.config.lmdb.users);
+            const user = users.get(userId);
+
+            const updated = Object.assign({}, user, req.body);
+            await users.put(userId, updated);
+            res.json(updated);
         } else {
             res.status(400).send('Invalid ID');
         }

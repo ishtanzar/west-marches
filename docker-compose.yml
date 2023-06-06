@@ -91,6 +91,8 @@ services:
       - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
       - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
       - FOUNDRY_ADMIN_KEY=atropos
+    links:
+      - api
     volumes:
 #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
 #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app:ro
