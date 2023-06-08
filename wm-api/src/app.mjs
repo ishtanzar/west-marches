@@ -340,8 +340,9 @@ export class App {
 
             if(redirect) {
                 res.redirect(redirect);
+                return;
             }
-            res.send('OK')
+            res.send('OK');
         } else {
             res.status(401).send('Invalid state');
         }
