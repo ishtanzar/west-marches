@@ -106,7 +106,7 @@ services:
       - ADMIN_KEY={{ api_secret }}
       - DISCORD_OAUTH_CLIENT={{ OAUTH_CLIENT }}
       - DISCORD_OAUTH_SECRET={{ OAUTH_SECRET }}
-      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
+      - JWT_SHARED_KEY={{ JWT_SHARED_KEY }}
     links:
       - redis
     healthcheck:
