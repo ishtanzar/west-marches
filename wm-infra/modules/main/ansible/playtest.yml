@@ -4,7 +4,7 @@
   gather_facts: no
   vars:
     foundry_version: 9.269
-    extensible_plugin_url: https://api.github.com/repos/ishtanzar/west-marches/actions/artifacts/649349873/zip
+    extensible_plugin_url: https://api.github.com/repos/ishtanzar/west-marches/actions/artifacts/738167651/zip
     suexec_sha: 4c3bb42b093f14da70d8ab924b487ccfbb1397af
     backup_file: worlds-2023-04-21-07-38-973177.zip
   tasks:
@@ -13,9 +13,9 @@
         - ansible.builtin.stat:
             path: "{{ playtest_data_path }}/docker-compose.yml"
           register: compose_stat
-        - community.docker.docker_compose:
-            project_src: "{{ playtest_data_path }}"
-            state: absent
+        - ansible.builtin.command: /usr/bin/docker compose down
+          args:
+            chdir: "{{ playtest_data_path }}"
           when: compose_stat.stat.exists
 
     - block:
@@ -54,7 +54,7 @@
               restart: "unless-stopped"
               volumes:
                 - "./:/data"
-              hostname: foundry
+              hostname: playtest
               environment:
                 - CONTAINER_CACHE=/data/container_cache
                 - CONTAINER_PATCHES=/data/container_patches
@@ -64,6 +64,7 @@
                 - "FOUNDRY_WORLD={{ foundry_world }}"
                 - FOUNDRY_PROXY_PORT=443
                 - FOUNDRY_PROXY_SSL=true
+                - CONTAINER_PRESERVE_CONFIG=true
                 - NODE_OPTIONS=--loader=/data/foundry-extensible-plugin/custom-resolver.mjs
               healthcheck:
                 test: curl localhost:30000/api/status || exit -1
@@ -119,17 +120,20 @@
             - ansible.builtin.shell: |
                 /opt/data/su-exec-{{ suexec_sha }}/su-exec 421:421 unzip -d {{ playtest_data_path }}/Data/ {{ playtest_data_path }}/{{ backup_file }}
 
-    - community.docker.docker_compose:
-        project_src: "{{ playtest_data_path }}"
-        state: present
-      register: docker_compose
+    - ansible.builtin.command: /usr/bin/docker compose up -d
+      args:
+        chdir: "{{ playtest_data_path }}"
       tags: always
+
+    - include_role:
+        name: westmarches
+        tasks_from: playtest-facts.yml
 
     - ansible.builtin.include_role:
         name: westmarches
         tasks_from: ingress.yml
       vars:
-        playtest_ip: "{{ docker_compose | json_query('values(values(services.playtest)[0].networks)[0].IPAddress') }}"
+        playtest_ip: "{{ playtest_container_facts | json_query('values(container.NetworkSettings.Networks)[0].IPAddress') | default('127.0.0.1') }}"
       tags: always
 
     - ansible.builtin.include_role:
