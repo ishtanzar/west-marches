@@ -15,9 +15,14 @@ String.prototype.format = function () {
     // use replace to iterate over the string
     // select the match and check if the related argument is present
     // if yes, replace the match with the argument
-    return this.replace(/{([0-9]+)}/g, function (match, index) {
+    return this.replace(/{([a-zA-Z0-9_]+)}/g, function (match, index) {
         // check if the argument is present
-        return typeof args[index] == 'undefined' ? match : args[index];
+        if(typeof args[0] == 'object' && args[0].hasOwnProperty(index)) {
+            return args[0][index];
+        } else if(typeof args[index] !== 'undefined') {
+            return args[index];
+        }
+        return match;
     });
 };
 
@@ -33,6 +38,14 @@ if('DISCORD_OAUTH_CLIENT' in process.env) {
 
 if('DISCORD_OAUTH_SECRET' in process.env) {
     config.oauth.discord.client_secret = process.env.DISCORD_OAUTH_SECRET;
+}
+
+if('KANKA_OAUTH_CLIENT' in process.env) {
+    config.oauth.kanka.client_id = process.env.KANKA_OAUTH_CLIENT;
+}
+
+if('KANKA_OAUTH_SECRET' in process.env) {
+    config.oauth.kanka.client_secret = process.env.KANKA_OAUTH_SECRET;
 }
 
 if('JWT_SHARED_KEY' in process.env) {

@@ -13,23 +13,21 @@
 <header>
     <nav class="navbar navbar-expand-lg bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Le West Marches du Cairne</a>
+            <a class="navbar-brand" href="/">Le West Marches du Cairne</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-<!--                    <a class="nav-link active" aria-current="page" href="#">Home</a>-->
-                    <a class="nav-link" href="/">Accueil</a>
-                    <a class="nav-link" href="/map">Carte</a>
-                    <a class="nav-link" href="https://play.westmarches.localhost.lan">Jouer</a>
+<!--                    <a class="nav-link" href="/map">Carte</a>-->
+                    <a class="nav-link" href="https://play.westmarches.localhost.lan:8443">Jouer</a>
                 </div>
                 <div class="navbar-nav ms-auto">
-                    {% if discordLoggedIn %}
+                    {% if user.authenticated %}
                     <a href="/me" class="nav-link">Mon compte</a>
                     {% else %}
                     <a href="#" class="nav-link">Rejoindre</a>
-                    <a href="/login" class="nav-link">Se connecter</a>
+                    <a href="https://api.westmarches.localhost.lan:8443/oauth/discord?redirect_uri=https://westmarches.localhost.lan:8443/" class="nav-link">Se connecter</a>
                     {% endif %}
                 </div>
             </div>
@@ -40,7 +38,7 @@
     {% block content %}{% endblock %}
 
     {% block footer %}
-    {% if not kankaLoggedIn %}
+    {% if not (user.oauth.kanka.access_token is defined) %}
     <div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3">
         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">

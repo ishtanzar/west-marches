@@ -21,9 +21,10 @@ import dayjs from "dayjs";
 import 'dayjs/locale/fr.js';
 import BeeQueue from "bee-queue";
 import {KofiDonationProcessor} from "./kofi.mjs";
-import axios from "axios";
 import jwt from "jsonwebtoken";
 import {DatabaseService} from "./database.mjs";
+import cookieParser from "cookie-parser";
+import {oauth_perform, OAuthInvalidCodeException, OAuthInvalidTokenException} from "./auth.mjs";
 
 global._ = _;
 global.Honeycomb = Honeycomb;
@@ -152,25 +153,31 @@ export class App {
         this.app
             .use(cors())
             .use(express.json())
+            .use(cookieParser())
+            .use(this.jwt_middleware.bind(this))
             .use('/kanka_api', proxy('kanka.io', {
                 https: true,
                 proxyReqPathResolver: function (req) {
-                    return '/api' + req.url
+                    return '/api' + req.urlcookieParser
                 }}))
             .set('etag', true);
     }
 
     async routes() {
         this.app.get('/health', this.health);
-        this.app.get('/oauth/discord', this.oauth_discord.bind(this));
-        this.app.get('/oauth/discord/perform', this.oath_discord_perform.bind(this));
+        this.app.get('/oauth/:service', this.oauth.bind(this));
+        this.app.get('/oauth/discord/perform', this.oauth_discord_perform.bind(this));
+        this.app.get('/oauth/kanka/perform',
+            (req, res, next) => {
+                req.user ? next() : res.status(401).send('Unauthorized')
+            },
+            this.oauth_kanka_perform.bind(this));
         this.app.post('/kofi/hook', express.urlencoded({ extended: true}), this.kofi);
         this.app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PUBLIC_KEY), this.discord_interactions);
 
         this.app.get('/users', this.api_key_middleware, this.get_users.bind(this));
         this.app.get('/users/:id', this.api_key_middleware, this.get_user.bind(this));
         this.app.patch('/users/:id', this.api_key_middleware, this.patch_user.bind(this));
-        //todo: patch
 
         this.app.get('/map/:zoom/charted.json', async (req, res) => {
             if(validate_param_zoom(req.params.zoom)) {
@@ -239,11 +246,23 @@ export class App {
         res.status(401).send('Unauthorized');
     }
 
+    async jwt_middleware(req, res, next) {
+        const {access_token} = req.cookies;
+
+        if(access_token) {
+            const {user_id} = jwt.verify(access_token, this.config.jwt.shared_key);
+            req.user = user_id;
+        }
+
+        next();
+    }
+
     async health(req, res) {
         res.send('OK')
     }
 
-    async oauth_discord(req, res) {
+    async oauth(req, res) {
+        const service = req.params.service;
         const app_redirect = req.query.redirect_uri || null;
         const key = crypto.randomUUID();
         const db = this.db.open(this.config.lmdb.oauth_codes);
@@ -253,96 +272,124 @@ export class App {
             created_at: Date.now()
         });
 
-        res.redirect(`https://discord.com/api/oauth2/authorize` +
-            `?client_id=${this.config.oauth.discord.client_id}` +
-            `&redirect_uri=${encodeURIComponent(`${this.config.web.host}/oauth/discord/perform`)}` +
-            `&response_type=code&scope=${encodeURIComponent(this.config.oauth.discord.scopes.join(" "))}` +
-            `&state=${key}`)
+        const authorize_url = this.config.oauth[service].endpoint.format({
+            client_id: this.config.oauth[service].client_id,
+            redirect_uri: `${this.config.web.host}/oauth/${service}/perform`,
+            scope: this.config.oauth[service].scopes.join(" "),
+            state: key
+        });
+
+        res.redirect(authorize_url);
     }
 
-    async oath_discord_perform(req, res) {
+    async oauth_kanka_perform(req, res) {
+        const key = req.query.state;
+        const code = req.query.code;
+
+        if(req.user && key.match(regex_uuid)) {
+            try {
+                const oauth = await oauth_perform(
+                    this.config.oauth.kanka,
+                    code,
+                    `${this.config.web.host}/oauth/kanka/perform`
+                );
+
+                const oauth_collection = this.db.open(this.config.lmdb.oauth_codes);
+                const users_collection = this.db.open(this.config.lmdb.users);
+
+                const redirect = (await oauth_collection.pop(key)).redirect;
+
+                const user = users_collection.get(req.user);
+
+                if(user) {
+                    const user_oauth = Object.assign({}, user.oauth, {kanka: oauth.credentials});
+
+                    await users_collection.put(req.user, Object.assign({}, user, {
+                        kanka: oauth.identity.data,
+                        oauth: user_oauth
+                    }));
+
+                    if(redirect) {
+                        res.redirect(redirect);
+                        return;
+                    }
+                    res.send('OK');
+                }
+
+            } catch (e) {
+                console.warn(e);
+                if(e instanceof OAuthInvalidCodeException) {
+                    res.status(401).send('Could not validate OAuth code');
+                } else if(e instanceof OAuthInvalidTokenException){
+                    res.status(401).send('Could not fetch resource owner details');
+                } else {
+                    throw e;
+                }
+            }
+
+        }
+        res.status(401).send('Unauthorized');
+    }
+
+    async oauth_discord_perform(req, res) {
         const key = req.query.state;
         const code = req.query.code;
 
         if(key.match(regex_uuid)) {
-            let token_resp, identity_resp;
 
             try {
-                token_resp = await axios.post(
-                    'https://discord.com/api/oauth2/token',
-                    new URLSearchParams({
-                        client_id: this.config.oauth.discord.client_id,
-                        client_secret: this.config.oauth.discord.client_secret,
-                        code: code,
-                        grant_type: 'authorization_code',
-                        redirect_uri: `${this.config.web.host}/oauth/discord/perform`,
-                        scope: 'identify',
-                    })
-                )
+                const oauth = await oauth_perform(this.config.oauth.discord, code, `${this.config.web.host}/oauth/discord/perform`);
+
+                const oauth_collection = this.db.open(this.config.lmdb.oauth_codes);
+                const users_collection = this.db.open(this.config.lmdb.users);
+
+                const redirect = (await oauth_collection.pop(key)).redirect;
+
+                const users = users_collection.find({discord: {id: oauth.identity.id}});
+
+                let userId;
+
+                if(users.length >= 1) {
+                    [{key: userId}] = users;
+                } else {
+                    userId = crypto.randomUUID();
+                    await users_collection.put(userId, {
+                        discord: oauth.identity,
+                        oauth: {
+                            discord: oauth.credentials
+                        }
+                    });
+                }
+
+                const hostname = new URL(this.config.web.host).hostname;
+                const domain = hostname.split('.').slice(1).join('.');
+                const token = jwt.sign({ user_id: userId }, config.jwt.shared_key, {
+                    expiresIn: '2d',
+                    audience: domain,
+                    issuer: hostname
+                })
+
+                res.cookie('access_token', token, {
+                    domain: domain,
+                    httpOnly: true,
+                    secure: true
+                })
+
+                if(redirect) {
+                    res.redirect(redirect);
+                    return;
+                }
+                res.send('OK');
             } catch (e) {
-                if(axios.isAxiosError(e)) {
-                    console.warn(e);
+                console.warn(e);
+                if(e instanceof OAuthInvalidCodeException) {
                     res.status(401).send('Could not validate OAuth code');
+                } else if(e instanceof OAuthInvalidTokenException){
+                    res.status(401).send('Could not fetch resource owner details');
                 } else {
                     throw e;
                 }
             }
-
-            try {
-                identity_resp = await axios.get('https://discord.com/api/users/@me', {
-                    headers: {
-                        Authorization: `Bearer ${token_resp.data.access_token}`
-                    }
-                });
-            } catch (e) {
-                if(axios.isAxiosError(e)) {
-                    console.warn(e);
-                    res.status(401).send('Invalid access_token');
-                } else {
-                    throw e;
-                }
-            }
-
-            const oauth_collection = this.db.open(this.config.lmdb.oauth_codes);
-            const users_collection = this.db.open(this.config.lmdb.users);
-
-            const redirect = (await oauth_collection.pop(key)).redirect;
-
-            const users = users_collection.find({discord: {id: identity_resp.data.id}});
-
-            let userId;
-
-            if(users.length >= 1) {
-                [{key: userId}] = users;
-            } else {
-                userId = crypto.randomUUID();
-                await users_collection.put(userId, {
-                    discord: identity_resp.data,
-                    oauth: {
-                        discord: token_resp.data
-                    }
-                });
-            }
-
-            const hostname = new URL(this.config.web.host).hostname;
-            const domain = hostname.split('.').slice(1).join('.');
-            const token = jwt.sign({ user_id: userId }, config.jwt.shared_key, {
-                expiresIn: '2d',
-                audience: domain,
-                issuer: hostname
-            })
-
-            res.cookie('access_token', token, {
-                domain: domain,
-                httpOnly: true,
-                secure: true
-            })
-
-            if(redirect) {
-                res.redirect(redirect);
-                return;
-            }
-            res.send('OK');
         } else {
             res.status(401).send('Invalid state');
         }
