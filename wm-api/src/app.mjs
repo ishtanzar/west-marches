@@ -178,6 +178,7 @@ export class App {
         this.app.get('/users', this.api_key_middleware, this.get_users.bind(this));
         this.app.get('/users/:id', this.api_key_middleware, this.get_user.bind(this));
         this.app.patch('/users/:id', this.api_key_middleware, this.patch_user.bind(this));
+        this.app.delete('/users/:id', this.api_key_middleware, this.delete_user.bind(this));
 
         this.app.get('/map/:zoom/charted.json', async (req, res) => {
             if(validate_param_zoom(req.params.zoom)) {
@@ -427,6 +428,18 @@ export class App {
             const updated = Object.assign({}, user, req.body);
             await users.put(userId, updated);
             res.json(updated);
+        } else {
+            res.status(400).send('Invalid ID');
+        }
+    }
+
+    async delete_user(req, res) {
+        const userId = req.params.id;
+
+        if(userId.match(regex_uuid)) {
+            const users = this.db.open(this.config.lmdb.users);
+            await users.remove(userId);
+            res.status(204).send('OK');
         } else {
             res.status(400).send('Invalid ID');
         }
