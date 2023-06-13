@@ -86,9 +86,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config)
         $group->get('/me', function (Request $request, Response $response) use ($user) {
             $view = Twig::fromRequest($request);
 
-            return $view->render($response, 'account.html', [
-                'kanka_username' => $user->kanka['name']
-            ]);
+            return $view->render($response, 'account.html');
         });
     })->add(function (Request $request, RequestHandler $handler) use ($app, $user, $config) {
         // Enforce authentication
