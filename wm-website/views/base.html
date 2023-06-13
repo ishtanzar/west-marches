@@ -27,7 +27,7 @@
                     <a href="/me" class="nav-link">Mon compte</a>
                     {% else %}
                     <a href="#" class="nav-link">Rejoindre</a>
-                    <a href="https://api.westmarches.localhost.lan:8443/oauth/discord?redirect_uri=https://westmarches.localhost.lan:8443/" class="nav-link">Se connecter</a>
+                    <a href="{{ config.api_endpoint }}/oauth/discord?redirect_uri={{ config.web_root }}{{ app.request.uri }}" class="nav-link">Se connecter</a>
                     {% endif %}
                 </div>
             </div>

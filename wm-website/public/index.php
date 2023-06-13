@@ -37,6 +37,8 @@ class User {
 
 class Config {
     public string $apiKey;
+    public string $api_endpoint;
+    public string $web_root;
     public \Lcobucci\JWT\Signer $jwt_algorithm;
     public \Lcobucci\JWT\Signer\Key $jwt_key;
 }
@@ -50,6 +52,7 @@ $twig = Twig::create(__DIR__ . '/../views', [
 ]);
 
 $twig['user'] = $user;
+$twig['config'] = $config;
 
 $app->addErrorMiddleware(true, true, true);
 $app->add(new SessionMiddleware());
@@ -57,6 +60,8 @@ $app->add(TwigMiddleware::create($app, $twig));
 
 $config->jwt_key = InMemory::plainText(getenv('JWT_SHARED_KEY'));
 $config->apiKey = getenv('ADMIN_KEY');
+$config->api_endpoint = getenv('API_ENDPOINT');
+$config->web_root = getenv('WEB_ROOT');
 $config->jwt_algorithm = new Sha256();
 
 $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config) {
@@ -83,14 +88,14 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config)
                 'kanka_username' => $user->kanka['name']
             ]);
         });
-    })->add(function (Request $request, RequestHandler $handler) use ($app, $user) {
+    })->add(function (Request $request, RequestHandler $handler) use ($app, $user, $config) {
         // Enforce authentication
         if ($user->authenticated) {
             return $handler->handle($request);
         }
 
         return $app->getResponseFactory()->createResponse(302)
-            ->withHeader('Location', (string) (new Uri('https://api.westmarches.localhost.lan:8443/oauth/discord'))
+            ->withHeader('Location', (string) (new Uri($config->api_endpoint.'/oauth/discord'))
                 ->withQuery((string)Query::createFromParams(['redirect_uri' => (string)$request->getUri()]))
             );
     });
@@ -115,8 +120,10 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config)
             $user->authenticated = true;
             $user->id = $token->claims()->get('user_id');
 
-            $guzzle = new \GuzzleHttp\Client();
-            $api_response = $guzzle->get("http://api:3000/users/".$user->id, [
+            $guzzle = new \GuzzleHttp\Client([
+                \GuzzleHttp\RequestOptions::VERIFY => '/opt/project/wm-infra/deploy/local/rootCA.pem'
+            ]);
+            $api_response = $guzzle->get($config->api_endpoint.'/users/'.$user->id, [
                 'headers' => [
                     'Authorization' => 'ApiKey-v1 '.$config->apiKey
                 ]
@@ -132,7 +139,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config)
 
         } catch(RequiredConstraintsViolated $e) {
             $response = $app->getResponseFactory()->createResponse(302)
-                ->withHeader('Location', (string) (new Uri('https://api.westmarches.localhost.lan:8443/oauth/discord'))
+                ->withHeader('Location', (string) (new Uri($config->api_endpoint.'/oauth/discord'))
                     ->withQuery((string)Query::createFromParams(['redirect_uri' => (string)$request->getUri()]))
                 );
 
