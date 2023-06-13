@@ -14,7 +14,16 @@
   },
   "oauth": {
     "discord": {
+      "endpoint": "https://discord.com/api/oauth2/authorize?client_id={client_id}&scope={scope}&response_type=code&state={state}&redirect_uri={redirect_uri}",
+      "token_endpoint": "https://discord.com/api/oauth2/token",
+      "resource_owner_details": "https://discord.com/api/users/@me",
       "scopes": ["identify"]
+    },
+    "kanka": {
+      "endpoint": "https://kanka.io/oauth/authorize?client_id={client_id}&response_type=code&state={state}&redirect_uri={redirect_uri}",
+      "token_endpoint": "https://kanka.io/oauth/token",
+      "resource_owner_details": "https://kanka.io/api/1.0/profile",
+      "scopes": []
     }
   },
   "lmdb": {
