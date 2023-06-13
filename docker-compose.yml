@@ -61,6 +61,7 @@ services:
       - JWT_SHARED_KEY=${JWT_SHARED_KEY}
       - ADMIN_KEY=${API_ADMIN_KEY}
       - API_ENDPOINT=https://api.westmarches.localhost.lan:8443
+      - PLAY_ENDPOINT=https://play.westmarches.localhost.lan:8443
       - WEB_ROOT=https://westmarches.localhost.lan:8443
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0

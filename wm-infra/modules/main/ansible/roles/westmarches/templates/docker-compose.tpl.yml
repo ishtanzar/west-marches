@@ -183,4 +183,5 @@ services:
       - JWT_SHARED_KEY={{ JWT_SHARED_KEY }}
       - ADMIN_KEY={{ api_secret }}
       - API_ENDPOINT=https://{{ api_fqdn }}
+      - PLAY_ENDPOINT=https://{{ foundry_fqdn }}
       - WEB_ROOT=https://{{ base_fqdn }}

@@ -38,6 +38,7 @@ class User {
 class Config {
     public string $apiKey;
     public string $api_endpoint;
+    public string $play_endpoint;
     public string $web_root;
     public \Lcobucci\JWT\Signer $jwt_algorithm;
     public \Lcobucci\JWT\Signer\Key $jwt_key;
@@ -61,6 +62,7 @@ $app->add(TwigMiddleware::create($app, $twig));
 $config->jwt_key = InMemory::plainText(getenv('JWT_SHARED_KEY'));
 $config->apiKey = getenv('ADMIN_KEY');
 $config->api_endpoint = getenv('API_ENDPOINT');
+$config->play_endpoint = getenv('PLAY_ENDPOINT');
 $config->web_root = getenv('WEB_ROOT');
 $config->jwt_algorithm = new Sha256();
 

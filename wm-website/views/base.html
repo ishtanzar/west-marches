@@ -20,7 +20,7 @@
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
 <!--                    <a class="nav-link" href="/map">Carte</a>-->
-                    <a class="nav-link" href="https://play.westmarches.localhost.lan:8443">Jouer</a>
+                    <a class="nav-link" href="{{ config.play_endpoint }}">Jouer</a>
                 </div>
                 <div class="navbar-nav ms-auto">
                     {% if user.authenticated %}
