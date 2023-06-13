@@ -250,8 +250,12 @@ export class App {
         const {access_token} = req.cookies;
 
         if(access_token) {
-            const {user_id} = jwt.verify(access_token, this.config.jwt.shared_key);
-            req.user = user_id;
+            try {
+                const {user_id} = jwt.verify(access_token, this.config.jwt.shared_key);
+                req.user = user_id;
+            } catch (e) {
+                console.warn('Invalid JWT:' + e);
+            }
         }
 
         next();

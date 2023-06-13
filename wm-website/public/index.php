@@ -10,7 +10,7 @@ use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Parser;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Lcobucci\JWT\Validation\Constraint\ValidAt;
-use Lcobucci\JWT\Validation\ConstraintViolation;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Lcobucci\JWT\Validation\Validator;
 use League\Uri\Components\Query;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -130,7 +130,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config)
                 $user->oauth = $api_user['oauth'] ?? [];
             }
 
-        } catch(ConstraintViolation $e) {
+        } catch(RequiredConstraintsViolated $e) {
             $response = $app->getResponseFactory()->createResponse(302)
                 ->withHeader('Location', (string) (new Uri('https://api.westmarches.localhost.lan:8443/oauth/discord'))
                     ->withQuery((string)Query::createFromParams(['redirect_uri' => (string)$request->getUri()]))
