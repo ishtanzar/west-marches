@@ -39,8 +39,11 @@ services:
       - api
       - website
     ports:
-      - "8000:80"
-      - "8443:443"
+      - "0.0.0.0:8443:443"
+    networks:
+      default:
+        aliases:
+          - api.westmarches.localhost.lan
   website:
     build:
       context: wm-website
@@ -51,12 +54,14 @@ services:
       - ./wm-infra/deploy/local/data/api/westmarches.db:/opt/data/api/westmarches.db
       - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
       - twig-cache:/var/cache/website
+    links:
+      - elasticsearch
     environment:
       - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
-      - DISCORD_OAUTH_CLIENT=${DISCORD_OAUTH_CLIENT}
-      - DISCORD_OAUTH_SECRET=${DISCORD_OAUTH_SECRET}
-      - DISCORD_OAUTH_REDIRECT=${WEBSITE_DISCORD_OAUTH_REDIRECT}
-      - KANKA_OAUTH_REDIRECT=${WEBSITE_KANKA_OAUTH_REDIRECT}
+      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
+      - ADMIN_KEY=${API_ADMIN_KEY}
+      - API_ENDPOINT=https://api.westmarches.localhost.lan:8443
+      - WEB_ROOT=https://westmarches.localhost.lan:8443
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
     environment:

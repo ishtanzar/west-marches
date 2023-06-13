@@ -61,16 +61,14 @@ services:
       - "{{ westmarches_data_path }}/nginx-custom.conf:/etc/nginx/01-custom.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-ssl.conf:/etc/nginx/02-ssl.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-entrypoint.sh:/docker-entrypoint.d/ssl-config.sh:ro"
-      - "{{ nextcloud_data_path }}:/var/www/html:ro"
-      - "{{ nextcloud_data_path }}:/opt/data/nextcloud:ro"
+      - "{{ westmarches_data_path }}/www:{{ westmarches_data_path }}/www:ro"
       - "/etc/letsencrypt:/etc/letsencrypt:ro"
       - "/opt/data/5etools:/opt/data/5etools:ro"
       - "/opt/data/www:/usr/share/nginx/html:rw"
     links:
       - foundry
       - grafana
-      - nextcloud
-#      - oauth
+      - website
     ports:
       - "80:80"
       - "443:443"
@@ -79,10 +77,9 @@ services:
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
       - "{{ discordbot_data_path }}-compose.yml:/opt/discordbot-compose.yml"
-      - "{{ nextcloud_data_path }}-compose.yml:/opt/nextcloud-compose.yml"
       - "{{ westmarches_data_path }}/docker-compose.yml:/opt/westmarches-compose.yml"
     environment:
-      - COMPOSE_FILES=/opt/foundry-compose.yml,/opt/discordbot-compose.yml,/opt/nextcloud-compose.yml,/opt/westmarches-compose.yml
+      - COMPOSE_FILES=/opt/foundry-compose.yml,/opt/discordbot-compose.yml,/opt/westmarches-compose.yml
       - BACKUP_S3_ENDPOINT={{ BACKUP_S3_ENDPOINT }}
       - AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}
       - AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}
@@ -171,7 +168,19 @@ services:
       - WM_API_SECRET=changeme
       - WM_API_ENDPOINT=http://management_api:5000
       - PYTHONUNBUFFERED=1
-  nextcloud:
+  website:
+    image: "{{ website_image }}"
     volumes:
-      - "{{ nextcloud_data_path }}:/var/www/html:rw"
-      - "{{ nextcloud_data_path }}:/opt/data/nextcloud:rw"
+      - "{{ westmarches_data_path }}/www:/var/www/html"
+      - "{{ westmarches_data_path }}/www:{{ westmarches_data_path }}/www"
+#      - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
+#      - twig-cache:/var/cache/website
+    links:
+      - elasticsearch
+    entrypoint: /fpm-entrypoint.sh
+    command: /usr/local/sbin/php-fpm
+    environment:
+      - JWT_SHARED_KEY={{ JWT_SHARED_KEY }}
+      - ADMIN_KEY={{ api_secret }}
+      - API_ENDPOINT=https://{{ api_fqdn }}
+      - WEB_ROOT=https://{{ base_fqdn }}
