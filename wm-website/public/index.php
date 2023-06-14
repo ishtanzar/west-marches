@@ -2,6 +2,7 @@
 
 use Dflydev\FigCookies\Cookies;
 use Dflydev\FigCookies\FigResponseCookies;
+use Elastic\Elasticsearch\ClientBuilder;
 use GuzzleHttp\Psr7\Uri;
 use Lcobucci\Clock\SystemClock;
 use Lcobucci\JWT\Encoding\JoseEncoder;
@@ -66,12 +67,23 @@ $config->play_endpoint = getenv('PLAY_ENDPOINT');
 $config->web_root = getenv('WEB_ROOT');
 $config->jwt_algorithm = new Sha256();
 
-$app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config) {
+$es = ClientBuilder::create()
+    ->setHosts(['elasticsearch:9200'])
+    ->build();
+
+$app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config, $es) {
     // Home
-    $group->get('/', function (Request $request, Response $response) {
+    $group->get('/', function (Request $request, Response $response) use ($es) {
         $view = Twig::fromRequest($request);
 
-        return $view->render($response, 'index.html', []);
+        $es_resp = $es->get([
+            'index' => 'kanka_note',
+            'id' => '1729087'
+        ]);
+
+        return $view->render($response, 'index.html', [
+            'content' => $es_resp['_source']['child']['entry_parsed']
+        ]);
     });
 
     $group->group('', function (RouteCollectorProxy $group) use ($user) {

@@ -10,11 +10,17 @@
         "bryanjhv/slim-session": "~4.1.0",
         "league/uri-components": "~2.4.0",
         "lcobucci/jwt": "^4.0.0",
-        "dflydev/fig-cookies": "^3.0"
+        "dflydev/fig-cookies": "^3.0",
+        "elasticsearch/elasticsearch": "^8.7"
     },
     "autoload": {
         "psr-4": {
             "App\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
         }
     }
 }
