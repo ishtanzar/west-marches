@@ -53,7 +53,9 @@ export default class ExtensibleDiscordOAuthPlugin {
     data.discord = {
       client_id: await db.Setting.getValue('extensibleAuth.method.discord.clientId'),
       redirect_uri: await db.Setting.getValue('extensibleAuth.method.discord.redirectUri'),
-      oauth_endpoint: oauth_endpoint.length > 0 ? oauth_endpoint : 'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}',
+      oauth_endpoint: (oauth_endpoint === null || oauth_endpoint.length > 0) ?
+          oauth_endpoint :
+          'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}',
       scopes: 'identify'
     }
   }
