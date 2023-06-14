@@ -51,7 +51,7 @@ resource "scaleway_instance_ip" "public_ip" {}
 
 resource "scaleway_instance_volume" "data" {
   type = "b_ssd"
-  size_in_gb = 30
+  size_in_gb = 40
 }
 
 resource "scaleway_instance_security_group" "front" {
