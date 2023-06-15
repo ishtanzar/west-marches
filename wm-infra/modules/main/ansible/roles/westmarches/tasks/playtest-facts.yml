@@ -8,8 +8,11 @@
         - com.docker.compose.service=playtest
   register: docker_facts
 
+- ansible.builtin.set_fact:
+    playtest_running: "{{ docker_facts | json_query('containers') | length > 0 }}"
+
 - name: Gather playtest container facts
   community.docker.docker_container_info:
     name: "{{ docker_facts | json_query('containers[0].Id') }}"
-  when: docker_facts | json_query('containers[0].Id') | length > 0
+  when: playtest_running
   register: playtest_container_facts

@@ -53,7 +53,7 @@
 
 - include_tasks: ingress.yml
   vars:
-    playtest_ip: "{{ playtest_container_facts | json_query('values(container.NetworkSettings.Networks)[0].IPAddress') | default('127.0.0.1') }}"
+    playtest_ip: "{{ (playtest_container_facts | json_query('values(container.NetworkSettings.Networks)[0].IPAddress')) if playtest_running else '127.0.0.1' }}"
 
 - name: Create grafana data paths
   ansible.builtin.file:
