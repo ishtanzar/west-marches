@@ -143,6 +143,8 @@ services:
       - PYTHONUNBUFFERED=1
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    volumes:
+      - "{{ westmarches_data_path }}/elasticsearch:/usr/share/elasticsearch/data"
     environment:
       - ES_JAVA_OPTS=-Xms256m -Xmx256m
       - bootstrap.memory_lock=true
@@ -150,9 +152,6 @@ services:
       - xpack.security.enabled=false
       - xpack.security.enrollment.enabled=false
     ulimits:
-      memlock:
-        soft: -1
-        hard: -1
       nofile:
         soft: 65536
         hard: 65536
