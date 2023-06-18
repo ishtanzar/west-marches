@@ -6,7 +6,9 @@ RUN npm install \
     express-handlebars@^6.0.1 \
     jsonwebtoken@^8.5.1 \
     cookie@^0.4.1 \
-    morgan@^1.10.0
+    morgan@^1.10.0 \
+    jasmine@^5.0.2 \
+    winston-elasticsearch@^0.17.2
 
 RUN npm install -g pm2
 

@@ -79,6 +79,7 @@ export default class ExtensibleJwtAuthPlugin {
                 const session = sessions.getOrCreate(req, resp);
                 session.worlds[game.world.id] = user.id;
 
+                extensibleFoundry.hooks.call('audit.user.login', req, session, user);
                 logger.info('User authentication successful for user ' + user.name, {
                   session: session.id,
                   ip: req.ip
