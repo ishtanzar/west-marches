@@ -12,9 +12,6 @@ foundry_modules:
     version: 1.0.0
     url: https://github.com/orangetruth/dnd5e-status-icons/archive/baac7aff65b06b242f60033a242627ccd6b50187.zip
     rename: true
-  - name: downtime-ethck
-    version: 0.6.7
-    url: https://github.com/Ethck/Ethck-s-Downtime-Tracking/releases/download/{version}/downtime-ethck.zip
   - name: itemcollection
     version: 1.8.20
     url: https://gitlab.com/tposney/itemcollection/raw/master/package/itemcollection-v{version}.zip
