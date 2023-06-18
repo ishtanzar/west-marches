@@ -30,68 +30,71 @@ export default class ExtensibleJwtAuthPlugin {
 
   async jwt_middleware(req, resp, next) {
     const {db, game, logger} = global;
-    const is_enabled = await db.Setting.getValue('extensibleAuth.method.jwt.enabled');
+    if(game.world) {
+      const is_enabled = await db.Setting.getValue('extensibleAuth.method.jwt.enabled');
 
-    let api_endpoint = await db.Setting.getValue('extensibleAuth.method.jwt.api_endpoint');
-    const api_headers = {
-      Accept: 'application/json',
-      Authorization: 'ApiKey-v1 ' + await db.Setting.getValue('extensibleAuth.method.jwt.api_key'),
-      'Content-type': 'application/json'
-    };
+      let api_endpoint = await db.Setting.getValue('extensibleAuth.method.jwt.api_endpoint');
+      const api_headers = {
+        Accept: 'application/json',
+        Authorization: 'ApiKey-v1 ' + await db.Setting.getValue('extensibleAuth.method.jwt.api_key'),
+        'Content-type': 'application/json'
+      };
 
-    if(is_enabled && game.world && req.headers.cookie) {
-      const cookies = cookie.parse(req.headers.cookie);
+      if(is_enabled && req.headers.cookie) {
+        const cookies = cookie.parse(req.headers.cookie);
 
-      if(cookies.access_token) {
-        try {
-          logger.debug('Verifying JWT');
-          const decoded = jwt.verify(
-              cookies.access_token,
-              await db.Setting.getValue('extensibleAuth.method.jwt.shared_key')
-          );
+        if(cookies.access_token) {
+          try {
+            logger.debug('Verifying JWT');
+            const decoded = jwt.verify(
+                cookies.access_token,
+                await db.Setting.getValue('extensibleAuth.method.jwt.shared_key')
+            );
 
-          api_endpoint ||= "http://api:3000";
-          const api_url = `${api_endpoint}/users/${decoded.user_id}`;
-          logger.debug(`Fetching user data from API ${decoded.user_id}`);
-          const api_get = await fetch(api_url, {headers: api_headers});
+            api_endpoint ||= "http://api:3000";
+            const api_url = `${api_endpoint}/users/${decoded.user_id}`;
+            logger.debug(`Fetching user data from API ${decoded.user_id}`);
+            const api_get = await fetch(api_url, {headers: api_headers});
 
-          if(api_get.ok) {
-            let {discord: discord, foundry: foundry} = await api_get.json();
-            discord ||= {}; foundry ||= {};
+            if(api_get.ok) {
+              let {discord: discord, foundry: foundry} = await api_get.json();
+              discord ||= {}; foundry ||= {};
 
-            logger.debug(`Looking for user in DB ${foundry.id}|${discord.id}|${discord.username}`);
-            const [user] = await db.User.find({ $or: [{'_id': foundry.id}, {'discord.id': discord.id}, {'name': discord.username}] });
+              logger.debug(`Looking for user in DB ${foundry.id}|${discord.id}|${discord.username}`);
+              const [user] = await db.User.find({ $or: [{'_id': foundry.id}, {'discord.id': discord.id}, {'name': discord.username}] });
 
-            if (user && user.role > 0) {
-              logger.debug('Updating API with Foundry user data');
-              const api_patch = await fetch(api_url, {
-                method: 'patch',
-                headers: api_headers,
-                body: JSON.stringify({foundry: user})
-              });
+              if (user && user.role > 0) {
+                logger.debug('Updating API with Foundry user data');
+                const api_patch = await fetch(api_url, {
+                  method: 'patch',
+                  headers: api_headers,
+                  body: JSON.stringify({foundry: user})
+                });
 
-              if(!api_patch.ok) {
-                logger.warn(`Failed to update API with user data: ${api_patch.status} - ${await api_patch.text()}`)
-              }
+                if(!api_patch.ok) {
+                  logger.warn(`Failed to update API with user data: ${api_patch.status} - ${await api_patch.text()}`)
+                }
 
-              sessions.logoutWorld(req, resp);
-              const session = sessions.getOrCreate(req, resp);
-              session.worlds[game.world.id] = user.id;
+                sessions.logoutWorld(req, resp);
+                const session = sessions.getOrCreate(req, resp);
+                session.worlds[game.world.id] = user.id;
 
-              logger.info('User authentication successful for user ' + user.name, {
-                session: session.id,
-                ip: req.ip
-              });
+                logger.info('User authentication successful for user ' + user.name, {
+                  session: session.id,
+                  ip: req.ip
+                });
 
-              if(req.path.startsWith('/join')) {
-                resp.redirect('/game');
+                if(req.path.startsWith('/join')) {
+                  resp.redirect('/game');
+                }
               }
             }
+          } catch (e) {
+            logger.warn(`Could not login with JWT: ${e.message}`)
           }
-        } catch (e) {
-          logger.warn(`Could not login with JWT: ${e.message}`)
         }
       }
+
     }
   }
 
