@@ -1,0 +1,29 @@
+{
+    "_id": "91nfMVc6LB4Pvs47",
+    "avatar": "icons/svg/mystery-man.svg",
+    "character": "2MD0U3V6XV2w39Tc",
+    "color": "#284bcc",
+    "hotbar": {
+        "1": "tbg2wPl1z5iMtMh1"
+    },
+    "name": "Toto",
+    "password": "changeme",
+    "passwordSalt": "changeme",
+    "permissions": {},
+    "role": 1,
+    "flags": {},
+    "discord": {
+        "id": "1234567890",
+        "username": "Toto",
+        "avatar": "",
+        "avatar_decoration": null,
+        "discriminator": "1234",
+        "public_flags": 0,
+        "flags": 0,
+        "banner": null,
+        "banner_color": null,
+        "accent_color": null,
+        "locale": "fr",
+        "mfa_enabled": false
+    }
+}

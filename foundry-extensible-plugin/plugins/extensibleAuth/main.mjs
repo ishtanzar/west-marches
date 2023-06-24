@@ -87,7 +87,7 @@ export default class ExtensibleAuthFoundryPlugin {
     const data = {
       methods: methods.length > 0 ? methods : ['access_key']
     };
-    await global.extensibleFoundry.hooks.callAsync('post.extensibleAuth.getLoginData', data);
+    await this._base.hooks.callAsync('post.extensibleAuth.getLoginData', data);
     resolve(data);
   }
 
@@ -96,11 +96,11 @@ export default class ExtensibleAuthFoundryPlugin {
   }
 
   middleware(router) {
-    router.get('/oauth/authenticate/:service', this.route_oauth_authenticate);
+    router.get('/oauth/authenticate/:service', this.route_oauth_authenticate.bind(this));
   }
 
   async route_oauth_authenticate(req, resp) {
-    global.extensibleFoundry.hooks.call('extensibleAuth.route_oauth_authenticate', req, resp);
+    this._base.hooks.call('extensibleAuth.route_oauth_authenticate', req, resp);
   }
 
   registerMethod(opts) {
