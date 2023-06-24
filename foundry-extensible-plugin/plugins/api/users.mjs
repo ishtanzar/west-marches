@@ -15,18 +15,10 @@ export default class Users {
     };
 
     await extensibleFoundry.hooks.callAsync('pre.api.user.get', vars);
-
-    // Foundry's Users.find doesn't consider projections so we need to tap in NeDB API
-    vars.users = await new Promise((resolve, reject) => {
-      User.db.find(vars.filter, vars.projection).exec((err, docs) => {
-        if(err) { reject(err) }
-        return resolve(docs);
-      });
-    })
-
+    vars.users = await User.find(vars.filter, {project: vars.projection});
     await extensibleFoundry.hooks.callAsync('post.api.user.get', vars);
 
-    resp.send({ users: vars.users });
+    resp.send(JSON.stringify({ users: vars.users }));
   }
 
   async create(req, resp) {
@@ -38,13 +30,13 @@ export default class Users {
       try {
         let [user] = await User.find({ name: name });
         if(user) {
-          resp.send({'_id': user._id});
+          resp.send({id: user.id});
         } else {
           const user_data = {name: name, role: role ? role : 1};
           extensibleFoundry.hooks.call('pre.api.user.create', req, resp, user_data);
 
-          user = User.create(user_data);
-          resp.send({'_id': user._id});
+          user = await User.create(user_data);
+          resp.send({id: user.id});
         }
       } catch (ex) {
         resp.status(500).send(ex.toString());
@@ -76,15 +68,13 @@ export default class Users {
             ;
           }
 
-          const [updated] = await User.database.update(User, {
-            updates: [update]
-          });
+          const updated = await user.update(update);
 
           resp.send(Object.assign({
             '_id': userId,
-            'name': user.name,
-            'role': user.role
-          }, updated));
+            'name': updated.name,
+            'role': updated.role
+          }));
         }
       } else {
         resp.sendStatus(400);
