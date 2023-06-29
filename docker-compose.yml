@@ -110,7 +110,7 @@ services:
       - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
       - foundry-logs:/data/Logs
       - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
-#      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
+      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
     command: ["/usr/local/bin/pm2-runtime", "/home/foundry/resources/foundry-extensible-plugin/pm2.config.js"]
     ports:
       - "30000:30000"
