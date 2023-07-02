@@ -19,4 +19,9 @@ export default class Actor extends BaseActor {
         return super._preUpdate(changed, options, user);
     }
 
+    async _onUpdate(changed, options, user) {
+        await extensibleFoundry.hooks.callAsync('pre.actor._onUpdate', this, changed, options, user);
+        return super._onUpdate(changed, options, user);
+    }
+
 }

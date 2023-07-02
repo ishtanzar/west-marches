@@ -20,11 +20,11 @@ export default class ActorAuditPlugin {
             ]
         });
 
-        base.hooks.on('pre.actor._preUpdate', this._preUpdate.bind(this));
+        base.hooks.on('pre.actor._onUpdate', this._onUpdate.bind(this));
         base.hooks.on('audit.user.login', this.userLogin.bind(this));
     }
 
-    async _preUpdate(actor, changed, options, user) {
+    async _onUpdate(actor, changed, options, user) {
         this.auditLogger.info(`Actor modified`, {actor: actor.id, changes: changed, user: user.id});
     }
 
