@@ -8,7 +8,9 @@ import Activity from "../activity.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function mockResponse() {
-    return jasmine.createSpyObj('resp', ['send', 'set'], {status: 200});
+    const spy = jasmine.createSpyObj('resp', ['send', 'set', 'status'], {statusCode: 200});
+    spy.status.and.returnValue(jasmine.createSpyObj(['end']));
+    return spy;
 }
 
 describe('Activity endpoint', () => {
@@ -27,7 +29,7 @@ describe('Activity endpoint', () => {
 
         await apiActivity.get({}, resp);
 
-        expect(resp.status).toEqual(200);
+        expect(resp.statusCode).toEqual(200);
         expect(resp.send).toHaveBeenCalledWith({
             users: [data.name]
         });
@@ -45,15 +47,15 @@ describe('Actors endpoint', () => {
 
         const resp = mockResponse();
 
-        await apiActors.get({
-            query: { type: char_type }
+        await apiActors.search({
+            body: { type: char_type }
         }, resp);
 
         expect(db.Actor.find).toHaveBeenCalledOnceWith({type: char_type});
-        expect(resp.status).toEqual(200);
-        expect(resp.send).toHaveBeenCalledWith({
-            actors: [db.Actor._create(JSON.parse(str_json))]
-        });
+        expect(resp.statusCode).toEqual(200);
+        expect(resp.send).toHaveBeenCalledWith(JSON.stringify({
+            actors: [db.Actor._create(JSON.parse(str_json)).toJSON()]
+        }));
     })
 })
 
@@ -76,11 +78,11 @@ describe('Users endpoint', () => {
         const name = 'toto';
         const resp = mockResponse();
 
-        await apiUsers.get({
+        await apiUsers.search({
             query: { name: name }
         }, resp);
 
-        expect(resp.status).toEqual(200);
+        expect(resp.statusCode).toEqual(200);
         expect(resp.send).toHaveBeenCalledWith(JSON.stringify({
             users: [JSON.parse(json_data)]
         }));
@@ -93,7 +95,7 @@ describe('Users endpoint', () => {
             body: {name: data.name}
         }, resp);
 
-        expect(resp.status).toEqual(200);
+        expect(resp.statusCode).toEqual(200);
         expect(resp.send).toHaveBeenCalledWith({
             id: data._id
         });
@@ -108,7 +110,7 @@ describe('Users endpoint', () => {
             body: { role: 1 }
         }, resp);
 
-        expect(resp.status).toEqual(200);
+        expect(resp.statusCode).toEqual(200);
         expect(resp.send).toHaveBeenCalledWith({
             _id: data._id,
             name: data.name,

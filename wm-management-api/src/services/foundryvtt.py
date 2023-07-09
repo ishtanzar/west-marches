@@ -38,6 +38,9 @@ class FoundryService:
 
         return resp
 
+    def search(self, path, **kwargs) -> requests.Response:
+        return self._request('search', self._endpoint + path, **kwargs)
+
     def get(self, path, **kwargs) -> requests.Response:
         return self._request('get', self._endpoint + path, **kwargs)
 

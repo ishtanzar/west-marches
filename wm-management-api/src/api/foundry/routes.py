@@ -21,9 +21,9 @@ async def restart(user):
     return 'Done', 204
 
 
-@app.route('/foundry/actors')
+@app.route('/foundry/actors', methods=['SEARCH'])
 async def foundry_actors():
-    return app.foundryvtt.get('/api/actors').json()
+    return app.foundryvtt.search('/api/actors', json=await request.json).json()
 
 
 @app.route('/foundry/activity')
@@ -31,10 +31,10 @@ async def foundry_activity():
     return app.foundryvtt.get('/api/activity').json()
 
 
-@app.route('/foundry/users')
+@app.route('/foundry/users', methods=['SEARCH'])
 @app.auth.required
 async def foundry_users(user):
-    return app.foundryvtt.get('/api/users', params=request.args).json()
+    return app.foundryvtt.search('/api/users', json=await request.json).json()
 
 
 @app.route('/foundry/users', methods=['POST'])

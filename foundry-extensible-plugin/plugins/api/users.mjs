@@ -4,19 +4,19 @@ import User from 'foundry:dist/database/documents/user.mjs';
 
 export default class Users {
 
-  async get(req, resp) {
+  async search(req, resp) {
     const {extensibleFoundry} = global;
     const vars = {
       req: req,
       resp: resp,
-      filter: req.query,
+      filter: req.body || {},
       projection: { password: 0, auth: 0 },
       users: []
     };
 
-    await extensibleFoundry.hooks.callAsync('pre.api.user.get', vars);
+    await extensibleFoundry.hooks.callAsync('pre.api.user.search', vars);
     vars.users = await User.find(vars.filter, {project: vars.projection});
-    await extensibleFoundry.hooks.callAsync('post.api.user.get', vars);
+    await extensibleFoundry.hooks.callAsync('post.api.user.search', vars);
 
     resp.send(JSON.stringify({ users: vars.users }));
   }

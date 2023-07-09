@@ -100,11 +100,11 @@ class FoundryApi(AbstractApi):
         await self._client.post('/foundry/restart')
 
     async def actors(self) -> dict:
-        resp = await self._client.get('/foundry/actors')
+        resp = await self._client.search('/foundry/actors')
         return resp.json()
 
     async def users(self, filter: Optional[object] = None):
-        resp = await self._client.get('/foundry/users', params=filter)
+        resp = await self._client.search('/foundry/users', json=filter)
         return resp.json()
 
     async def users_add(self, name, discord: Optional[object] = None) -> str:
@@ -203,6 +203,9 @@ class WestMarchesApiClient:
 
     async def get(self, path: str, *args, **kwargs):
         return await self._request('get', self._endpoint + path, *args, **kwargs)
+
+    async def search(self, path: str, *args, **kwargs):
+        return await self._request('search', self._endpoint + path, *args, **kwargs)
 
     async def post(self, path: str, *args, **kwargs):
         return await self._request('post', self._endpoint + path, *args, **kwargs)
