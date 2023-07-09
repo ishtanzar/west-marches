@@ -39,6 +39,9 @@
     "kanka": {
       "live": "*/5 * * * *"
     },
+    "foundry": {
+      "update": "* * * * *"
+    },
     "questions": {
       "review": "0 12 * * *"
     },

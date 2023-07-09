@@ -1,0 +1,41 @@
+{
+  "mappings": {
+    "dynamic_templates": [
+      {
+        "flags_as_flattened": {
+          "path_match": "flags",
+          "mapping": {
+            "type": "flattened"
+          }
+        }
+      },
+      {
+        "item_data_as_flattened": {
+          "path_match": "items.data",
+          "mapping": {
+            "type": "flattened",
+            "ignore_above": 2048
+          }
+        }
+      },
+      {
+        "item_flags_as_flattened": {
+          "path_match": "items.flags",
+          "mapping": {
+            "type": "flattened"
+          }
+        }
+      }
+    ]
+  },
+  "settings": {
+    "index": {
+      "number_of_replicas": "0",
+      "mapping": {
+        "total_fields": {
+          "limit": 2000
+        }
+      }
+    }
+  }
+}

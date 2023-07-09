@@ -37,13 +37,16 @@
   },
   "cron": {
     "kanka": {
-      "live": "*/5 * * * *"
+      "live": "* 4 * * *"
+    },
+    "foundry": {
+      "update": "0 4 * * *"
     },
     "questions": {
-      "review": "0 12 * * *"
+      "review": "0 4 * * *"
     },
     "donations": {
-      "reset": "0 12 * * *"
+      "reset": "0 4 * * *"
     }
   },
   "log": {

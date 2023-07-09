@@ -13,6 +13,7 @@ from elasticsearch import AsyncElasticsearch as Elasticsearch
 from quart import Quart
 
 from services.donations import Donations
+from services.foundry import Foundry
 from services.kanka import Kanka
 from services.questions import Questions
 from services.utils import Config
@@ -39,10 +40,17 @@ async def main():
     client = discord.Client(intents=intents)
 
     kanka = Kanka(config, client, queue, es)
+    foundry = Foundry(es)
     questions = Questions(config, client)
     donations = Donations(config)
 
-    await kanka.initialize()
+    await foundry.initialize()
+    #await kanka.initialize()
+
+    @aiocron.crontab(config.cron.foundry.update, loop=asyncio.get_event_loop())
+    async def foundry_update():
+        logging.getLogger('cron.foundry.update').debug('Queued')
+        await queue.put(foundry.cron)
 
     @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
@@ -116,6 +124,8 @@ async def main():
         return f'Indexed {indexed_docs} documents'
 
     subparsers.add_parser('kanka.live').set_defaults(func=kanka.cron)
+    subparsers.add_parser('foundry.update').set_defaults(func=foundry.cron)
+    subparsers.add_parser('foundry.reindex').set_defaults(func=foundry.reindex)
     subparsers.add_parser('es.recompute').set_defaults(func=kanka.recompute)
     subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
     args = parser.parse_args()
