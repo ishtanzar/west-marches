@@ -1,6 +1,6 @@
 await (async () => {
-    const apiToken = 'changeme';
-    const discordToken = 'changeme';
+    const apiToken = 'suq3omH.hB_QyTuV61_6';
+    const discordToken = 'ODUxNDgxNDkzNTM1NDU3MzMx.YL457w.lJtFEeZjQaKd86JhJCq0_jf_ROk';
 
     const apiRes = await fetch('https://api.westmarchesdelacave.ishtanzar.net/users', {headers: {Authorization: 'ApiKey-v1 ' + apiToken}});
     const discordRes = await fetch('https://discord.com/api/guilds/776895471875915837/members?limit=50', {
