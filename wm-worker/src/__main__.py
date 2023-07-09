@@ -45,7 +45,7 @@ async def main():
     donations = Donations(config)
 
     await foundry.initialize()
-    #await kanka.initialize()
+    await kanka.initialize()
 
     @aiocron.crontab(config.cron.foundry.update, loop=asyncio.get_event_loop())
     async def foundry_update():
