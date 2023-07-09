@@ -53,7 +53,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./wm-infra/docker/foundry
+          context: ./foundry-extensible-plugin
           file: ./wm-infra/docker/foundry/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true

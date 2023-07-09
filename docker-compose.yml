@@ -90,7 +90,8 @@ services:
     image: redis:7-alpine
   foundry:
     build:
-      context: wm-infra/docker/foundry
+      context: foundry-extensible-plugin
+      dockerfile: ../wm-infra/docker/foundry/Dockerfile
     environment:
       - CONTAINER_PRESERVE_CONFIG=true
       - FOUNDRY_WORLD=west-marches-de-la-cave
