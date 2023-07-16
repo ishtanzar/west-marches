@@ -1,6 +1,7 @@
 import lmdb from "lmdb";
 import path from "path";
 import {ANY, withExtensions} from "lmdb-query";
+import sift from "sift";
 
 export class Collection {
 
@@ -42,8 +43,11 @@ export class Collection {
         return result;
     }
 
-    find(filter = value => value) {
-        return [...this.db.getRangeWhere([], filter)]
+    find(query = {}) {
+        const filter = sift(query)
+        return this.db.getRange()
+            .filter(({key, value}) => { return filter(value) })
+            .asArray
     }
 }
 

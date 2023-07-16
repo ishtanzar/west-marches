@@ -20,6 +20,7 @@
         "lmdb": "2.6.8-v1",
         "lmdb-query": "^1.5.4",
         "lodash": "^4.17.21",
+        "sift": "^17.0.1",
         "sharp": "^0.31.1",
         "socket.io": "^4.5.2",
         "svgdom": "github:TomFalkner/svgdom#fix_getElementById_is_not_a_function",

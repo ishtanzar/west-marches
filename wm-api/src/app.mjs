@@ -175,7 +175,7 @@ export class App {
         this.app.post('/kofi/hook', express.urlencoded({ extended: true}), this.kofi);
         this.app.post('/discord/interactions', verifyKeyMiddleware(process.env.DISCORD_BOT_PUBLIC_KEY), this.discord_interactions);
 
-        this.app.get('/users', this.api_key_middleware, this.get_users.bind(this));
+        this.app.search('/users', this.api_key_middleware, this.find_users.bind(this));
         this.app.get('/users/:id', this.api_key_middleware, this.get_user.bind(this));
         this.app.patch('/users/:id', this.api_key_middleware, this.patch_user.bind(this));
         this.app.delete('/users/:id', this.api_key_middleware, this.delete_user.bind(this));
@@ -400,10 +400,10 @@ export class App {
         }
     }
 
-    async get_users(req,res) {
+    async find_users(req, res) {
         const users = this.db.open(this.config.lmdb.users);
 
-        res.json(users.find());
+        res.json(users.find(req.body));
     }
 
     async get_user(req, res) {
