@@ -43,18 +43,17 @@ class Foundry:
             self.logger.debug(f'GET {resp.url} - {resp.status_code}')
             return resp.json()['actors']
 
-    async def list_modified_characters(self):
-        last_sync_str = '2023-06-29T13:15:57.984Z'
-        last_sync = arrow.get(last_sync_str)
+    async def list_modified_characters(self, last_sync: str = None) -> list:
         modified = set()
         query_from = 0
         query_size = 1000
+        last_sync_obj = arrow.get(last_sync) if last_sync else arrow.utcnow().shift(hours=-1)
 
         while True:
-            resp = await self.es.search(index=f'foundry_audit-{last_sync.strftime("%Y.%m")}', query={
+            resp = await self.es.search(index=f'foundry_audit-{last_sync_obj.strftime("%Y.%m")}', query={
                 'range': {
                     '@timestamp': {
-                        'gt': last_sync.isoformat()
+                        'gt': last_sync_obj.isoformat()
                     }
                 }
             }, size=query_size, from_=query_from)
@@ -67,11 +66,11 @@ class Foundry:
 
             query_from = query_from + query_size
 
-        return modified
+        return list(modified)
 
     async def cron(self):
         char_ids = await self.list_modified_characters()
-        characters = await self.fetch_pcs(ids=list(char_ids))
+        characters = await self.fetch_pcs(ids=char_ids)
 
         for actor in characters:
             await self.index_actor(actor)
