@@ -3,18 +3,24 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
-class Config:
-    __data__ = object()
+class Config(SimpleNamespace):
 
-    @staticmethod
-    def get():
-        return Config.__data__
+    def get(self, attr: str, default = None):
+        full_attr = attr.split('.')
+        current = self
+
+        for current_attr in full_attr:
+            try:
+                current = getattr(current, current_attr)
+            except AttributeError:
+                return default
+
+        return current
 
     @staticmethod
     def load(path):
         with Path(path).open() as fp:
-            Config.__data__ = json.load(fp, object_hook=lambda x: SimpleNamespace(**x))
-        return Config.__data__
+            return json.load(fp, object_hook=lambda x: Config(**x))
 
 
 class Cache:
