@@ -83,6 +83,9 @@ jobs:
           KOFI_VERIFICATION: ${{ secrets.KOFI_VERIFICATION }}
           KANKA_TOKEN: ${{ secrets.KANKA_TOKEN }}
           KANKA_CAMPAIGN: ${{ secrets.KANKA_CAMPAIGN }}
+          KANKA_OAUTH_CLIENT: ${{ secrets.KANKA_OAUTH_CLIENT }}
+          KANKA_OAUTH_SECRET: ${{ secrets.KANKA_OAUTH_SECRET }}
+          JWT_SHARED_KEY: ${{ secrets.JWT_SHARED_KEY }}
           FOUNDRY_ADMIN_KEY: ${{ secrets.FOUNDRY_ADMIN_KEY }}
           BACKUP_S3_ENDPOINT: https://s3.fr-par.scw.cloud
           
