@@ -127,7 +127,7 @@ services:
       - "--port=30000"
       - "--headless"
       - "--noupdate"
-      - "--dataPath=/data" ]
+      - "--dataPath=/data"
   discordbot:
     links:
       - management_api
