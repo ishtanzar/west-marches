@@ -116,7 +116,8 @@ services:
       start_period: 10s
   foundry:
     environment:
-      - "FOUNDRY_AWS_CONFIG=/data/Config/s3config.json"
+      - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
+      - API_ADMIN_KEY={{ api_secret }}
     volumes:
       - "{{ westmarches_data_path }}/foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin"
     command:

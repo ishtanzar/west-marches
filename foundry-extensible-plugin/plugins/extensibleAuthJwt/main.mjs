@@ -16,6 +16,7 @@ export default class ExtensibleJwtAuthPlugin {
 
     base.hooks.on('pre.express.userSessionMiddleware', this.jwt_middleware.bind(this));
     base.hooks.on('extensibleAuth.route_oauth_authenticate', this.route_oauth_authenticate.bind(this));
+    base.hooks.on('extensiblePlugins.migrate', this.migrate.bind(this));
     base.hooks.on('extensibleAuth.method.register', register => register({
       id: 'jwt',
       name: 'extensibleAuthJwt',
@@ -123,6 +124,14 @@ export default class ExtensibleJwtAuthPlugin {
         scripts: scripts,
         styles: styles
       });
+    }
+  }
+
+  async migrate() {
+    const {db} = global;
+
+    if('API_ADMIN_KEY' in process.env) {
+      await db.Setting.set('extensibleAuth.method.jwt.api_key', process.env.API_ADMIN_KEY);
     }
   }
 }

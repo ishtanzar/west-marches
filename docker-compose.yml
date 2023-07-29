@@ -97,6 +97,7 @@ services:
       - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
       - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
       - FOUNDRY_ADMIN_KEY=atropos
+      - API_ADMIN_KEY=${API_ADMIN_KEY}
     links:
       - api
       - elasticsearch
