@@ -154,6 +154,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
     volumes:
       - "{{ westmarches_data_path }}/elasticsearch/data:/usr/share/elasticsearch/data"
+      - "{{ westmarches_data_path }}/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro"
     environment:
       - ES_JAVA_OPTS=-Xms256m -Xmx256m
       - bootstrap.memory_lock=true

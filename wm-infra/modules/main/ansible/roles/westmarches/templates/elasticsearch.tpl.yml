@@ -1,0 +1,6 @@
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+
+s3.client.scw_par.endpoint: s3.fr-par.scw.cloud
+s3.client.scw_par.region: fr-par
+s3.client.scw_par.path_style_access: true

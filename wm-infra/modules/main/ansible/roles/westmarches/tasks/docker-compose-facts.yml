@@ -1,0 +1,18 @@
+
+- name: Look for docker compose info
+  community.docker.docker_host_info:
+    containers: true
+    verbose_output: true
+    containers_filters:
+      label:
+        - com.docker.compose.project=west-marches
+  register: compose_facts
+
+- ansible.builtin.set_fact:
+    foundry_running: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`foundry`]') | length > 0 }}"
+    elasticsearch_running: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`elasticsearch`]') | length > 0 }}"
+
+    elasticsearch_ctnr: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`elasticsearch`]|[0].Names[0]') | trim('/') }}"
+
+    foundry_ip: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`foundry`]|values([0].NetworkSettings.Networks || {\"empty\": true})|[0].IPAddress') | default('127.0.0.1', true) }}"
+    elasticsearch_ip: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`elasticsearch`]|values([0].NetworkSettings.Networks || {\"empty\": true})|[0].IPAddress') | default('127.0.0.1', true) }}"
