@@ -3,15 +3,14 @@ import asyncio
 import json
 import logging.config
 import os
-import re
-from zipfile import ZipFile, BadZipFile
 
 import aiocron
-import discord
+import discord as dpy
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 from quart import Quart
 
+from services.api import ApiClient
 from services.donations import Donations
 from services.foundry import Foundry
 from services.kanka import Kanka
@@ -21,9 +20,11 @@ from services.utils import Config
 
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
-    config.kanka.token = os.environ.get('KANKA_TOKEN', config.kanka.token)
-    config.discord.token = os.environ.get('DISCORD_BOT_SECRET', config.discord.token)
-    es = Elasticsearch('http://elasticsearch:9200')
+    config.es.endpoint = os.environ.get('ES_ENDPOINT', config.get('es.endpoint', 'http://elasticsearch:9200'))
+    config.api.endpoint = os.environ.get('API_ENDPOINT', config.get('api.endpoint', 'http://api:3000'))
+    config.kanka.token = os.environ.get('KANKA_TOKEN', config.get('kanka.token'))
+    config.api.token = os.environ.get('API_TOKEN', config.get('api.token'))
+    config.discord.token = os.environ.get('DISCORD_BOT_SECRET', config.get('discord.token'))
 
     # Ugly SN to dict converted
     logging.config.dictConfig(json.loads(json.dumps(config.log, default=lambda x: vars(x))))
@@ -34,14 +35,15 @@ async def main():
     app = Quart(__name__)
     queue = asyncio.Queue()
 
-    intents = discord.Intents.none()
+    intents = dpy.Intents.none()
     intents.guilds = True
 
-    client = discord.Client(intents=intents)
-
-    kanka = Kanka(config, client, queue, es)
+    api = ApiClient(config)
+    discord = dpy.Client(intents=intents)
+    es = Elasticsearch(config.es.endpoint)
     foundry = Foundry(es)
-    questions = Questions(config, client)
+    kanka = Kanka(config, discord, queue, es, foundry, api)
+    questions = Questions(config, discord)
     donations = Donations(config)
 
     await foundry.initialize()
@@ -55,7 +57,7 @@ async def main():
     @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
         logging.getLogger('cron.kanka.live').debug('Queued')
-        await queue.put(kanka.cron)
+        await queue.put(kanka.sync)
 
     @aiocron.crontab(config.cron.questions.review, loop=asyncio.get_event_loop())
     async def questions_review():
@@ -123,7 +125,7 @@ async def main():
 
         return f'Indexed {indexed_docs} documents'
 
-    subparsers.add_parser('kanka.live').set_defaults(func=kanka.cron)
+    subparsers.add_parser('kanka.live').set_defaults(func=kanka.sync)
     subparsers.add_parser('foundry.update').set_defaults(func=foundry.cron)
     subparsers.add_parser('foundry.reindex').set_defaults(func=foundry.reindex)
     subparsers.add_parser('es.recompute').set_defaults(func=kanka.recompute)
@@ -131,11 +133,11 @@ async def main():
     args = parser.parse_args()
 
     if "func" in args:
-        await client.login(config.discord.token)
+        await discord.login(config.discord.token)
         await args.func()
     else:
         await asyncio.gather(
-            client.start(config.discord.token),
+            discord.start(config.discord.token),
             app.run_task('0.0.0.0'),
             worker())
 

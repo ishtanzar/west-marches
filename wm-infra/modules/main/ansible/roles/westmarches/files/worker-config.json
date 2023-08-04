@@ -3,14 +3,12 @@
     "endpoint": "https://kanka.io/fr/campaign/67312",
     "api_endpoint": "https://kanka.io/api/1.0/campaigns/67312",
     "calendar_entity_id": 2156802,
-    "gm_role_id": 195422,
-    "token": ""
+    "gm_role_id": 195422
   },
   "discord": {
     "kanka_notify_channel": 813731633177296906,
     "questions_channel": 911374861304234045,
     "kanka_calendar_notification_channels": [889425906735677440, 1012468641121435778],
-    "token": "",
     "random": {
       "date_announce": [
         "Oyez, oyez ! Nous sommes le %(day)s %(month)s en ce jour !",

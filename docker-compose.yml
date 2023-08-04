@@ -218,10 +218,12 @@ services:
       - ./:/opt/project
     links:
       - elasticsearch
+      - api
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - API_TOKEN=changeme
       - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
 #    command:

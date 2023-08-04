@@ -1,3 +1,5 @@
+import logging
+
 from types import SimpleNamespace
 
 import asyncio
@@ -44,14 +46,14 @@ def kanka(foundry, es, config, api) -> Kanka:
 
 
 @pytest.mark.asyncio
-async def test_ownership(foundry: Foundry, es: Elasticsearch, kanka: Kanka, api: ApiClient):
+async def test_ownership(foundry: Foundry, es: Elasticsearch, kanka: Kanka, api: ApiClient, caplog):
     some_date = arrow.utcnow().shift(months=-3)
     actor_id = 12345
     actor_name = 'pytest_Actor'
 
-    user1 = SimpleNamespace(foundry='azer123', kanka='8764539')
-    user2 = SimpleNamespace(foundry='lsnx820', kanka='0428366')
-    user3 = SimpleNamespace(foundry='83xks74', kanka='7294953')
+    user1 = SimpleNamespace(foundry='azer123', kanka=SimpleNamespace(id='8764539'))
+    user2 = SimpleNamespace(foundry='lsnx820', kanka=SimpleNamespace(id='0428366', name='Randall'))
+    user3 = SimpleNamespace(foundry='83xks74', kanka=SimpleNamespace(id='7294953'))
     foundry_owner = 'azer123'
     kanka_owner = '8764539'
 
@@ -87,12 +89,14 @@ async def test_ownership(foundry: Foundry, es: Elasticsearch, kanka: Kanka, api:
     }]
 
     with patch.object(kanka, 'search_indexed_character_from_name', new_callable=AsyncMock) as search_indexed_character_from_name, \
-        patch.object(kanka, 'add_user_entity_permission', new_callable=AsyncMock) as add_user_entity_permission:
+        patch.object(kanka, 'add_user_entity_permission', new_callable=AsyncMock) as add_user_entity_permission, \
+        caplog.at_level(logging.DEBUG):
 
         search_indexed_character_from_name.return_value = {
             'id': actor_id,
+            'name': 'kanka_actor',
             'acls': {
-                'users': [user1.kanka]
+                'users': [user1.kanka.id]
             }
         }
 
@@ -104,7 +108,8 @@ async def test_ownership(foundry: Foundry, es: Elasticsearch, kanka: Kanka, api:
 
         api.search_users_from_foundry_ids.return_value = [{
             'kanka': {
-                'id': user2.kanka
+                'id': user2.kanka.id,
+                'name': user2.kanka.name
             }
         }]
 

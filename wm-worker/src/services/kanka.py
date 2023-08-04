@@ -1,3 +1,5 @@
+from enum import Enum
+
 import asyncio
 import json
 import logging
@@ -11,7 +13,18 @@ import elasticsearch.helpers
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 
+from services.api import ApiClient
+from services.foundry import Foundry
 from services.utils import Cache
+
+
+class Permission(Enum):
+    READ = 1
+    EDIT = 2
+    ADD = 3
+    DELETE = 4
+    POSTS = 5
+    PERMISSIONS = 6
 
 
 class Kanka:
@@ -27,16 +40,20 @@ class Kanka:
                  config,
                  discord: discord.Client,
                  queue: asyncio.Queue,
-                 es: Elasticsearch) -> None:
+                 es: Elasticsearch,
+                 foundry: Foundry,
+                 api: ApiClient) -> None:
         super().__init__()
 
         self.config = config
         self.queue = queue
         self.discord = discord
         self.es = es
+        self.api = api
+        self.foundry = foundry
         self.discord_notification_channel = None
         self.discord_calendar_notification_channels = None
-        self.logger = logging.getLogger('kanka')
+        self.logger = logging.getLogger('[KANKA]')
 
         self.init_cache()
 
@@ -118,8 +135,22 @@ class Kanka:
         permissions, __ = await self.fetch(self.config.kanka.api_endpoint + f'/entities/{_id}/entity_permissions')
         return permissions
 
-    async def fetch_entities(self):
-        return await self.fetch(self.config.kanka.api_endpoint + '/entities', self.entities_cache["last_sync"])
+    async def add_user_entity_permission(self, _id: int, user: int, action:int = 1):
+        resp = requests.post(self.config.kanka.api_endpoint + f'/entities/{_id}/entity_permissions', json={
+            'user_id': user,
+            'action': action,
+            'access': True
+        })
+
+        if resp.status_code == 200:
+            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
+            return resp.json()['data']
+        else:
+            self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
+            raise Exception('Unable to create permission')
+
+    async def fetch_entities(self, last_sync=None):
+        return await self.fetch(self.config.kanka.api_endpoint + '/entities', last_sync)
 
     async def fetch_users(self):
         users, __ = await self.fetch(self.config.kanka.api_endpoint + '/users')
@@ -130,7 +161,7 @@ class Kanka:
         return {item['id']: item['code'] for item in resp}
 
     async def refresh_users(self):
-        self.logger.info('[Kanka] refreshing users & groups')
+        self.logger.info('Refreshing users & groups')
 
         for user in await self.fetch_users():
             self._users[user['id']] = user['name']
@@ -138,15 +169,30 @@ class Kanka:
             if roles := user.get('role'):
                 self._roles.update({role['id']: role['name'] for role in roles})
 
-    async def cron(self):
-        self.logger.info('[Kanka] syncing')
-        entities, last_sync = await self.fetch_entities()
+    async def search_indexed_character_from_name(self, name):
+        resp = await self.es.search(index='kanka_character', query={
+            'query_string': {
+                'query': f'name:"{name}"'
+            }
+        })
+
+        if resp['hits']['total']['value'] == 1:
+            return resp['hits']['hits'][0]['_source']
+        else:
+            # todo: WARN
+            return None
+
+    async def sync(self):
+        self.logger.info('Syncing')
+        last_sync = self.entities_cache["last_sync"]
+        entities, new_sync = await self.fetch_entities(last_sync)
 
         await self.notify(entities=entities)
         await self.index(entities=entities)
+        await self.ownership(last_sync)
 
-        self.entities_cache["last_sync"] = last_sync
-        self.logger.info(f'[Kanka] sync ok, entities={len(entities)}, lastSync={self.entities_cache["last_sync"]}')
+        self.entities_cache["last_sync"] = new_sync
+        self.logger.info(f'Sync ok, entities={len(entities)}, lastSync={self.entities_cache["last_sync"]}')
 
     def get_entity_url(self, entity):
         entity_map = {
@@ -291,6 +337,43 @@ class Kanka:
                 return entity_id
             except Exception as e:
                 self.logger.error(f'Failed to index {entity_type}/{entity_name}: {e}')
+
+    async def ownership(self, last_sync):
+        actors = []
+
+        self.logger.debug(f'Checking for modified characters since {last_sync}')
+        modified_ids = await self.foundry.list_modified_characters(last_sync)
+
+        if modified_ids:
+            self.logger.debug(f'Fetching foundry actors {modified_ids}')
+            actors = await self.foundry.fetch_pcs(ids=modified_ids)
+
+        for foundry_actor in actors:
+            self.logger.debug(f'Searching for kanka character named {foundry_actor["name"]}')
+            kanka_character = await self.search_indexed_character_from_name(foundry_actor["name"])
+
+            if kanka_character:
+                kanka_acls = kanka_character['acls']
+
+                foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
+                kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
+                self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
+                users_from_kanka_owners = await self.api.search_users_from_kanka_ids(kanka_owners_ids)
+
+                for owner in foundry_owners:
+                    found = False
+
+                    for user in users_from_kanka_owners:
+                        if user['foundry']['_id'] == owner:
+                            found = True
+                            break
+
+                    if not found:
+                        self.logger.debug(f'Searching for kanka user {owner}')
+                        [new_user] = await self.api.search_users_from_foundry_ids([owner])
+                        for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
+                            self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
+                            await self.add_user_entity_permission(kanka_character['id'], new_user['kanka']['id'], action.value)
 
     async def recompute(self):
         docs = elasticsearch.helpers.async_scan(client=self.es, index='kanka_*', query={
