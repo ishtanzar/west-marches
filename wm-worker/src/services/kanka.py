@@ -63,6 +63,13 @@ class Kanka:
 
         await self.es.indices.put_index_template(name='kanka_indices', template={
             'settings': {
+                'analysis': {
+                    'analyzer': {
+                        'default': {
+                            'type': 'french'
+                        }
+                    }
+                },
                 'index': {
                     'number_of_shards': 1,
                     'number_of_replicas': 0
