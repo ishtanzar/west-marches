@@ -61,6 +61,15 @@ class Kanka:
         await self.refresh_users()
         self._doc_types = await self.fetch_entity_types()
 
+        await self.es.indices.put_index_template(name='kanka_indices', template={
+            'settings': {
+                'index': {
+                    'number_of_shards': 1,
+                    'number_of_replicas': 0
+                }
+            }
+        }, index_patterns=['kanka_*'])
+
     async def fetch(self, endpoint, last_sync=None, page=1, related=False):
         data = []
         params = {"page": page}

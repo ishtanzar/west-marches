@@ -20,8 +20,8 @@ from services.utils import Config
 
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
-    config.es.endpoint = os.environ.get('ES_ENDPOINT', config.get('es.endpoint', 'http://elasticsearch:9200'))
-    config.api.endpoint = os.environ.get('API_ENDPOINT', config.get('api.endpoint', 'http://api:3000'))
+    config.set('es.endpoint', os.environ.get('ES_ENDPOINT', config.get('es.endpoint', 'http://elasticsearch:9200')))
+    config.set('api.endpoint', os.environ.get('API_ENDPOINT', config.get('api.endpoint', 'http://api:3000')))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.get('kanka.token'))
     config.api.token = os.environ.get('API_TOKEN', config.get('api.token'))
     config.discord.token = os.environ.get('DISCORD_BOT_SECRET', config.get('discord.token'))

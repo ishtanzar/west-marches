@@ -17,6 +17,20 @@ class Config(SimpleNamespace):
 
         return current
 
+    def set(self, attr: str, value = None):
+        full_attr = attr.split('.')
+        current = self
+
+        for current_attr in full_attr[:-1]:
+            try:
+                current = getattr(current, current_attr)
+            except AttributeError:
+                setattr(current, current_attr, next_attr := Config())
+                current = next_attr
+
+
+        setattr(current, full_attr[-1], value)
+
     @staticmethod
     def load(path):
         with Path(path).open() as fp:
