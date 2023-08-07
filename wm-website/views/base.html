@@ -4,8 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block head %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
+          integrity="sha256-2TnSHycBDAm2wpZmgdi0z81kykGPJAkiUY+Wf97RbvY=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.min.css"
+          integrity="sha256-BicZsQAhkGHIoR//IB2amPN5SrRb3fHB8tFsnqRAwnk=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.1/dist/bootstrap-table.min.css"
+          integrity="sha256-7Oajx7nIkYTg7DngGkbQPeZYOGF2y0Q3R24+vhzH/2M=" crossorigin="anonymous">
     {% endblock %}
 </head>
 
@@ -23,6 +27,11 @@
                     <a class="nav-link" href="{{ config.play_endpoint }}">Jouer</a>
                 </div>
                 <div class="navbar-nav ms-auto">
+                    {% if user.isGM() %}
+                    <form class="d-flex" role="search" action="/search" method="get">
+                        <input class="form-control me-2" type="search" name="q" value="{{ q }}" placeholder="Rechercher" aria-label="Rechercher">
+                    </form>
+                    {% endif %}
                     {% if user.authenticated %}
                     <a href="/me" class="nav-link">Mon compte</a>
                     {% else %}
@@ -53,9 +62,41 @@
         </div>
     </div>
     {% endif %}
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.1/dist/bootstrap-table.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.9/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.9/locale/fr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.9/plugin/customParseFormat.js"></script>
+    <script type="text/javascript">
+        dayjs.locale('fr');
+        dayjs.extend(window.dayjs_plugin_customParseFormat);
+
+        function harptosSorter(a, b) {
+            let [a_day,a_month,a_year] = a.split('/');
+            let [b_day,b_month,b_year] = b.split('/');
+
+            if(a_year === b_year) {
+                if(a_month === b_month) {
+                    if(a_day === b_day) {
+                        return 0;
+                    } else {
+                        return a_day - b_day;
+                    }
+                } else {
+                    return a_month - b_month;
+                }
+            } else {
+                return a_year - b_year;
+            }
+        }
+
+        function dateSorter(a, b) {
+            let format = 'YYYY-MM-DD'
+            return dayjs(a, format) - dayjs(b, format);
+        }
+    </script>
     {% endblock %}
 </div>
 </body>

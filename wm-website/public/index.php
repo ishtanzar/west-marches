@@ -28,25 +28,8 @@ require __DIR__ . '/../vendor/autoload.php';
 const KANKA_ACCESS_TOKEN_SESSION_KEY = 'kankaAccessToken';
 const JWT_COOKIE_NAME = 'access_token';
 
-class User {
-    public bool $authenticated = false;
-    public string $id;
-    public array $discord = [];
-    public array $kanka = [];
-    public array $oauth = [];
-}
-
-class Config {
-    public string $apiKey;
-    public string $api_endpoint;
-    public string $play_endpoint;
-    public string $web_root;
-    public \Lcobucci\JWT\Signer $jwt_algorithm;
-    public \Lcobucci\JWT\Signer\Key $jwt_key;
-}
-
-$config = new Config();
-$user = new User();
+$config = new App\Config();
+$user = new App\User();
 
 $app = AppFactory::create();
 $twig = Twig::create(__DIR__ . '/../views', [
@@ -86,12 +69,85 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
         ]);
     });
 
-    $group->group('', function (RouteCollectorProxy $group) use ($user) {
+    $group->group('', function (RouteCollectorProxy $group) use ($user, $es) {
         // Map
         $group->get('/map', function (Request $request, Response $response) {
             $view = Twig::fromRequest($request);
 
-            return $view->render($response, 'map.html', []);
+            return $view->render($response, 'map.html');
+        });
+
+        $group->get('/search', function (Request $request, Response $response) use ($user, $es) {
+            if(!$user->isGM()) {
+                throw new \Slim\Exception\HttpNotFoundException($request);
+            }
+
+            $view = Twig::fromRequest($request);
+            $query = $request->getQueryParams()['q'] ?? '';
+
+            $fields = ["name^5", "*.name^3", "child.entry"];
+
+            if($user->foundry['role'] ?? 0 === 4) {
+                $fields[] = '*';
+            }
+
+            $es_resp = $es->search([
+                'index' => 'kanka_*',
+                'body' => [
+                    'query' => [
+                        'query_string' => [
+                            'query' => $query,
+                            'fields' => $fields,
+                        ]
+                    ],
+//                    'highlight' => [
+//                        'boundary_scanner_locale' => 'fr-FR',
+//                        'fields' => [
+//                            '*.*' => (object) []
+//                        ]
+//                    ],
+                    'size' => 50
+                ]
+            ]);
+
+            $results = [];
+            foreach($es_resp['hits']['hits'] as $hit) {
+                $type = $hit['_source']['type'];
+
+                $type = $hit['_source']['child']['type'] == 'Rapport-MJ' ? 'session_report' : $type;
+                $results[$type][] = $hit['_source'];
+            }
+
+            if(isset($results['session_report'])) {
+                uasort($results['session_report'], function ($a, $b) {
+                    $a_year = $a['child']['calendar_year'];
+                    $a_month = $a['child']['calendar_month'];
+                    $a_day = $a['child']['calendar_day'];
+
+                    $b_year = $b['child']['calendar_year'];
+                    $b_month = $b['child']['calendar_month'];
+                    $b_day = $b['child']['calendar_day'];
+
+                    if($a_year == $b_year) {
+                        if($a_month == $b_month) {
+                            if($a_day == $b_day) {
+                                return 0;
+                            } else {
+                                return $a_day - $b_day;
+                            }
+                        } else {
+                            return $a_month - $b_month;
+                        }
+                    } else {
+                        return $a_year - $b_year;
+                    }
+                });
+            }
+
+            return $view->render($response, 'search.html', [
+                'q' => $query,
+                'results' => $results
+            ]);
         });
 
         // Account
@@ -132,7 +188,9 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
             $user->authenticated = true;
             $user->id = $token->claims()->get('user_id');
 
-            $guzzle = new \GuzzleHttp\Client();
+            $guzzle = new \GuzzleHttp\Client([
+                \GuzzleHttp\RequestOptions::VERIFY => '/opt/project/wm-infra/deploy/local/rootCA.pem'
+            ]);
             $api_response = $guzzle->get($config->api_endpoint.'/users/'.$user->id, [
                 'headers' => [
                     'Authorization' => 'ApiKey-v1 '.$config->apiKey
@@ -145,6 +203,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
                 $user->discord = $api_user['discord'] ?? [];
                 $user->kanka = $api_user['kanka'] ?? [];
                 $user->oauth = $api_user['oauth'] ?? [];
+                $user->foundry = $api_user['foundry'] ?? [];
             }
 
         } catch(RequiredConstraintsViolated $e) {

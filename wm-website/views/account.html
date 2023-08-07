@@ -11,4 +11,7 @@
     pour rejoindre la campagne, puis <a href="{{ config.api_endpoint }}/oauth/kanka?redirect_uri={{ get_uri() }}">cliquez ici</a> pour vous authentifier.
 </p>
 {% endif %}
+{% if (user.foundry.role ?? 0) == 4 %}
+Est MJ
+{% endif %}
 {% endblock %}

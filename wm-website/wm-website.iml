@@ -17,5 +17,6 @@
     <orderEntry type="library" name="jose" level="application" />
     <orderEntry type="library" name="js-cookie" level="application" />
     <orderEntry type="library" name="jquery" level="application" />
+    <orderEntry type="library" name="dayjs" level="application" />
   </component>
 </module>

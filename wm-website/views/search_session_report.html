@@ -1,0 +1,41 @@
+<h2>Rapport</h2>
+<table class="table table-hover table-sm"
+       data-toggle="table"
+       data-detail-view="true"
+       data-detail-formatter="sessionReportDetails">
+    <thead>
+        <tr>
+            <th data-sortable="true" data-sorter="harptosSorter">Date RP</th>
+            <th>Titre</th>
+            <th class="d-none" data-field="detail_view">Content</th>
+            <th>Tags</th>
+            <th data-sortable="true" data-sorter="dateSorter">Date IRL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hit in hits %}
+        <tr data-has-detail-view="true">
+            <td>
+                {% if hit.child.calendar_year %}
+                    {{ "%02d"|format(hit.child.calendar_day) }}/{{ "%02d"|format(hit.child.calendar_month) }}/{{ hit.child.calendar_year }}
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ hit.urls.view }}">{{ hit.name }}</a>
+            </td>
+            <td class="d-none">{{ hit.child.entry_parsed|raw }}</td>
+            <td>
+                {{ hit.mentions|default([])|filter(m => m.type == 'tag')|map(m => m.name)|join(', ') }}
+            </td>
+            <td>{{ hit.child.date }}</td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+<script type="text/javascript">
+    function sessionReportDetails(index, row) {
+        debugger;
+        return row.detail_view ? row.detail_view : '';
+    }
+</script>
