@@ -1,5 +1,5 @@
 passlib==1.7.4
-hypercorn==0.14.3
+hypercorn==0.14.4
 Quart==0.18.4
 logging-utilities==1.2.4
 
@@ -8,11 +8,11 @@ montydb[lmdb]==2.5.0
 lmdb==1.4.0
 dateparser==1.1.8
 discord==1.7.3
-requests==2.28.1
-PyYAML==5.4.1
+requests==2.31.0
+PyYAML==6.0.1
 
 # AWS & smart_open
-boto3==1.24.72
+boto3==1.28.21
 #pyboto3==1.13.18
 smart_open==5.2.1
 
