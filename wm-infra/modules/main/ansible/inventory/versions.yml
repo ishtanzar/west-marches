@@ -6,7 +6,7 @@ all:
     foundry_extensible_plugin_version: "3.4.0"
 
     foundry_docker_image: ishtanzar/wm-docker-foundry:2.3.0
-    management_api_image: ishtanzar/wm-management-api:0.10.0
+    management_api_image: ishtanzar/wm-management-api:0.9.0
     api_image: ishtanzar/wm-api:1.1.0
     website_image: ishtanzar/wm-website:1.1.0
     discordbot_image: ishtanzar/wm-discord-bot:0.16.0
