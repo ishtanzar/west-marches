@@ -10,6 +10,11 @@
     command: /usr/share/elasticsearch/bin/elasticsearch-keystore add s3.client.scw_par.secret_key -f --stdin
     stdin: "{{ SCW_SECRET_KEY }}"
 
+- ansible.builtin.wait_for:
+    host: "{{ elasticsearch_ip }}"
+    port: 9200
+    sleep: 15
+
 - name: Reload secrets
   ansible.builtin.uri:
     url: "http://{{ elasticsearch_ip }}:9200/_nodes/reload_secure_settings"
