@@ -7,6 +7,9 @@
       label:
         - com.docker.compose.project=west-marches
   register: compose_facts
+  until: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`foundry`]') | length > 0 }}"
+  retries: 3
+  delay: 20
 
 - ansible.builtin.set_fact:
     foundry_running: "{{ compose_facts | json_query('containers[?Labels.\"com.docker.compose.service\"==`foundry`]') | length > 0 }}"
