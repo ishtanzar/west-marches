@@ -17,6 +17,7 @@ RUN apt-get update &&  \
     docker-php-ext-install -j$(nproc) dba
 
 COPY --from=composer /opt/sources/vendor ./vendor
+COPY ./src ./src
 COPY ./public ./public
 COPY ./views ./views
 COPY ./fpm-entrypoint.sh /fpm-entrypoint.sh
