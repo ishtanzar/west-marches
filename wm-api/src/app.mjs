@@ -425,7 +425,7 @@ export class App {
             const users = this.db.open(this.config.lmdb.users);
             const user = users.get(userId);
 
-            const updated = Object.assign({}, user, req.body);
+            const updated = _.merge({}, user, req.body);
             await users.put(userId, updated);
             res.json(updated);
         } else {
