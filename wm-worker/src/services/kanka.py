@@ -203,9 +203,20 @@ class Kanka:
         last_sync = self.entities_cache["last_sync"]
         entities, new_sync = await self.fetch_entities(last_sync)
 
-        await self.notify(entities=entities)
-        await self.index(entities=entities)
-        await self.ownership(last_sync)
+        try:
+            await self.notify(entities=entities)
+        except Exception as e:
+            self.logger.exception(f'[Kanka] failed to notify: {e.__class__.__name__} {e}', exc_info=False)
+
+        try:
+            await self.index(entities=entities)
+        except Exception as e:
+            self.logger.exception(f'[Kanka] failed to index: {e.__class__.__name__} {e}', exc_info=False)
+
+        try:
+            await self.ownership(last_sync)
+        except Exception as e:
+            self.logger.exception(f'[Kanka] failed to modify permissions: {e.__class__.__name__} {e}', exc_info=False)
 
         self.entities_cache["last_sync"] = new_sync
         self.logger.info(f'Sync ok, entities={len(entities)}, lastSync={self.entities_cache["last_sync"]}')
