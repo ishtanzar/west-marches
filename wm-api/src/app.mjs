@@ -350,7 +350,7 @@ export class App {
 
                 const redirect = (await oauth_collection.pop(key)).redirect;
 
-                const users = users_collection.find({discord: {id: oauth.identity.id}});
+                const users = users_collection.find({"discord.id": oauth.identity.id});
 
                 let userId;
 
