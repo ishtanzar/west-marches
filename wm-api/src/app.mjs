@@ -5,7 +5,7 @@ import cors from 'cors';
 import Ajv from 'ajv';
 import {fileURLToPath} from 'url';
 import {readFile} from "fs/promises";
-
+import morgan from "morgan";
 import sharp from 'sharp';
 import {open} from 'lmdb';
 import {Client, TextChannel} from "discord.js";
@@ -152,6 +152,7 @@ export class App {
     async middlewares() {
         this.app
             .use(cors())
+            .use(morgan('combined'))
             .use(express.json())
             .use(cookieParser())
             .use(this.jwt_middleware.bind(this))
