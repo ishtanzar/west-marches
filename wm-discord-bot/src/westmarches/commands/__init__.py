@@ -1,4 +1,3 @@
-from .agenda import AgendaCommands
 from .chatbot import ChatbotCommands
 from .forward import Forward
 from .foundryvtt import FoundryCommands
