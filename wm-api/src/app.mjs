@@ -238,7 +238,7 @@ export class App {
 
     async api_key_middleware(req, res, next) {
         let header;
-        if ((header = req.header('Authorization')).startsWith('ApiKey-v1')) {
+        if ((header = req.header('Authorization') || "").startsWith('ApiKey-v1')) {
             const [, apiKey] = header.split(' ');
             if (apiKey === config.web.admin_key) {
                 return await next();
