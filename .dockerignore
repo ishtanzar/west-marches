@@ -4,5 +4,6 @@
 **/vendor
 **/.terraform
 **/venv
+**/*.zip
 .idea
 .vscode

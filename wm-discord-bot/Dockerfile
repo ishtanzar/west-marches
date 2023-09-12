@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 WORKDIR /opt/redbot
 
-LABEL updated_at="202305250900"
+LABEL updated_at="202309120900"
 
 RUN apt update && \
     apt -y install software-properties-common && \
@@ -11,7 +11,7 @@ RUN apt update && \
 
 RUN locale-gen fr_FR.UTF-8
 
-COPY requirements.txt ./
+COPY wm-discord-bot/requirements.txt ./
 
 ENV VIRTUAL_ENV=/opt/venv
 
@@ -21,6 +21,6 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src /opt/redbot/cogs
+COPY wm-discord-bot/src /opt/redbot/cogs
 
 CMD ["redbot"]
