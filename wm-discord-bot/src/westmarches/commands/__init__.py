@@ -14,7 +14,6 @@ class Commands(
     FoundryCommands,
     InkarnateCommands,
     KankaCommands,
-    # AgendaCommands,
     Forward,
     metaclass=CompositeMetaClass
 ):

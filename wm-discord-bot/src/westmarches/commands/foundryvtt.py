@@ -29,57 +29,10 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
     def foundry_auth(self):
         return 'foundry_manager', os.environ['MANAGER_API_SECRET']
 
-    async def fetch_foundry_user_from_discord(self, discord_user: Optional[Member]):
-        foundry_users = await self.api_client.foundry.users({'discord.id': discord_user.id})
-        foundry_user = next(iter(foundry_users['users']), None)
-
-        return foundry_user if foundry_user else None
-
     @checks.has_permissions(administrator=True)
     @commands.group(name="foundry")
     async def command_foundry(self, ctx: commands.Context):
         """Foundry admin commands"""
-
-    @command_foundry.command(name="heroes")
-    async def heroes_list(self, ctx: commands.Context):
-        resp = await self.api_client.foundry.actors()
-        grouped_roster = {}
-
-        for actor in resp['actors']:
-            pc_race = actor['data']['details']['race']
-            pc_classes = [(c['name'], c['data']['levels']) for c in actor['items'] if 'class' == c['type']]
-
-            pc = {
-                'name': actor['name'],
-                'race': pc_race.split(maxsplit=1)[0] if pc_race else '',
-                'class': max(pc_classes, key=itemgetter(1))[0] if pc_classes else '',
-            }
-
-            if pc['class']:
-                if pc['class'] not in grouped_roster:
-                    grouped_roster[pc['class']] = []
-
-                grouped_roster[pc['class']].append(pc)
-
-        async with self.config.messages() as messages:
-            await ctx.send(messages['foundry.roster.intro'] % self.bot.user.display_name.split(maxsplit=1)[0])
-
-        await ctx.send(embed=Embed(
-            description="\n".join(['• %s : %s' % (c, ', '.join([pc['name'] for pc in grouped_roster[c]])) for c in grouped_roster])
-        ))
-
-    @command_foundry.command(name="heroes_class")
-    async def heroes_class_search(self, ctx: commands.Context, pc_class: str):
-        resp = await self.api_client.foundry.actors()
-        heroes = []
-
-        for actor in resp['actors']:
-            pc_classes = [c['name'].lower() for c in actor['items'] if 'class' == c['type']]
-            if pc_class.lower() in pc_classes:
-                heroes.append(actor['name'])
-
-        async with self.config.messages() as messages:
-            await ctx.send(messages['foundry.roster.search.class'] % (pc_class, ', '.join(heroes)))
 
     @command_foundry.command()
     async def player_add(self, ctx: commands.Context, user: Member):
