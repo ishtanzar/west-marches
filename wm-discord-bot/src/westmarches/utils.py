@@ -7,8 +7,7 @@ from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.commands import commands
 from socketio import AsyncClient
-
-from westmarches.api import WestMarchesApiClient
+from westmarches_utils.api import WestMarchesApi
 
 log = logging.getLogger("red.westmarches")
 
@@ -53,7 +52,7 @@ class MixinMeta(ABC):
     bot: Red
     config: Config
     io: AsyncClient
-    api_client: WestMarchesApiClient
+    wm_api: WestMarchesApi
     es: Elasticsearch
 
     @abstractmethod

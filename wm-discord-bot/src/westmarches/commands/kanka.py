@@ -7,7 +7,7 @@ from discord.ext.commands import Context
 from discord.raw_models import RawReactionActionEvent
 from redbot.core import commands, checks
 
-from westmarches.api import DiscordMessage, DiscordUser
+from westmarches_utils.api import DiscordUser
 from westmarches.utils import CompositeMetaClass, MixinMeta
 
 
@@ -100,12 +100,12 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
                              icon_url=message.author.avatar_url)
 
             bot_message = await ctx.send(None, embed=embed)
-            await self.api_client.reports.send_report(DiscordMessage(
-                id=bot_message.id,
-                content=str(message.clean_content),
-                author=DiscordUser(message.author.id, message.author.name, message.author.discriminator),
-                created_at=message.created_at.timestamp()
-            ))
+            # await self.api_client.reports.send_report(DiscordMessage(
+            #     id=bot_message.id,
+            #     content=str(message.clean_content),
+            #     author=DiscordUser(message.author.id, message.author.name, message.author.discriminator),
+            #     created_at=message.created_at.timestamp()
+            # ))
 
             await message.delete()
             await bot_message.add_reaction("kanka:1020774086160425040")

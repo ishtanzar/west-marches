@@ -8,7 +8,7 @@ from discord.ext.commands import Context
 from redbot.core import commands, checks
 from secrets import token_hex
 
-from westmarches.api import HTTPException
+from westmarches_utils.api import HTTPException
 from westmarches.utils import CompositeMetaClass, MixinMeta
 
 log = logging.getLogger("red.westmarches.bot.inkarnate")

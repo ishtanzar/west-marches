@@ -14,8 +14,8 @@ RUN locale-gen fr_FR.UTF-8
 
 RUN npm install pm2 -g
 
-COPY dev-requirements.txt ./
-COPY requirements.txt ./
+COPY ./wm-utils /opt/project/wm-utils
+COPY ./wm-discord-bot /opt/project/wm-discord-bot
 
 ENV VIRTUAL_ENV=/opt/venv
 
@@ -23,6 +23,6 @@ RUN python3.9 -m venv $VIRTUAL_ENV
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r dev-requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /opt/project/wm-discord-bot/dev-requirements.txt
 
 CMD ["redbot"]

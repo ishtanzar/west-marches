@@ -186,8 +186,8 @@ services:
       - "4567:4567"
   discordbot:
     build:
-      context: wm-discord-bot/
-      dockerfile: dev.Dockerfile
+      context: ./
+      dockerfile: wm-discord-bot/dev.Dockerfile
     links:
       - management_api
       - api
@@ -197,8 +197,8 @@ services:
     env_file:
       - .env
     environment:
-      - WM_API_SECRET=changeme
-      - WM_API_ENDPOINT=http://management_api:5000
+      - MGMNT_API_SECRET=changeme
+      - API_TOKEN=${API_ADMIN_KEY}
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/discordbot-config.json
       - DEFAULT_INTENTS_PATH=/opt/project/wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json
       - AWS_ACCESS_KEY_ID=${DISCORD_AWS_ACCESS_KEY_ID}

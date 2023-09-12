@@ -131,11 +131,12 @@ services:
       - "--dataPath=/data"
   discordbot:
     links:
+      - api
       - management_api
       - discordbot_workaround
     environment:
-      - WM_API_SECRET={{ management_api_secret }}
-      - WM_API_ENDPOINT=http://management_api:5000
+      - MGMNT_API_SECRET={{ management_api_secret }}
+      - API_TOKEN=${ api_secret }
       - AWS_ACCESS_KEY_ID={{ DISCORD_AWS_ACCESS_KEY_ID }}
       - AWS_SECRET_ACCESS_KEY={{ DISCORD_AWS_SECRET_KEY }}
       - KANKA_TOKEN={{ KANKA_TOKEN }}

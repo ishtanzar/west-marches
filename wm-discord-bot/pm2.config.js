@@ -22,6 +22,9 @@ module.exports = {
             '/opt/project/wm-discord-bot/src/westmarches/__pycache__',
             '/opt/project/wm-discord-bot/src/westmarches/commands/__pycache__'
         ],
-        watch: "/opt/project/wm-discord-bot/src"
+        watch: [
+            "/opt/project/wm-discord-bot/src",
+            "/opt/project/wm-utils/src",
+        ]
     }]
 }

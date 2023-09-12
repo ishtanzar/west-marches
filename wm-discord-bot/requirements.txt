@@ -6,3 +6,6 @@ requests==2.27.1
 boto3==1.23.10
 python-socketio[asyncio_client]==5.7.1
 elasticsearch[async]==8.7.0
+
+wm-utils@git+https://github.com/ishtanzar/west-marches.git@releases/wm-utils/v0.0.1
+#wm-utils@git+https://github.com/ishtanzar/west-marches.git@main#subdirectory=wm-utils

@@ -1,1 +1,9 @@
-venv
+*
+
+#!/wm-utils
+#!wm-discord-bot/src
+#!wm-discord-bot/tests
+#!wm-discord-bot/*Dockerfile
+#!wm-discord-bot/*requirements.txt
+#!wm-discord-bot/pm2.config.js
+#!wm-discord-bot/pytest.ini

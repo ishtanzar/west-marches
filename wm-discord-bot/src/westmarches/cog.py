@@ -9,7 +9,10 @@ from redbot.core.commands import Cog
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 
 from . import commands
-from .api import WestMarchesApiClient, BasicAuth, HTTPException
+from westmarches_utils.api import WestMarchesApi
+from westmarches_utils.api.config import WestMarchesApiConfig
+from westmarches_utils.api.auth import Basic, APIKey
+from westmarches_utils.api.exception import HTTPException
 from .utils import CompositeMetaClass, log_message
 
 log = logging.getLogger('red.westmarches')
@@ -36,8 +39,12 @@ class WestMarchesCog(commands.Commands,
 
         self.setup_events()
 
-        api_auth = BasicAuth('foundry_manager', os.environ['WM_API_SECRET'])
-        self.api_client = WestMarchesApiClient(api_auth, os.environ['WM_API_ENDPOINT'])
+        api_config = WestMarchesApiConfig(
+            api_auth=APIKey(os.environ['API_TOKEN']),
+            management_api_auth=Basic('foundry_manager', os.environ['MGMNT_API_SECRET'])
+        )
+
+        self.wm_api = WestMarchesApi(api_config)
 
         log.info("WestMarches loaded")
 
