@@ -136,7 +136,7 @@ services:
       - discordbot_workaround
     environment:
       - MGMNT_API_SECRET={{ management_api_secret }}
-      - API_TOKEN=${ api_secret }
+      - API_TOKEN={{ api_secret }}
       - AWS_ACCESS_KEY_ID={{ DISCORD_AWS_ACCESS_KEY_ID }}
       - AWS_SECRET_ACCESS_KEY={{ DISCORD_AWS_SECRET_KEY }}
       - KANKA_TOKEN={{ KANKA_TOKEN }}
