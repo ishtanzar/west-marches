@@ -74,7 +74,7 @@ export default class ActorAuditPlugin {
     }
 
     async _onUpdate(actor, changed, options, user) {
-        this.auditLogger.info(`Actor modified`, {actor: actor.id, changes: changed, user: user.id});
+        this.auditLogger.info(`Actor modified`, {actor: actor.id, changes: changed, user: {id: user.id, name: user.name}});
     }
 
     userLogin(req, session, user) {
