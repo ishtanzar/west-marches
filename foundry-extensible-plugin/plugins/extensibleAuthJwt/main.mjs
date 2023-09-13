@@ -65,26 +65,28 @@ export default class ExtensibleJwtAuthPlugin {
               const [user] = await db.User.find({ $or: [{'_id': foundry.id}, {'discord.id': discord.id}, {'name': discord.username}] });
 
               if (user && user.role > 0) {
-                logger.debug('Updating API with Foundry user data');
-                const api_patch = await fetch(api_url, {
-                  method: 'patch',
-                  headers: api_headers,
-                  body: JSON.stringify({foundry: user})
-                });
+                if(req.path.startsWith('/join') || req.path.startsWith('/game')) {
+                  logger.debug('Updating API with Foundry user data');
+                  const api_patch = await fetch(api_url, {
+                    method: 'patch',
+                    headers: api_headers,
+                    body: JSON.stringify({foundry: user})
+                  });
 
-                if(!api_patch.ok) {
-                  logger.warn(`Failed to update API with user data: ${api_patch.status} - ${await api_patch.text()}`)
+                  if(!api_patch.ok) {
+                    logger.warn(`Failed to update API with user data: ${api_patch.status} - ${await api_patch.text()}`)
+                  }
+
+                  sessions.logoutWorld(req, resp);
+                  const session = sessions.getOrCreate(req, resp);
+                  session.worlds[game.world.id] = user.id;
+
+                  extensibleFoundry.hooks.call('audit.user.login', req, session, user);
+                  logger.info('User authentication successful for user ' + user.name, {
+                    session: session.id,
+                    ip: req.ip
+                  });
                 }
-
-                sessions.logoutWorld(req, resp);
-                const session = sessions.getOrCreate(req, resp);
-                session.worlds[game.world.id] = user.id;
-
-                extensibleFoundry.hooks.call('audit.user.login', req, session, user);
-                logger.info('User authentication successful for user ' + user.name, {
-                  session: session.id,
-                  ip: req.ip
-                });
 
                 if(req.path.startsWith('/join')) {
                   resp.redirect('/game');
