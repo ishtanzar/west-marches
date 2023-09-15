@@ -15,6 +15,7 @@ from services.donations import Donations
 from services.foundry import Foundry
 from services.kanka import Kanka
 from services.questions import Questions
+from services.queue import Queue, Job, JobDefinition
 from services.utils import Config
 
 
@@ -33,7 +34,7 @@ async def main():
     subparsers = parser.add_subparsers()
 
     app = Quart(__name__)
-    queue = asyncio.Queue()
+    queue = Queue()
 
     intents = dpy.Intents.none()
     intents.guilds = True
@@ -52,22 +53,22 @@ async def main():
     @aiocron.crontab(config.cron.foundry.update, loop=asyncio.get_event_loop())
     async def foundry_update():
         logging.getLogger('cron.foundry.update').debug('Queued')
-        await queue.put(foundry.cron)
+        await queue.put(JobDefinition('foundry.cron'))
 
     @aiocron.crontab(config.cron.kanka.live, loop=asyncio.get_event_loop())
     async def kanka_live():
         logging.getLogger('cron.kanka.live').debug('Queued')
-        await queue.put(kanka.sync)
+        await queue.put(JobDefinition('kanka.sync'))
 
     @aiocron.crontab(config.cron.questions.review, loop=asyncio.get_event_loop())
     async def questions_review():
         logging.getLogger('cron.questions.review').debug('Queued')
-        await queue.put(questions.cron)
+        await queue.put(JobDefinition('questions.cron'))
 
     @aiocron.crontab(config.cron.donations.reset, loop=asyncio.get_event_loop())
     async def donations_reset():
         logging.getLogger('cron.donations.reset').debug('Queued')
-        await queue.put(donations.reset)
+        await queue.put(JobDefinition('donations.reset'))
 
     async def worker():
         logger = logging.getLogger('worker')
@@ -77,14 +78,7 @@ async def main():
             job = await queue.get()
             logger.debug('Processing item')
             try:
-                if isinstance(job, tuple):
-                    routine, _args, _kwargs = job
-                else:
-                    routine = job
-                    _args = []
-                    _kwargs = {}
-
-                await routine(*_args, **_kwargs)
+                await job.run()
             except Exception as e:
                 logger.warning(str(e), exc_info=True)
 
@@ -124,6 +118,12 @@ async def main():
         #     return 'KO'
 
         return f'Indexed {indexed_docs} documents'
+
+    queue.register('foundry.cron', foundry.cron)
+    queue.register('kanka.sync', kanka.sync)
+    queue.register('kanka.notify', kanka.notify)
+    queue.register('questions.cron', questions.cron)
+    queue.register('donations.reset', donations.reset)
 
     subparsers.add_parser('kanka.live').set_defaults(func=kanka.sync)
     subparsers.add_parser('foundry.update').set_defaults(func=foundry.cron)

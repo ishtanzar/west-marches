@@ -15,6 +15,7 @@ from elasticsearch import AsyncElasticsearch as Elasticsearch
 
 from services.api import ApiClient
 from services.foundry import Foundry
+from services.queue import Queue, JobDefinition
 from services.utils import Cache
 
 
@@ -39,7 +40,7 @@ class Kanka:
     def __init__(self,
                  config,
                  discord: discord.Client,
-                 queue: asyncio.Queue,
+                 queue: Queue,
                  es: Elasticsearch,
                  foundry: Foundry,
                  api: ApiClient) -> None:
@@ -241,7 +242,7 @@ class Kanka:
             else:
                 for entity in entities:
                     logging.getLogger('kanka.notify').debug('Queued')
-                    await self.queue.put((self.notify, [], {'entity': entity}))
+                    await self.queue.put(JobDefinition('kanka.notify', job_kwargs={'entity': entity}))
         elif entity:
             author = await self.get_user(entity["updated_by"])
             await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'
