@@ -1,14 +1,14 @@
+import json
+import redis.asyncio as redis
 from typing import Optional
-
-import asyncio
 
 
 class JobDefinition:
 
     def __init__(self, handler: str, job_args: Optional[list] = None, job_kwargs: Optional[dict] = None):
         self._handler = handler
-        self._args = job_args
-        self._kwargs = job_kwargs
+        self._args = job_args if job_args else []
+        self._kwargs = job_kwargs if job_kwargs else {}
 
     @property
     def handler(self):
@@ -21,6 +21,22 @@ class JobDefinition:
     @property
     def kwargs(self):
         return self._kwargs
+
+    def to_json(self):
+        return json.dumps({
+            'handler': self.handler,
+            'args': self.args,
+            'kwargs': self.kwargs
+        })
+
+    @classmethod
+    def from_json(cls, json_def: str):
+        dict_def = json.loads(json_def)
+        return JobDefinition(
+            dict_def['handler'],
+            dict_def['args'] if 'args' in dict_def else [],
+            dict_def['kwargs'] if 'kwargs' in dict_def else {}
+        )
 
 
 class Job:
@@ -38,15 +54,18 @@ class Job:
         )
 
 class Queue:
-    def __init__(self):
-        self._queue = asyncio.Queue()
+    def __init__(self, config):
+        self._config = config
+        self._redis = redis.Redis.from_url(config.redis.endpoint)
+        self._queue = 'wm-worker-queue'
         self._routines = {}
 
-    async def put(self, job):
-        await self._queue.put(job)
+    async def put(self, job: JobDefinition):
+        await self._redis.lpush(self._queue, job.to_json())
 
     async def get(self):
-        job_def = await self._queue.get()
+        _, json_def = await self._redis.brpop(self._queue)
+        job_def = JobDefinition.from_json(json_def)
         return Job(job_def, self._routines[job_def.handler] if job_def.handler in self._routines else None)
 
     def register(self, key, routine):

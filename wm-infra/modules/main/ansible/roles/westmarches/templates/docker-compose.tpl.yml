@@ -143,6 +143,8 @@ services:
       - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
   worker:
     image: "{{ worker_image }}"
+    links:
+      - redis
     volumes:
       - "{{ westmarches_data_path }}/worker/config.json:/opt/worker/config.json"
       - "{{ westmarches_data_path }}/worker/cache:/var/cache/westmarches/worker"

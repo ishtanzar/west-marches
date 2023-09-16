@@ -90,6 +90,8 @@ services:
     command: server /data
   redis:
     image: redis:7-alpine
+    ports:
+      - "6379:6379"
   foundry:
     build:
       context: foundry-extensible-plugin
@@ -219,6 +221,7 @@ services:
     links:
       - elasticsearch
       - api
+      - redis
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}
