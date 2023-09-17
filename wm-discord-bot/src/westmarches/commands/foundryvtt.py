@@ -72,9 +72,9 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
             discord_user = ctx.message.author
 
         try:
-            api_user = await self.wm_api.users.find({'discord.id': str(discord_user.id)})
+            api_user = await self.wm_api.users.findOne({'discord.id': str(discord_user.id)})
 
-            if api_user['key']:
+            if api_user:
                 await self.wm_api.management.foundry.users_update(api_user['value']['foundry']['_id'], role=role)
                 await self.wm_api.users.update(api_user['key'], {'foundry': {'role': role}})
 
