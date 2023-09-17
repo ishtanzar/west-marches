@@ -1,6 +1,7 @@
 import logging
-
 from typing import Optional
+
+from quart import request
 
 from api import WestMarchesApi
 from services.docker import NoSuchService
@@ -22,12 +23,25 @@ async def backup_list(user):
 async def backup_perform(user):
     service_name = 'foundry'
     error: Optional[Exception] = None
+    allowed_schemas = ['worlds', 'systems', 'modules']
+
+    schemas_in = request.args.get('schema', '').split(',')
+    schemas = []
+
+    for schema in schemas_in:
+        if schema == 'all':
+            schemas = allowed_schemas
+            break
+        if schema in allowed_schemas:
+            schemas.append(schema)
+        else:
+            logger.warning(f'schema must be on of {allowed_schemas}')
 
     try:
         app.compose.stop(service_name)
 
         try:
-            for schema in ['worlds', 'systems', 'modules']:
+            for schema in schemas:
                 app.backup.perform(schema)
         except Exception as nse:
             error = nse

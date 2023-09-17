@@ -5,8 +5,13 @@ from westmarches_utils.api import AbstractApi
 
 class FoundryApi(AbstractApi):
 
-    async def backup(self) -> None:
-        await self.post('/backup/perform')
+    async def backup(self, schema: Optional[str] = None) -> None:
+        params = {}
+
+        if schema:
+            params['schema'] = schema
+
+        await self.post('/backup/perform', params=params)
 
     async def list_backups(self) -> dict:
         resp = await self.get('/backup/list')
