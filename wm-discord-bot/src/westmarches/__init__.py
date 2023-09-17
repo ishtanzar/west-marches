@@ -1,13 +1,11 @@
-import collections
 import json
 import logging
-import os
-from logging.handlers import RotatingFileHandler
-from types import SimpleNamespace
-
 import logging_utilities.formatters.json_formatter
+import os
 import socketio
+from logging.handlers import RotatingFileHandler
 from redbot.core.bot import Red
+from types import SimpleNamespace
 
 from .cog import WestMarchesCog
 from .websocket import MapNamespace
@@ -46,7 +44,7 @@ async def setup(bot: Red):
     # log.info("Connecting to API websocket")
     # await io.connect('ws://api:3000/')
 
-    bot.add_cog(WestMarchesCog(
+    await bot.add_cog(WestMarchesCog(
         bot=bot,
         io=io,
         config=config_dict

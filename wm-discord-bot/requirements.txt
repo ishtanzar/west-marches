@@ -1,9 +1,9 @@
-Red-DiscordBot==3.4.18
-logging-utilities==1.2.3
-dateparser==1.1.1
-validators==0.18.2
-requests==2.27.1
-boto3==1.23.10
+Red-DiscordBot==3.5.5
+logging-utilities==3.1.3
+dateparser==1.1.8
+validators==0.22.0
+requests==2.31.0
+boto3==1.28.49
 python-socketio[asyncio_client]==5.7.1
 elasticsearch[async]==8.7.0
 

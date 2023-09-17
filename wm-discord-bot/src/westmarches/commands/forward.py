@@ -35,7 +35,7 @@ class Forward(MixinMeta, metaclass=CompositeMetaClass):
     @commands.command()
     async def gm(self, ctx: commands.Context):
         embeds = [discord.Embed(description=ctx.message.content.replace(ctx.prefix + '' + ctx.invoked_with, ''))]
-        embeds[0].set_author(name=f"{ctx.message.author} | {ctx.message.author.id}", icon_url=ctx.message.author.avatar_url)
+        embeds[0].set_author(name=f"{ctx.message.author} | {ctx.message.author.id}", icon_url=ctx.message.author.avatar.url)
         embeds = self._append_attachements(ctx.message, embeds)
         embeds[-1].timestamp = ctx.message.created_at
         for embed in embeds:
