@@ -1,2 +1,2 @@
-build==0.8.0
-requests==2.27.1
+build==1.0.3
+requests==2.31.0

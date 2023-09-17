@@ -4,7 +4,7 @@ setup(
     name='wm-utils',
     version='0.0.1',
     install_requires=[
-        'requests==2.27.1'
+        'requests==2.31.0'
     ],
     packages=find_packages(
         where='src'
