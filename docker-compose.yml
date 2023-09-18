@@ -193,6 +193,7 @@ services:
     links:
       - management_api
       - api
+      - redis
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json

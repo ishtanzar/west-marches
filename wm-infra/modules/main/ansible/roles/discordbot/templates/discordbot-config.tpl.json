@@ -12,6 +12,9 @@
   "kanka": {
     "endpoint": "https://kanka.io/api/1.0/campaigns/67312"
   },
+  "redis": {
+    "endpoint": "redis://redis"
+  },
   "log": {
     "handlers": {
       "json": {

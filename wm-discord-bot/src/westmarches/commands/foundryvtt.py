@@ -5,6 +5,8 @@ from discord import Member
 from discord.ext.commands import Context
 from redbot.core import commands, checks
 from typing import Optional
+from westmarches_utils.queue import Queue, JobDefinition
+from westmarches_utils.config import Config
 
 from westmarches.utils import CompositeMetaClass, MixinMeta
 from westmarches_utils.api import HTTPException
@@ -110,7 +112,18 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
         await self.discord_api_wrapper(ctx, 'foundry.restart', lambda: self.wm_api.management.foundry.restart())
 
     @command_foundry.group(name="backup", invoke_without_command=True)
-    async def foundry_backup(self, ctx: commands.Context):
+    async def foundry_backup(self, ctx: commands.Context, schemas: Optional[str]):
         """Perform a backup of FoundryVTT. Beware that Foundry WILL BE STOPPED"""
 
-        await self.discord_api_wrapper(ctx, 'foundry.backup', lambda: self.wm_api.management.foundry.backup())
+        config = Config()
+        config.set('redis.endpoint', await self.config.redis.endpoint())
+
+        queue = Queue(config)
+        await queue.put(JobDefinition('foundry.backup',
+                                      schemas=[s.strip() for s in schemas.split(',')] if schemas else ['world'],
+                                      reaction_msg={
+                                          'channel_id': ctx.channel.id,
+                                          'message_id': ctx.message.id
+                                      }))
+
+        await ctx.message.add_reaction('\U0001F4C5')
