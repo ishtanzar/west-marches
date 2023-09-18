@@ -4,7 +4,7 @@ WORKDIR /opt/wm-worker
 
 LABEL updated_at="202210231200"
 
-RUN apt update && apt install -y gcc libev-dev
+RUN apt update && apt install -y gcc libev-dev git
 
 COPY requirements.txt ./
 
