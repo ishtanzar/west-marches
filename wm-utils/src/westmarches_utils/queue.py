@@ -1,14 +1,13 @@
 import json
 import redis.asyncio as redis
-from typing import Optional
 
 
 class JobDefinition:
 
-    def __init__(self, handler: str, job_args: Optional[list] = None, job_kwargs: Optional[dict] = None):
+    def __init__(self, handler: str, *args, **kwargs):
         self._handler = handler
-        self._args = job_args if job_args else []
-        self._kwargs = job_kwargs if job_kwargs else {}
+        self._args = args if args else []
+        self._kwargs = kwargs if kwargs else {}
 
     @property
     def handler(self):
@@ -34,8 +33,8 @@ class JobDefinition:
         dict_def = json.loads(json_def)
         return JobDefinition(
             dict_def['handler'],
-            dict_def['args'] if 'args' in dict_def else [],
-            dict_def['kwargs'] if 'kwargs' in dict_def else {}
+            *dict_def['args'] if 'args' in dict_def else [],
+            **dict_def['kwargs'] if 'kwargs' in dict_def else {}
         )
 
 
@@ -52,6 +51,7 @@ class Job:
             *_args if _args is not None else [],
             **_kwargs if _kwargs is not None else {}
         )
+
 
 class Queue:
     def __init__(self, config):
