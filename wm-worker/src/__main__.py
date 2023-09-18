@@ -1,22 +1,22 @@
+import aiocron
 import argparse
 import asyncio
+import discord as dpy
 import json
 import logging.config
 import os
-
-import aiocron
-import discord as dpy
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 from quart import Quart
+from westmarches_utils.api import WestMarchesApiConfig, WestMarchesApi
+from westmarches_utils.api.auth import APIKey, Basic
+from westmarches_utils.config import Config
+from westmarches_utils.queue import Queue, JobDefinition
 
-from services.api import ApiClient
 from services.donations import Donations
 from services.foundry import Foundry
 from services.kanka import Kanka
 from services.questions import Questions
-from services.queue import Queue, Job, JobDefinition
-from services.utils import Config
 
 
 async def main():
@@ -40,10 +40,16 @@ async def main():
     intents = dpy.Intents.none()
     intents.guilds = True
 
-    api = ApiClient(config)
+    api_config = WestMarchesApiConfig(
+        api_auth=APIKey(os.environ['API_TOKEN']),
+        management_api_auth=Basic('foundry_manager', os.environ['MGMNT_API_SECRET'])
+    )
+
+    api = WestMarchesApi(api_config)
+
     discord = dpy.Client(intents=intents)
     es = Elasticsearch(config.es.endpoint)
-    foundry = Foundry(es)
+    foundry = Foundry(es, discord, api)
     kanka = Kanka(config, discord, queue, es, foundry, api)
     questions = Questions(config, discord)
     donations = Donations(config)
@@ -121,6 +127,7 @@ async def main():
         return f'Indexed {indexed_docs} documents'
 
     queue.register('foundry.cron', foundry.cron)
+    queue.register('foundry.backup', foundry.backup)
     queue.register('kanka.sync', kanka.sync)
     queue.register('kanka.notify', kanka.notify)
     queue.register('questions.cron', questions.cron)

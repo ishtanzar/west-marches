@@ -1,6 +1,5 @@
-import logging
-
 import discord
+import logging
 
 
 class Questions:

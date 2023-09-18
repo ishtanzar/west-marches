@@ -1,7 +1,8 @@
 Quart==0.18.4
-requests==2.28.2
+requests==2.31.0
 aiocron==1.8
-discord.py==2.2.2
+discord.py==2.3.2
 elasticsearch[async]==8.7.0
 arrow==1.2.2
-redis[hiredis]==4.6.0
+
+wm-utils@git+https://github.com/ishtanzar/west-marches.git@releases/wm-utils/v0.0.2#subdirectory=wm-utils

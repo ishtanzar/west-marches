@@ -12,11 +12,11 @@ import discord
 import elasticsearch.helpers
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
+from westmarches_utils.api import WestMarchesApi
+from westmarches_utils.cache import Cache
+from westmarches_utils.queue import Queue, JobDefinition
 
-from services.api import ApiClient
 from services.foundry import Foundry
-from services.queue import Queue, JobDefinition
-from services.utils import Cache
 
 
 class Permission(Enum):
@@ -43,7 +43,7 @@ class Kanka:
                  queue: Queue,
                  es: Elasticsearch,
                  foundry: Foundry,
-                 api: ApiClient) -> None:
+                 api: WestMarchesApi) -> None:
         super().__init__()
 
         self.config = config
@@ -386,7 +386,7 @@ class Kanka:
                 foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
                 kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
                 self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
-                users_from_kanka_owners = await self.api.search_users_from_kanka_ids(kanka_owners_ids)
+                users_from_kanka_owners = await self.api.users.search({"kanka.id": { "$in": kanka_owners_ids }})
 
                 for owner in foundry_owners:
                     found = False
@@ -398,7 +398,7 @@ class Kanka:
 
                     if not found:
                         self.logger.debug(f'Searching for kanka user {owner}')
-                        [new_user] = await self.api.search_users_from_foundry_ids([owner])
+                        [new_user] = await self.api.users.search({"foundry._id": owner})
                         for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
                             self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
                             await self.add_user_entity_permission(kanka_character['id'], new_user['kanka']['id'], action.value)

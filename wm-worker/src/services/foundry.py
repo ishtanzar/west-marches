@@ -1,18 +1,26 @@
-import os.path
-from pathlib import Path
-
 import arrow
+import discord
 import json
 import logging
 import requests
-from elasticsearch import ApiError,AsyncElasticsearch as Elasticsearch
+from elasticsearch import ApiError, AsyncElasticsearch as Elasticsearch
+from pathlib import Path
+from typing import Optional
+from westmarches_utils.api import WestMarchesApi
 
 
 class Foundry:
 
-    def __init__(self, es: Elasticsearch) -> None:
-        self.es = es
-        self.logger = logging.getLogger('foundry')
+    def __init__(
+            self, 
+            es: Elasticsearch,
+            dpy: discord.Client,
+            api: WestMarchesApi) -> None:
+        
+        self._es = es
+        self._discord = dpy
+        self._api = api
+        self._logger = logging.getLogger('foundry')
 
     async def initialize(self):
         index_name = 'foundry_actor'
@@ -20,14 +28,14 @@ class Foundry:
 
         opts = json.load(index_config_file.resolve().open())
 
-        if await self.es.indices.exists(index=index_name):
-            await self.es.indices.put_settings(index=index_name, settings=opts['settings'])
-            await self.es.indices.put_mapping(index=index_name, **opts['mappings'])
+        if await self._es.indices.exists(index=index_name):
+            await self._es.indices.put_settings(index=index_name, settings=opts['settings'])
+            await self._es.indices.put_mapping(index=index_name, **opts['mappings'])
         else:
-            await self.es.indices.create(index=index_name, **opts)
+            await self._es.indices.create(index=index_name, **opts)
 
-        for index in await self.es.indices.get(index='*'):
-            await self.es.indices.put_settings(index=index, settings={'index': {'number_of_replicas': 0}})
+        for index in await self._es.indices.get(index='*'):
+            await self._es.indices.put_settings(index=index, settings={'index': {'number_of_replicas': 0}})
 
     async def fetch_pcs(self, ids=[]):
         query = {
@@ -40,7 +48,7 @@ class Foundry:
         resp = requests.request('search', 'http://foundry:30000/api/actors', json=query)
 
         if resp.status_code == 200:
-            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
+            self._logger.debug(f'GET {resp.url} - {resp.status_code}')
             return resp.json()['actors']
 
     async def list_modified_characters(self, last_sync: str = None) -> list:
@@ -50,7 +58,7 @@ class Foundry:
         last_sync_obj = arrow.get(last_sync) if last_sync else arrow.utcnow().shift(hours=-1)
 
         while True:
-            resp = await self.es.search(index=f'foundry_audit-{last_sync_obj.strftime("%Y.%m")}', query={
+            resp = await self._es.search(index=f'foundry_audit-{last_sync_obj.strftime("%Y.%m")}', query={
                 'range': {
                     '@timestamp': {
                         'gt': last_sync_obj.isoformat()
@@ -80,11 +88,28 @@ class Foundry:
             try:
                 await self.index_actor(actor)
             except ApiError as e:
-                self.logger.warning(e.info['error']['reason'])
+                self._logger.warning(e.info['error']['reason'])
 
     async def index_actor(self, actor):
         actor['id'] = actor['_id']
         del actor['_id']
 
-        self.logger.debug(f'Indexing actor/{actor["name"]}')
-        await self.es.index(index='foundry_actor', id=actor['id'], document=actor)
+        self._logger.debug(f'Indexing actor/{actor["name"]}')
+        await self._es.index(index='foundry_actor', id=actor['id'], document=actor)
+
+    async def backup(self, schemas: Optional[list] = None, reaction_msg: Optional[dict] = None):
+        clean_schemas = 'all'
+        channel = message = None
+
+        if schemas:
+            clean_schemas = ','.join(schemas)
+
+        if reaction_msg and 'channel_id' in reaction_msg and 'message_id' in reaction_msg:
+            channel = await self._discord.fetch_channel(reaction_msg['channel_id'])
+            message = await channel.fetch_message(reaction_msg['message_id'])
+            await message.add_reaction('\U000025B6')
+
+        await self._api.management.foundry.backup(clean_schemas)
+
+        if channel and message:
+            await message.add_reaction('\U00002705')

@@ -9,9 +9,9 @@ RUN apt update && apt install -y gcc libev-dev npm
 
 RUN npm install pm2 -g
 
-COPY requirements.txt ./
-COPY dev-requirements.txt ./
+COPY ./wm-utils /opt/project/wm-utils
+COPY ./wm-worker /opt/project/wm-worker
 
-RUN pip install --no-cache-dir -r dev-requirements.txt
+RUN pip install --no-cache-dir -r /opt/project/wm-worker/dev-requirements.txt
 
 CMD ["python", "./__main__.py"]

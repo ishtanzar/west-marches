@@ -214,8 +214,8 @@ services:
 #      - "5679:5679" # VScode
   worker:
     build:
-      context: wm-worker
-      dockerfile: dev.Dockerfile
+      context: ./
+      dockerfile: wm-worker/dev.Dockerfile
     volumes:
       - ./:/opt/project
     links:
@@ -226,7 +226,8 @@ services:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
       - KANKA_TOKEN=${KANKA_TOKEN}
       - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - API_TOKEN=changeme
+      - MGMNT_API_SECRET=changeme
+      - API_TOKEN=${API_ADMIN_KEY}
       - PYTHONUNBUFFERED=1
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
 #    command:
