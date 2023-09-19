@@ -120,7 +120,7 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
         queue = Queue(config)
         await queue.put(JobDefinition('foundry.backup',
-                                      schemas=[s.strip() for s in schemas.split(',')] if schemas else ['world'],
+                                      schemas=[s.strip() for s in schemas.split(',')] if schemas else ['worlds'],
                                       reaction_msg={
                                           'channel_id': ctx.channel.id,
                                           'message_id': ctx.message.id
