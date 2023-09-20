@@ -10,11 +10,23 @@
   "intents": [],
   "taverns": [],
   "kanka": {
-    "endpoint": "https://kanka.io/api/1.0/campaigns/67312"
+    "endpoint": "https://kanka.io/api/1.0/campaigns/67312",
+    "gm_role": 195422,
+    "player_role": 199680
   },
   "redis": {
     "endpoint": "redis://redis"
   },
+  "management": {
+    "gms": [],
+    "onboard": {
+      "invite_guild": 776895471875915837,
+      "invite_channel": 813736020679589889
+    },
+    "players_guild": 845325199322775572,
+    "gm_role": 996157256699740232
+  },
+  "destination": 911374861304234045,
   "log": {
     "handlers": {
       "json": {
@@ -33,11 +45,13 @@
     "sessions.schedule.done": "Rapport créé : {}. Bonne partie !",
     "gm.message.sent": "Ton message a bien été transmis, l'équipe en discute et reviendra vers toi par message privé. Bonne journée.",
     "inkarnate.password": "%s\nCe message sera automatiquement supprimé dans 30s.",
+    "management.s3.credentials": "AccessKeyId: %s\nSecretAccessKey: %s\nCe message sera automatiquement supprimé dans 30s.",
 
     "intents.learn.done": "On en apprend de belles tous les jours !",
     "intents.train.done": "Rien de tel qu'une bonne scéance d'entraînement pour garder la forme.",
 
     "kanka.users.list.not_found": "Aucun utilisateur",
+    "kanka.users.find.not_found": "Impossible de trouver une correspondance sur Kanka pour l'utilisation %s.",
     "kanka.reports.link": "Voici le lien vers le rapport demandé : \n%s\nCe message sera supprimé dans %s.",
     "kanka.reports.not_found": "Impossible de trouver le rapport demandé.",
 
@@ -48,6 +62,7 @@
     "foundry.backup.failed": "La porte de la réserve est restée coincée, on a pas rangé la dernière livraison",
     "foundry.backup.done": "C'est bon, on a pu ranger la réserve, on peut ouvrir pour la journée !",
 
+    "foundry.restart.notify": "Votre attention, le serveur Foundry sera redémarré <t:%s:R>",
     "foundry.restart.started": "Krusk, ça sent encore le cramé; ouvre la fenêtre !",
     "foundry.restart.done": "Merci",
 

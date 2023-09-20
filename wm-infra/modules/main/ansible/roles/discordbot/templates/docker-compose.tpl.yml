@@ -9,6 +9,7 @@ services:
       - "{{ discordbot_data_path }}:/opt/redbot/data"
       - "{{ discordbot_data_path }}/redbot-config.json:/root/.config/Red-DiscordBot/config.json"
     environment:
+      - TZ=Europe/Paris
       - DEFAULT_INTENTS_PATH=/opt/redbot/data/default-intents.json
       - CONFIG_PATH=/opt/redbot/data/discordbot-config.json
       - AWS_ACCESS_KEY_ID={{DISCORD_AWS_ACCESS_KEY_ID}}

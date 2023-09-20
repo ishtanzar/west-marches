@@ -200,6 +200,7 @@ services:
     env_file:
       - .env
     environment:
+      - TZ=Europe/Paris
       - MGMNT_API_SECRET=changeme
       - API_TOKEN=${API_ADMIN_KEY}
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/discordbot-config.json
