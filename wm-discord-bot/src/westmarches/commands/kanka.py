@@ -1,8 +1,13 @@
+from http.client import HTTPException
+
+from typing import Optional
+
 import os
 from abc import abstractmethod
 
 import discord
 import requests
+from discord import Member
 from discord.ext.commands import Context
 from discord.raw_models import RawReactionActionEvent
 from redbot.core import commands, checks
@@ -31,12 +36,10 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
     async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
         pass
 
-    def __init__(self, kanka_endpoint, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._token = os.environ['KANKA_TOKEN']
-        self._endpoint = kanka_endpoint
-
         # self._es = es
 
     @checks.has_permissions(administrator=True)
@@ -46,13 +49,68 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
 
     @command_kanka.command()
     async def list_users(self, ctx: commands.Context, user_filter: str = ''):
-        users = requests.get(self._endpoint + '/users', headers={'Authorization': 'Bearer ' + self._token}).json()
+        users = requests.get(
+            await self.config.kanka.endpoint() + '/users',
+            headers={'Authorization': 'Bearer ' + self._token}
+        ).json()
+
         resp = "\n".join([u['name'] for u in users['data'] if user_filter.lower() in u['name'].lower()])
         async with self.config.messages() as messages:
             await ctx.send(resp if resp else messages['kanka.users.list.not_found'])
 
-    # @command_kanka.command()
-    # async def user_set_gm(self, ctx: commands.Context, user_str: str):
+    async def update_kanka_roles(self, ctx: commands.Context, discord_user: Member, add: Optional[int] = None, remove: Optional[int] = None):
+        try:
+            api_user = (await self.wm_api.users.findOne({'discord.id': str(discord_user.id)}))['value']
+
+            if api_user and (kanka_user_id := api_user.get('kanka', {}).get('id')):
+                if add:
+                    requests.post(
+                        await self.config.kanka.endpoint() + '/users',
+                        headers={'Authorization': 'Bearer ' + self._token},
+                        json={
+                            'user_id': kanka_user_id,
+                            'role_id': add
+                        }
+                    )
+                if remove:
+                    requests.delete(
+                        await self.config.kanka.endpoint() + '/users',
+                        headers={'Authorization': 'Bearer ' + self._token},
+                        json={
+                            'user_id': kanka_user_id,
+                            'role_id': remove
+                        }
+                    )
+                await ctx.message.add_reaction('\U00002705')
+            else:
+                await ctx.send('Impossible de trouver une correspondance sur Kanka')
+
+        except HTTPException as e:
+            await ctx.send(str(e))
+
+    @command_kanka.command(name="set_gm")
+    async def set_kanka_gm(self, ctx: commands.Context, member: Optional[Member]):
+        if not member:
+            member = ctx.author
+
+        await self.update_kanka_roles(
+            ctx,
+            member,
+            add=await self.config.kanka.gm_role(),
+            remove=await self.config.kanka.player_role()
+        )
+
+    @command_kanka.command(name="remove_gm")
+    async def remove_kanka_gm(self, ctx: commands.Context, member: Optional[Member]):
+        if not member:
+            member = ctx.author
+
+        await self.update_kanka_roles(
+            ctx,
+            member,
+            add=await self.config.kanka.player_role(),
+            remove=await self.config.kanka.gm_role()
+        )
 
     @command_kanka.command()
     async def search(self, ctx: commands.Context, query: str):

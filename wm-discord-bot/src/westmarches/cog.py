@@ -33,9 +33,7 @@ class WestMarchesCog(commands.Commands,
         self.config.register_global(**config)
 
         # noinspection PyArgumentList
-        super(commands.Commands, self).__init__(
-            kanka_endpoint=config.get('kanka', {}).get('endpoint')
-        )
+        super(commands.Commands, self).__init__()
 
         self.setup_events()
 
