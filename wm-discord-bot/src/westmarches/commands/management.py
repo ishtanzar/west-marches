@@ -9,6 +9,9 @@ from westmarches.utils import MixinMeta, CompositeMetaClass
 
 class ManagementCommands(MixinMeta, metaclass=CompositeMetaClass):
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     @abstractmethod
     async def discord_api_wrapper(self, ctx: commands.Context, messages_key: str, f):
         pass
@@ -79,12 +82,17 @@ class ManagementCommands(MixinMeta, metaclass=CompositeMetaClass):
         gms: List[int] = await self.config.management.gms()
         iam = boto3.client('iam')
 
-        gms.remove(member.id)
-        await self.config.management.gms.set(gms)
+        if member.id in gms:
+            gms.remove(member.id)
+            await self.config.management.gms.set(gms)
+
         await gm_guild.kick(member)
         await member.remove_roles(players_guild.get_role(await self.config.management.gm_role()))
-        iam.delete_user(UserName=member.name)
 
+        for u in iam.list_users()['Users']:
+            if member.name == u['UserName']:
+                iam.delete_user(UserName=member.name)
+                break
 
     @commands.Cog.listener()
     async def on_member_join(self, member: Member):

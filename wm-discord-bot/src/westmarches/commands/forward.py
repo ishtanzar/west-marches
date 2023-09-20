@@ -1,10 +1,17 @@
 import discord
+from discord.ext.commands import Context
 from redbot.core import commands, checks
 
 from westmarches.utils import CompositeMetaClass, MixinMeta
 
 
 class Forward(MixinMeta, metaclass=CompositeMetaClass):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
+        pass
 
     @staticmethod
     def _append_attachements(message: discord.Message, embeds: list):

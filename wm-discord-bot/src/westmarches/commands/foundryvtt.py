@@ -21,7 +21,9 @@ log = logging.getLogger("red.westmarches.foundry")
 
 class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
         self._tasks_backups: set[Task] = set()
         self._tasks_restart: set[Task] = set()
         self._delayed_restart_handle = None
