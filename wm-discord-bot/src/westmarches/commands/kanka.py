@@ -83,7 +83,8 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
                     )
                 await ctx.message.add_reaction('\U00002705')
             else:
-                await ctx.send('Impossible de trouver une correspondance sur Kanka')
+                async with self.config.messagees() as messages:
+                    await ctx.send(messages['kanka.users.find.not_found'] % discord_user.name)
 
         except HTTPException as e:
             await ctx.send(str(e))
