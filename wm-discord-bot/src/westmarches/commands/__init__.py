@@ -3,6 +3,7 @@ from .forward import Forward
 from .foundryvtt import FoundryCommands
 from .inkarnate import InkarnateCommands
 from .kanka import KankaCommands
+from .management import ManagementCommands
 from .rumors import RumorsCommands
 from ..utils import CompositeMetaClass
 
@@ -14,6 +15,7 @@ class Commands(
     InkarnateCommands,
     KankaCommands,
     Forward,
+    ManagementCommands,
     metaclass=CompositeMetaClass
 ):
 
