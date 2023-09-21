@@ -97,6 +97,7 @@ services:
       context: foundry-extensible-plugin
       dockerfile: ../wm-infra/docker/foundry/Dockerfile
     environment:
+      - TIMEZONE=Europe/Paris
       - CONTAINER_PRESERVE_CONFIG=true
       - FOUNDRY_WORLD=west-marches-de-la-cave
       - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
@@ -113,6 +114,7 @@ services:
 #      - ./wm-infra/deploy/local/data/foundry/Data-8.x:/data/Data
       - ./wm-infra/deploy/local/data/foundry/Data-9.x:/data/Data
       - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
+      - ./wm-infra/deploy/local/extensible-config.json:/home/foundry/resources/extensible-config.json
       - foundry-logs:/data/Logs
       - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
       - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro

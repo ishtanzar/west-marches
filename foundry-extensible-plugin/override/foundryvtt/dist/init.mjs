@@ -155,7 +155,7 @@ class ExtensibleFoundryPlugin {
   _viewsPath = [];
   _clientModules = [];
 
-  constructor() {
+  constructor(extensibleConfig) {
     this.hooks.on('pre.setting.save', this.preSettingSave.bind(this));
     this.hooks.on('post.files.loadTemplate', this.loadTemplate.bind(this));
     this.hooks.on('post.world.modules', this.getModules.bind(this));
@@ -163,54 +163,25 @@ class ExtensibleFoundryPlugin {
     this.hooks.on('extensiblePlugins.clientModules.register', this.registerClientModule.bind(this));
     this.hooks.on('post.initialize', this.postInitialize.bind(this));
 
+    this._config = extensibleConfig;
+
     this.addStaticFilesDirectory(path.join(global.extensiblePluginRoot, 'public'), '/modules/foundry-extensible-plugin/');
   }
 
-  static async initialize(pluginsPath) {
+  static async initialize(extensibleConfig) {
     global.extensibleLogger.info('ExtensibleFoundry init');
 
-    this._instance = global.extensibleFoundry = new ExtensibleFoundryPlugin();
-    await this._instance.loadPlugins(pluginsPath);
+    this._instance = global.extensibleFoundry = new ExtensibleFoundryPlugin(extensibleConfig);
+    await this._instance.loadPlugins();
   }
 
   get hooks() {
     return Hooks;
   }
 
-  // Duplicate paths._getEnvDataPath
-  _getEnvDataPath() {
-    const t = os.homedir(), o = "FoundryVTT";
-    switch (process.platform) {
-      case"win32":
-        return path.join(process.env.LOCALAPPDATA || path.join(t, "AppData", "Local"), o);
-      case"darwin":
-        return path.join(t, "Library", "Application Support", o);
-      default:
-        let a = process.env.XDG_DATA_HOME || path.join(t, ".local", "share");
-        if (!fs.existsSync(a)) try {
-          mkdirp(a)
-        } catch (t) {
-          a = "/local"
-        }
-        return path.join(a, o)
-    }
-  }
-
-  async loadPlugins(pluginsPath) {
-    // Duplicated code from foundry
-    const n = this._getEnvDataPath(), i = path.join(n, "Config"), p = path.join(i, "options.json");
-    let r = process.argv.find((t => t.startsWith("--dataPath"))) || null;
-    r && (r = r.split("=")[1]);
-    let h = null;
-    if (fs.existsSync(p)) {
-      h = JSON.parse(fs.readFileSync(p, "utf8")).dataPath || null
-    }
-    let l = r || process.env.FOUNDRY_VTT_DATA_PATH || h || n;
-    const optionsPath = path.join(l, "Config", "options.json");
-    const options = JSON.parse(fs.readFileSync(optionsPath, "utf8"));
-
-    for(let pluginId of options['extensiblePlugins'] || []) {
-      const plugin = await import(path.join(pluginsPath, pluginId, 'main.mjs'))
+  async loadPlugins() {
+    for(let pluginId of this._config.plugins || []) {
+      const plugin = await import(path.join(this._config.pluginsPath, pluginId, 'main.mjs'))
       this._plugins.push(new plugin.default(this));
     }
     await this.hooks.callAsync('post.extensiblePlugin.loadPlugins');
@@ -312,7 +283,27 @@ export default async function initialize({args: args = [], root: root, messages:
 
   const init = await import('foundry:dist/init.mjs');
 
-  await ExtensibleFoundryPlugin.initialize(new URL('../../../plugins', import.meta.url).pathname);
+  let extensibleConfigPath = '/home/foundry/resources/extensible-config.json';
+  let extensibleConfig = {
+    'pluginsPath': new URL('/home/foundry/resources/foundry-extensible-plugin/plugins', import.meta.url).pathname,
+    'plugins': ['api', 'accessLogs']
+  };
+
+  for(let arg of args) {
+    if(/^--extensible-config/.test(arg)) {
+      extensibleConfigPath = arg.split('=')[1];
+    }
+  }
+  messages.push({level: 'info', message: 'ExtensiblePlugin config path: ' + extensibleConfigPath});
+
+  if(fs.existsSync(extensibleConfigPath)) {
+    extensibleConfig = Object.assign(extensibleConfig, JSON.parse(fs.readFileSync(extensibleConfigPath, "utf8")));
+  }
+
+  messages.push({level: 'info', message: 'ExtensiblePlugin config: \n' + JSON.stringify(extensibleConfig, null, 2)})
+
+
+  await ExtensibleFoundryPlugin.initialize(extensibleConfig);
   await init.default({
     args: args,
     root: root,

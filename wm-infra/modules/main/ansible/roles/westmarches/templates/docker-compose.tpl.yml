@@ -129,6 +129,7 @@ services:
       - "--headless"
       - "--noupdate"
       - "--dataPath=/data"
+      - "--extensibleAuthJwt-api-key={{ api_secret }}"
   discordbot:
     links:
       - api

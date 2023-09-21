@@ -13,6 +13,13 @@ export default class ExtensibleJwtAuthPlugin {
    */
   constructor(base) {
     const pluginRoot = path.dirname(url.fileURLToPath(import.meta.url));
+    this._apiKey = null;
+
+    for(let arg of process.argv) {
+      if(/^--extensibleAuthJwt-api-key/.test(arg)) {
+        this._apiKey = arg.split('=')[1];
+      }
+    }
 
     base.hooks.on('pre.express.userSessionMiddleware', this.jwt_middleware.bind(this));
     base.hooks.on('extensibleAuth.route_oauth_authenticate', this.route_oauth_authenticate.bind(this));
@@ -37,7 +44,7 @@ export default class ExtensibleJwtAuthPlugin {
       let api_endpoint = await db.Setting.getValue('extensibleAuth.method.jwt.api_endpoint');
       const api_headers = {
         Accept: 'application/json',
-        Authorization: 'ApiKey-v1 ' + await db.Setting.getValue('extensibleAuth.method.jwt.api_key'),
+        Authorization: 'ApiKey-v1 ' + (this._apiKey || await db.Setting.getValue('extensibleAuth.method.jwt.api_key')),
         'Content-type': 'application/json'
       };
 
