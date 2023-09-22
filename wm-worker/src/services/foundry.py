@@ -78,10 +78,12 @@ class Foundry:
 
     async def cron(self):
         char_ids = await self.list_modified_characters()
-        characters = await self.fetch_pcs(ids=char_ids)
 
-        for actor in characters:
-            await self.index_actor(actor)
+        if char_ids:
+            characters = await self.fetch_pcs(ids=char_ids)
+
+            for actor in characters:
+                await self.index_actor(actor)
 
     async def reindex(self):
         for actor in await self.fetch_pcs():
