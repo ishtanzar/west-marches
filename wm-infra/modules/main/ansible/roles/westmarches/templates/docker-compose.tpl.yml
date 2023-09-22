@@ -5,6 +5,7 @@ name: "west-marches"
 services:
   influxdb:
     image: influxdb:2.0.7
+    restart: unless-stopped
     ports:
       - "8086:8086"
     volumes:
@@ -25,7 +26,7 @@ services:
       start_period: 10s
   grafana:
     image: grafana/grafana:8.0.3
-    restart: "unless-stopped"
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/grafana/storage:/var/lib/grafana"
       - "{{ westmarches_data_path }}/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml"
@@ -54,9 +55,10 @@ services:
       start_period: 10s
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
   proxy:
     image: nginx:1.21.0
-    restart: "unless-stopped"
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/nginx-custom.conf:/etc/nginx/01-custom.conf.new:ro"
       - "{{ westmarches_data_path }}/nginx-ssl.conf:/etc/nginx/02-ssl.conf.new:ro"
@@ -74,6 +76,7 @@ services:
       - "443:443"
       - "127.0.0.1:8080:8080"
   management_api:
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/.env:/opt/.env"
       - "{{ discordbot_data_path }}-compose.yml:/opt/discordbot-compose.yml"
@@ -89,6 +92,7 @@ services:
       - KANKA_CAMPAIGN={{ KANKA_CAMPAIGN }}
   api:
     image: "{{ api_image }}"
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs"
       - "{{ westmarches_data_path }}/api/config.json:/opt/api/config.json"
@@ -115,6 +119,7 @@ services:
       retries: 3
       start_period: 10s
   foundry:
+    restart: unless-stopped
     environment:
       - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
       - API_ADMIN_KEY={{ api_secret }}
@@ -132,6 +137,7 @@ services:
       - "--dataPath=/data"
       - "--extensibleAuthJwt-api-key={{ api_secret }}"
   discordbot:
+    restart: unless-stopped
     links:
       - api
       - management_api
@@ -145,6 +151,7 @@ services:
       - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
   worker:
     image: "{{ worker_image }}"
+    restart: unless-stopped
     links:
       - redis
     volumes:
@@ -159,6 +166,7 @@ services:
       - PYTHONUNBUFFERED=1
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/elasticsearch/data:/usr/share/elasticsearch/data"
       - "{{ westmarches_data_path }}/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro"
@@ -174,6 +182,7 @@ services:
         hard: 65536
   discordbot_workaround:
     image: "{{ discord_workaround_image }}"
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/workaround/config.json:/opt/discord_workaround/config.json"
 #    links:
@@ -186,6 +195,7 @@ services:
       - PYTHONUNBUFFERED=1
   website:
     image: "{{ website_image }}"
+    restart: unless-stopped
     volumes:
       - "{{ westmarches_data_path }}/www:/var/www/html"
       - "{{ westmarches_data_path }}/www:{{ westmarches_data_path }}/www"
