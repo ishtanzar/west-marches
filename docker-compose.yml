@@ -199,8 +199,6 @@ services:
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json
-    env_file:
-      - .env
     environment:
       - TZ=Europe/Paris
       - MGMNT_API_SECRET=changeme

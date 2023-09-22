@@ -38,7 +38,7 @@
       "live": "* 4 * * *"
     },
     "foundry": {
-      "update": "0 4 * * *"
+      "update": "* 4 * * *"
     },
     "questions": {
       "review": "0 4 * * *"
