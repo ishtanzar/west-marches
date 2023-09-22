@@ -188,9 +188,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
             $user->authenticated = true;
             $user->id = $token->claims()->get('user_id');
 
-            $guzzle = new \GuzzleHttp\Client([
-                \GuzzleHttp\RequestOptions::VERIFY => '/opt/project/wm-infra/deploy/local/rootCA.pem'
-            ]);
+            $guzzle = new \GuzzleHttp\Client();
             $api_response = $guzzle->get($config->api_endpoint.'/users/'.$user->id, [
                 'headers' => [
                     'Authorization' => 'ApiKey-v1 '.$config->apiKey
