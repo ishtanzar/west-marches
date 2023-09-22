@@ -32,6 +32,7 @@
     - { src: api-config.json, dest: "{{ westmarches_data_path }}/api/config.json" }
     - { src: worker-config.json, dest: "{{ westmarches_data_path }}/worker/config.json" }
     - { src: workaround-config.json, dest: "{{ westmarches_data_path }}/workaround/config.json" }
+    - { src: extensible-config.json, dest: "{{ westmarches_data_path }}/extensible-config.json" }
 
 - ansible.builtin.file:
     path: "{{ westmarches_data_path }}/worker/cache/donations.cache.json"

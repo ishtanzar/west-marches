@@ -120,6 +120,7 @@ services:
       - API_ADMIN_KEY={{ api_secret }}
     volumes:
       - "{{ westmarches_data_path }}/foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin"
+      - "{{ westmarches_data_path }}/extensible-config.json:/home/foundry/resources/extensible-config.json:ro"
     command:
       - "--inspect=0.0.0.0:9229"
       - "--experimental-vm-modules"

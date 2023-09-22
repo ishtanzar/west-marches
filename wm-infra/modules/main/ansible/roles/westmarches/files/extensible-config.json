@@ -1,0 +1,11 @@
+{
+  "plugins": [
+    "api",
+    "accessLogs",
+    "metrics",
+    "extensibleAuth",
+    "extensibleAuthDiscord",
+    "extensibleAuthJwt",
+    "actorAudit"
+  ]
+}
