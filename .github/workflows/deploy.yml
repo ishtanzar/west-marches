@@ -1,6 +1,12 @@
 name: deploy
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - wm-infra/**
+    branches:
+      - main
 
 jobs:
   deploy:
