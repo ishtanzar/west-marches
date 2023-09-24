@@ -95,6 +95,7 @@ services:
       - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
       - FOUNDRY_ADMIN_KEY=atropos
       - API_ADMIN_KEY=${API_ADMIN_KEY}
+      - DEBUG=*,-pm2:*,-axon:*,-axm:*,-interactor:*,-require-in-the-middle
     links:
       - api
       - meilisearch
@@ -110,6 +111,7 @@ services:
       - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
       - ./winston-meilisearch:/home/foundry/resources/foundry-extensible-plugin/node_modules/winston-meilisearch:ro
       - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
+    entrypoint: []
     command: ["/usr/local/bin/pm2-runtime", "/home/foundry/resources/foundry-extensible-plugin/pm2.config.js"]
     ports:
       - "30000:30000"
@@ -158,6 +160,7 @@ services:
       - "9228:9228"
     links:
       - redis
+      - elasticsearch
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
       - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
