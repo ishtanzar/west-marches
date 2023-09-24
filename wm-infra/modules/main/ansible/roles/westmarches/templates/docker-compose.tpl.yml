@@ -180,6 +180,8 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    ports:
+      - "127.0.0.1:9200:9200"
   discordbot_workaround:
     image: "{{ discord_workaround_image }}"
     restart: unless-stopped
