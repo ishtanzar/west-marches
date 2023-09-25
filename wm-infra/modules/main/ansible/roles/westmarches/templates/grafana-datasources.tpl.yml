@@ -12,3 +12,15 @@ datasources:
       organization: westmarchesdelacave
       defaultBucket: bucket0
       tlsSkipVerify: true
+  - name: InfluxDB_InfluxQL
+    type: influxdb
+    access: proxy
+    database: db0
+    url: http://influxdb:8086
+    jsonData:
+      # This database should be mapped to a bucket
+      dbName: db0
+      httpMode: GET
+      httpHeaderName1: 'Authorization'
+    secureJsonData:
+      httpHeaderValue1: 'Token {{ INFLUXDB_ADMIN_TOKEN }}'
