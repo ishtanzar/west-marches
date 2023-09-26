@@ -12,6 +12,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: deploy_production
+      cancel-in-progress: true
     
     steps:
       - name: Output versions
