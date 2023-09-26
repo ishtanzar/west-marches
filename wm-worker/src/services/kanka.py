@@ -242,7 +242,7 @@ class Kanka:
             else:
                 for entity in entities:
                     logging.getLogger('kanka.notify').debug('Queued')
-                    await self.queue.put(JobDefinition('kanka.notify', job_kwargs={'entity': entity}))
+                    await self.queue.put(JobDefinition('kanka.notify', entity=entity))
         elif entity:
             author = await self.get_user(entity["updated_by"])
             await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'
