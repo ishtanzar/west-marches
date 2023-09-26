@@ -51,3 +51,10 @@
     owner: root
     group: root
     mode: '0644'
+
+- name: Ensure telegraf user is within the docker group
+  ansible.builtin.user:
+    name: telegraf
+    append: true
+    groups:
+      - docker

@@ -33,3 +33,5 @@ path_tag = "path"
 [[inputs.elasticsearch]]
 servers = ["http://localhost:9200"]
 cluster_health = true
+
+[[inputs.docker]]
