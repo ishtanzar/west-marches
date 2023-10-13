@@ -1,7 +1,6 @@
 import logging.config
 import os
 import re
-from pathlib import Path
 from urllib.parse import urlparse
 
 import boto3
@@ -10,7 +9,6 @@ from montydb import set_storage, MontyClient
 
 from api import WestMarchesApi
 from services.backup import BackupService
-from services.chatbot import IntentService
 from services.database import Engine
 from services.docker import FoundryProject
 from services.foundryvtt import FoundryService
@@ -41,8 +39,7 @@ app = WestMarchesApi(
     FoundryProject(re.split(r', ?', compose_files)),
     BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint)),
     FoundryService(foundry_endpoint),
-    KankaService(kanka_token, kanka_campaign),
-    IntentService(Engine(), Path(model_dir))
+    KankaService(kanka_token, kanka_campaign)
 )
 
 

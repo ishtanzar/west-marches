@@ -1,19 +1,14 @@
 import asyncio
-import logging
 import os
 import threading
 from functools import wraps
 from logging import Logger
 from typing import Optional, Any
 
-import hypercorn
-import time
 from passlib.apache import HtpasswdFile
-from quart import Quart, Response, request, abort
+from quart import Quart, request, abort
 
 from services.backup import BackupService
-from services.chatbot import IntentService
-from services.discord import DiscordService
 from services.docker import FoundryProject
 from services.foundryvtt import FoundryService
 from services.kanka import KankaService
@@ -51,7 +46,6 @@ class WestMarchesApi(Quart):
     _auth: BasicAuth
     _compose: FoundryProject
     _backup: BackupService
-    _intent_service: IntentService
     _task: asyncio.Future
 
     instance: "WestMarchesApi"
@@ -60,7 +54,7 @@ class WestMarchesApi(Quart):
     def __init__(
         self, import_name: str, compose: FoundryProject,
         backup: BackupService, foundry: FoundryService,
-        kanka: KankaService, intent_service: IntentService
+        kanka: KankaService
     ) -> None:
         super().__init__(import_name)
         WestMarchesApi.instance = self
@@ -70,7 +64,6 @@ class WestMarchesApi(Quart):
         self._backup = backup
         self._foundry = foundry
         self._kanka = kanka
-        self._intent_service = intent_service
         self._auth = BasicAuth(os.environ['HTPASSWD_PATH'])
 
         self.setup_routes()
@@ -112,19 +105,13 @@ class WestMarchesApi(Quart):
     def kanka(self) -> KankaService:
         return self._kanka
 
-    @property
-    def intents(self) -> IntentService:
-        return self._intent_service
-
     async def setup(self):
-        self._intent_service.setup(self._task)
+        pass
 
     @staticmethod
     def setup_routes() -> None:
         WestMarchesApi.log.debug('setup_routes')
         import api.foundry.routes
         import api.backups.routes
-        import api.intents.routes
-        # import api.sessions.routes
         import api.reports.routes
         import api.routes
