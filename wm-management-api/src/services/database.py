@@ -86,7 +86,8 @@ class BackupDocument(AbstractDocument):
     def asdict(self, serializable=False) -> dict:
         return {
             '_id': str(self.id),
-            'date': self.date.strftime('%Y-%m-%d-%H-%M-%f') if serializable else self.date,
+            'date': self.date.strftime('%Y-%m-%dT%H:%M:%S%z' + ('%z' if self.date.tzinfo else 'Z')) if serializable else self.date,
+            'unix': int(self.date.timestamp()),
             'schema': self.schema,
             'archive_name': self.archive_name,
             'state': str(self.state)

@@ -1,9 +1,12 @@
+import datetime
 import logging
+import uuid
 from typing import Optional
 
 from quart import request
 
 from api import WestMarchesApi
+from services.database import BackupState
 from services.docker import NoSuchService
 
 app = WestMarchesApi.instance
@@ -17,6 +20,25 @@ async def backup_list(user):
         'backups': [backup.asdict(serializable=True) for backup in app.backup.list(sort=[('date', 1)])]
     }
 
+@app.route('/backup', methods=['SEARCH'])
+@app.auth.required
+async def backup_search(user):
+    query_filter = (await request.json) or {}
+    query_sort = [(k.split('_')[1], int(v)) for k, v in request.args.items() if k.startswith('sort_')]
+    query_limit = int(request.args.get('limit', 0))
+
+    if 'latest' in request.args.keys():
+        query_filter = {'state': 'BackupState.SUCCESS'}
+        query_sort = [('date', -1)]
+        query_limit = 1
+
+    return {
+        'backups': [backup.asdict(serializable=True) for backup in app.backup.find(
+            filter=query_filter,
+            sort=query_sort,
+            limit=query_limit
+        )]
+    }
 
 @app.route('/backup/perform', methods=['POST'])
 @app.auth.required

@@ -31,6 +31,9 @@ class BackupService:
     def s3_client(self, client):
         self._s3 = client
 
+    def find(self, *args, **kwargs) -> List[BackupDocument]:
+        return BackupDocument.find(*args, **kwargs)
+
     def list(self, sort=None) -> List[BackupDocument]:
         return BackupDocument.find(sort=sort)
 

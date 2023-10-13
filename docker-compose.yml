@@ -10,6 +10,8 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=westmarchesdelacave
       - DOCKER_INFLUXDB_INIT_BUCKET=bucket0
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=t0ken
+    ports:
+      - "8086:8086"
   grafana:
     image: grafana/grafana:main
     volumes:
@@ -19,9 +21,9 @@ services:
     links:
       - influxdb
     ports:
-      - "3000:3000"
+      - "3030:3000"
   telegraf:
-    image: telegraf:1.18.3
+    image: telegraf:1.28.1
     volumes:
       - ./wm-infra/deploy/local/telegraf.toml:/etc/telegraf/telegraf.conf:ro
       - foundry-logs:/logs/foundry
@@ -134,6 +136,7 @@ services:
       - "5000:5000"
 #      - "5678:5678" # VScode
     environment:
+      - TZ=Europe/Paris
       - COMPOSE_FILES=/opt/project/docker-compose.yml
       - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
       - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry
