@@ -1,0 +1,6 @@
+{
+  "opt1": "value",
+  "opt2": {
+    "sub1": "value"
+  }
+}

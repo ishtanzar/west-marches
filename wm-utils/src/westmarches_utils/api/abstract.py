@@ -15,8 +15,9 @@ class AbstractApi(ABC):
         self._endpoint = endpoint
         self._logger = get_logger(self)
 
-    async def _request(self, method, url = '', **kwargs):
-        _, kwargs = self._auth.authenticate(**kwargs)
+    async def _request(self, method, url='', **kwargs) -> requests.Response:
+        if self._auth:
+            _, kwargs = self._auth.authenticate(**kwargs)
 
         if url and not url.startswith('/'):
             url = '/' + url
@@ -25,20 +26,34 @@ class AbstractApi(ABC):
 
         return self.on_response(resp)
 
-    async def search(self, *args, **kwargs):
+    async def search(self, *args, **kwargs) -> requests.Response:
         return await self._request('search', *args, **kwargs)
 
-    async def get(self, *args, **kwargs):
+    async def get(self, *args, **kwargs) -> requests.Response:
         return await self._request('get', *args, **kwargs)
 
-    async def post(self, *args, **kwargs):
+    async def post(self, *args, **kwargs) -> requests.Response:
         return await self._request('post', *args, **kwargs)
 
-    async def patch(self, *args, **kwargs):
+    async def patch(self, *args, **kwargs) -> requests.Response:
         return await self._request('patch', *args, **kwargs)
 
-    async def put(self, *args, **kwargs):
+    async def put(self, *args, **kwargs) -> requests.Response:
         return await self._request('put', *args, **kwargs)
+
+    async def find(self, query: Optional[object] = None):
+        resp = await self.search(json=query)
+        return resp.json()
+
+    async def find_one(self, query: Optional[object] = None, default=None):
+        items = await self.find(query)
+        return (items or (default,))[0]
+
+    async def update(self, item_id, update):
+        await self.patch(item_id, json=update)
+
+    async def create(self, create):
+        await self.patch(json=create)
 
     def on_response(self, resp: requests.Response) -> requests.Response:
         ex: Optional[HTTPException] = None

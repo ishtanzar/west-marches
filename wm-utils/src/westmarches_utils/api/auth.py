@@ -1,5 +1,3 @@
-from functools import wraps
-
 from abc import ABC, abstractmethod
 
 
@@ -23,16 +21,28 @@ class Basic(AbstractClientAuth):
         return args, kwargs
 
 
-class APIKey(AbstractClientAuth):
+class AuthorizationHeader(AbstractClientAuth):
 
-    def __init__(self, api_key=None):
-        self.api_key = api_key
+    def __init__(self, api_key=None, method='Bearer', header='Authorization'):
+        self._api_key = api_key
+        self._method = method
+        self._header = header
 
     def authenticate(self, *args, **kwargs):
-        method = 'ApiKey-v1'
-        header = 'Authorization'
-        if 'headers' not in kwargs or header not in kwargs['headers']:
+        if 'headers' not in kwargs or self._header not in kwargs['headers']:
             kwargs['headers'] = kwargs['headers'] if 'headers' in kwargs else {}
-            kwargs['headers'][header] = method + ' ' + self.api_key
+            kwargs['headers'][self._header] = self._method + ' ' + self._api_key
 
         return args, kwargs
+
+
+class Bearer(AuthorizationHeader):
+
+    def __init__(self, api_key=None):
+        super().__init__(api_key)
+
+
+class APIKey(AuthorizationHeader):
+
+    def __init__(self, api_key=None):
+        super().__init__(api_key, method='ApiKey-v1')
