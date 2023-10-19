@@ -1,3 +1,6 @@
+#-e ../wm-utils/
+#-e /opt/project/wm-utils/
+
 -r requirements.txt
 
 # localstack

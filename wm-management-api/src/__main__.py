@@ -11,8 +11,8 @@ from api import WestMarchesApi
 from services.backup import BackupService
 from services.database import Engine
 from services.docker import FoundryProject
-from services.foundryvtt import FoundryService
 from services.kanka import KankaService
+from westmarches_utils.api.foundry import FoundryApi, FoundryApiConfig
 
 compose_files = os.environ['COMPOSE_FILES'] if 'COMPOSE_FILES' in os.environ.keys() else ''
 foundry_data_path = os.environ['FOUNDRY_DATA_PATH']
@@ -38,7 +38,7 @@ app = WestMarchesApi(
     __name__,
     FoundryProject(re.split(r', ?', compose_files)),
     BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint)),
-    FoundryService(foundry_endpoint),
+    FoundryApi(FoundryApiConfig()),
     KankaService(kanka_token, kanka_campaign)
 )
 

@@ -10,9 +10,9 @@ from quart import Quart, request, abort
 
 from services.backup import BackupService
 from services.docker import FoundryProject
-from services.foundryvtt import FoundryService
 from services.kanka import KankaService
 from utils import get_logger
+from westmarches_utils.api.foundry import FoundryApi
 
 
 class BasicAuth:
@@ -53,7 +53,7 @@ class WestMarchesApi(Quart):
 
     def __init__(
         self, import_name: str, compose: FoundryProject,
-        backup: BackupService, foundry: FoundryService,
+        backup: BackupService, foundry: FoundryApi,
         kanka: KankaService
     ) -> None:
         super().__init__(import_name)
@@ -98,7 +98,7 @@ class WestMarchesApi(Quart):
         return self._backup
 
     @property
-    def foundryvtt(self) -> FoundryService:
+    def foundryvtt(self) -> FoundryApi:
         return self._foundry
 
     @property
