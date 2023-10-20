@@ -1,6 +1,7 @@
 passlib==1.7.4
 hypercorn==0.14.4
 Quart==0.18.4
+werkzeug==2.3.7
 logging-utilities==1.2.4
 
 python-on-whales==0.60.1
@@ -12,7 +13,7 @@ requests==2.31.0
 PyYAML==6.0.1
 
 # AWS & smart_open
-boto3==1.28.21
+boto3==1.28.67
 #pyboto3==1.13.18
 smart_open==5.2.1
 
