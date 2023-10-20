@@ -15,14 +15,14 @@ logger = logging.getLogger('backup')
 
 @app.route('/backup/list')
 @app.auth.required
-async def backup_list(user):
+async def backup_list():
     return {
         'backups': [backup.asdict(serializable=True) for backup in app.backup.list(sort=[('date', 1)])]
     }
 
 @app.route('/backup', methods=['SEARCH'])
 @app.auth.required
-async def backup_search(user):
+async def backup_search():
     query_filter = (await request.json) or {}
     query_sort = [(k.split('_')[1], int(v)) for k, v in request.args.items() if k.startswith('sort_')]
     query_limit = int(request.args.get('limit', 0))
@@ -42,7 +42,7 @@ async def backup_search(user):
 
 @app.route('/backup/perform', methods=['POST'])
 @app.auth.required
-async def backup_perform(user):
+async def backup_perform():
     service_name = 'foundry'
     error: Optional[Exception] = None
     allowed_schemas = ['worlds', 'systems', 'modules']
@@ -83,7 +83,7 @@ async def backup_perform(user):
 
 @app.route('/backup/restore/<backup_id>', methods=['POST'])
 @app.auth.required
-async def backup_restore(user, backup_id):
+async def backup_restore(backup_id):
     service_name = 'foundry'
     error: Optional[Exception] = None
 

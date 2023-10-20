@@ -16,5 +16,7 @@
 #crontab==0.23.0
 #pyOpenSSL==17.5.0
 
+pytest==7.4.2
+pytest-asyncio==0.21.1
 debugpy==1.6.3
 pydevd-pycharm~=231.8109.175

@@ -11,7 +11,7 @@ logger = logging.getLogger('foundry')
 
 @app.route('/foundry/restart', methods=['POST'])
 @app.auth.required
-async def restart(_):
+async def restart():
     try:
         app.compose.restart('foundry')
     except NoSuchService as nse:
@@ -33,17 +33,17 @@ async def foundry_activity():
 
 @app.route('/foundry/users', methods=['SEARCH'])
 @app.auth.required
-async def foundry_users(_):
+async def foundry_users():
     return await app.foundryvtt.users.find(await request.json)
 
 
 @app.route('/foundry/users', methods=['POST'])
 @app.auth.required
-async def foundry_users_add(_):
+async def foundry_users_add():
     return await app.foundryvtt.users.create(await request.json)
 
 
 @app.route('/foundry/users/<user_id>', methods=['PUT'])
 @app.auth.required
-async def foundry_users_update(_, user_id):
+async def foundry_users_update(user_id):
     return await app.foundryvtt.users.update(user_id, await request.json)

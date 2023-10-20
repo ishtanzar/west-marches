@@ -1,12 +1,13 @@
+from logging import Logger
+
 import asyncio
 import os
 import threading
 from functools import wraps
-from logging import Logger
-from typing import Optional, Any
-
+from inspect import getfullargspec
 from passlib.apache import HtpasswdFile
 from quart import Quart, request, abort
+from typing import Optional, Any
 
 from services.backup import BackupService
 from services.docker import FoundryProject
@@ -27,7 +28,12 @@ class BasicAuth:
             if not is_valid:
                 self.log.warning('Invalid login from %s', user)
                 abort(401)
-            kwargs['user'] = user
+
+            argspec = getfullargspec(func)
+
+            if 'user' in argspec.args:
+                kwargs['user'] = user
+
             return await func(*args, **kwargs)
         return decorated
 
