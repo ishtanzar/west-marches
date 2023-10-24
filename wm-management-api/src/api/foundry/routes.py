@@ -46,4 +46,4 @@ async def foundry_users_add():
 @app.route('/foundry/users/<user_id>', methods=['PUT'])
 @app.auth.required
 async def foundry_users_update(user_id):
-    return await app.foundryvtt.users.update(user_id, await request.json)
+    return await app.foundryvtt.users.update_full(user_id, await request.json)
