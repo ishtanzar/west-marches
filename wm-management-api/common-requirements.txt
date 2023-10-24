@@ -1,0 +1,24 @@
+passlib==1.7.4
+hypercorn==0.14.4
+Quart==0.18.4
+werkzeug==2.3.7
+logging-utilities==1.2.4
+
+python-on-whales==0.60.1
+montydb[lmdb]==2.5.0
+lmdb==1.4.0
+dateparser==1.1.8
+discord==1.7.3
+requests==2.31.0
+PyYAML==6.0.1
+
+# AWS & smart_open
+boto3==1.28.67
+#pyboto3==1.13.18
+smart_open==5.2.1
+
+# AI
+# tflearn==0.5.0
+# tensorflow==2.5.0
+# numpy==1.19.5
+# https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.0.0/fr_core_news_sm-3.0.0-py3-none-any.whl

@@ -126,8 +126,8 @@ services:
       - "9229:9229"
   management_api:
     build:
-      context: wm-management-api/
-      dockerfile: dev.Dockerfile
+      context: ./
+      dockerfile: wm-management-api/dev.Dockerfile
     volumes:
       - ./:/opt/project
       - /var/run/docker.sock:/var/run/docker.sock

@@ -1,7 +1,7 @@
 #-e ../wm-utils/
-#-e /opt/project/wm-utils/
+-e /opt/project/wm-utils/
 
--r requirements.txt
+-r common-requirements.txt
 
 # localstack
 # check deps at https://github.com/localstack/localstack/blob/v0.12.13/requirements.txt
