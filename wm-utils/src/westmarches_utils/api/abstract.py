@@ -50,13 +50,13 @@ class AbstractApi(ABC):
         return (items or (default,))[0]
 
     async def update(self, item_id, update):
-        await self.patch(item_id, json=update)
+        return (await self.patch(item_id, json=update)).json()
 
     async def update_full(self, item_id, update):
-        await self.put(item_id, json=update)
+        return (await self.put(item_id, json=update)).json()
 
     async def create(self, create):
-        await self.post(json=create)
+        return (await self.post(json=create)).json()
 
     def on_response(self, resp: requests.Response) -> requests.Response:
         ex: Optional[HTTPException] = None
