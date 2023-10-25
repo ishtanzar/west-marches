@@ -40,6 +40,12 @@ async def backup_search():
         )]
     }
 
+@app.route('/backup/<backup_id>', methods=['DELETE'])
+@app.auth.required
+async def backup_delete(backup_id):
+    app.backup.delete(backup_id)
+    return 'Done', 204
+
 @app.route('/backup/perform', methods=['POST'])
 @app.auth.required
 async def backup_perform():
@@ -79,7 +85,6 @@ async def backup_perform():
     except Exception as e:
         logger.exception(e)
         return str(e), 500
-
 
 @app.route('/backup/restore/<backup_id>', methods=['POST'])
 @app.auth.required

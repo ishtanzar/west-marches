@@ -2,24 +2,15 @@ import datetime
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Optional
-from uuid import UUID
-
 from montydb import MontyClient, MontyCollection, MontyCursor
 from montydb.results import InsertOneResult
+from typing import List, Optional, Type, Self
+from uuid import UUID
 
 
 class Engine:
     _client: MontyClient
     _database: str = 'westmarches'
-
-    @classmethod
-    def backups(cls) -> MontyCollection:
-        return cls.collection('backups')
-
-    @classmethod
-    def scheduled_sessions(cls) -> MontyCollection:
-        return cls.collection('scheduled_sessions')
 
     @classmethod
     def collection(cls, collection_name) -> MontyCollection:
@@ -47,10 +38,8 @@ class Engine:
 
 class AbstractDocument(ABC):
     _id: UUID
-    _col: MontyCollection
 
-    def __init__(self, col: MontyCollection, doc_id: uuid.UUID = None) -> None:
-        self._col = col
+    def __init__(self, doc_id: uuid.UUID = None) -> None:
         self._id = doc_id if doc_id else uuid.uuid4()
 
     @property
@@ -62,8 +51,30 @@ class AbstractDocument(ABC):
         pass
 
     def insert(self):
-        result: InsertOneResult = self._col.insert_one(self.asdict())
+        result: InsertOneResult = type(self).collection().insert_one(self.asdict())
         self._id = result.inserted_id
+
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, _in: dict) -> Self:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def collection(cls) -> MontyCollection:
+        pass
+
+    @classmethod
+    def find(cls, *args, **kwargs) -> List[Self]:
+        return [cls.from_dict(x) for x in cls.collection().find(*args, **kwargs)]
+
+    @classmethod
+    def get(cls, *args, **kwargs) -> Self:
+        return cls.from_dict(cls.collection().find_one(*args, **kwargs))
+
+    @classmethod
+    def delete(cls, uid: str):
+        cls.collection().delete_one({'_id': uid})
 
 
 class BackupState(Enum):
@@ -74,14 +85,19 @@ class BackupState(Enum):
 
 
 class BackupDocument(AbstractDocument):
+
     def __init__(self, date: datetime.datetime, schema: str = 'worlds', state: BackupState = BackupState.PENDING,
                  doc_id: uuid.UUID = None, archive_name: str = None) -> None:
-        super().__init__(Engine.backups(), doc_id)
+        super().__init__(doc_id)
 
         self.date: datetime.datetime = date
         self.schema: str = schema
         self.archive_name = archive_name if archive_name else '%s-%s.zip' % (schema, date.strftime('%Y-%m-%d-%H-%M-%f'))
         self.state: BackupState = state
+
+    @classmethod
+    def collection(cls):
+        return Engine.collection('backups')
 
     def asdict(self, serializable=False) -> dict:
         return {
@@ -94,45 +110,5 @@ class BackupDocument(AbstractDocument):
         }
 
     @classmethod
-    def from_dict(cls, _in: dict) -> "BackupDocument":
+    def from_dict(cls, _in: dict) -> Self:
         return cls(_in['date'], _in['schema'], _in['state'], _in['_id'], _in['archive_name'])
-
-    @classmethod
-    def find(cls, *args, **kwargs) -> List["BackupDocument"]:
-        return [cls.from_dict(x) for x in Engine.backups().find(*args, **kwargs)]
-
-    @classmethod
-    def get(cls, *args, **kwargs) -> "BackupDocument":
-        return cls.from_dict(Engine.backups().find_one(*args, **kwargs))
-
-
-class SessionScheduleDocument(AbstractDocument):
-    def __init__(self, date: datetime.datetime, organizer: int, message: dict, journal_id: int = None,
-                 doc_id: uuid.UUID = None) -> None:
-        super().__init__(Engine.scheduled_sessions(), doc_id)
-
-        self.date: datetime.datetime = date
-        self.organizer = organizer
-        self.message = message
-        self.journal_id = journal_id
-
-    def asdict(self, serializable=False) -> dict:
-        return {
-            '_id': str(self.id),
-            'date': self.date.strftime('%Y-%m-%d-%H-%M-%f') if serializable else self.date,
-            'organizer': self.organizer,
-            'message': self.message,
-            'journal': self.journal_id
-        }
-
-    @classmethod
-    def from_dict(cls, _in: dict) -> "SessionScheduleDocument":
-        return cls(_in['date'], _in['organizer'], _in['message'], _in['journal'], _in['_id'])
-
-    @classmethod
-    def find(cls, *args, **kwargs) -> List["SessionScheduleDocument"]:
-        return [cls.from_dict(x) for x in Engine.scheduled_sessions().find(*args, **kwargs)]
-
-    @classmethod
-    def find_one(cls, *args, **kwargs) -> "SessionScheduleDocument":
-        return cls.from_dict(Engine.scheduled_sessions().find_one(*args, **kwargs))

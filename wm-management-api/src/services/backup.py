@@ -37,6 +37,9 @@ class BackupService:
     def list(self, sort=None) -> List[BackupDocument]:
         return BackupDocument.find(sort=sort)
 
+    def delete(self, backup_id: str):
+        BackupDocument.delete(backup_id)
+
     def perform(self, schema):
         base_dir = self.data_dir / schema
         cwd = Path.cwd()

@@ -3,9 +3,11 @@ from unittest import mock
 
 import os
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
+from montydb import MontyClient
 
 from api import WestMarchesApi
+from services.database import Engine
 
 resources = Path(__file__).parent / 'resources'
 
@@ -43,3 +45,10 @@ def client(app):
 @pytest.fixture(scope='session')
 def runner(app):
     yield app.test_cli_runner()
+
+@pytest.fixture(scope='session')
+def monty():
+    monty = MontyClient(':memory:')
+    Engine._client = monty
+
+    yield monty
