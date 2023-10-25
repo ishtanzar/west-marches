@@ -16,6 +16,7 @@ RUN apt update && apt install -y ca-certificates curl gnupg && \
 RUN apt update && apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 COPY requirements.txt ./
+COPY common-requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
