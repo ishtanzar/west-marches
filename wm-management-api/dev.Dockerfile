@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.2
-FROM python:3-slim
+FROM python:3.11-slim
 
 WORKDIR /opt/wm-management-api
 
