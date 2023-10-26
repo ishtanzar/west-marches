@@ -3,6 +3,9 @@ all:
     telegraf_agent_version: "2.0.7"
     docker_compose_version: "1.29.2"
     foundry_version: "9.269"
+    grafana_version: "9.4.17"
+    influxdb_version: "2.0.7"
+    redis_version: "7-alpine"
     foundry_extensible_plugin_version: "3.4.2"
 
     foundry_docker_image: ishtanzar/wm-docker-foundry:2.3.0
