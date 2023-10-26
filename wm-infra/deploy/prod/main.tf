@@ -2,7 +2,7 @@ terraform {
   required_providers {
     scaleway = {
       source  = "scaleway/scaleway"
-      version = "2.1.0"
+      version = "2.31.0"
     }
   }
 
@@ -14,6 +14,13 @@ terraform {
     endpoint = "https://s3.fr-par.scw.cloud"
     skip_region_validation = true
     skip_credentials_validation = true
+    skip_metadata_api_check = true
+
+#    Terraform 1.6+ only
+#    skip_requesting_account_id = true
+#    endpoints = {
+#      s3 = "https://s3.fr-par.scw.cloud"
+#    }
   }
 
   required_version = ">= 0.13"

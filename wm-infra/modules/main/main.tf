@@ -2,7 +2,7 @@ terraform {
   required_providers {
     scaleway = {
       source = "scaleway/scaleway"
-      version = "2.1.0"
+      version = "2.31.0"
     }
 
     restapi = {
@@ -12,7 +12,7 @@ terraform {
 
     null = {
       source = "hashicorp/null"
-      version = "3.1.0"
+      version = "3.2.1"
     }
   }
 }
