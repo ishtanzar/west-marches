@@ -30,6 +30,20 @@ json_string_fields = ["message"]
 tag_keys = ["level"]
 path_tag = "path"
 
+[[inputs.http]]
+urls = [
+    "http://127.0.0.1:5000/backup?latest"
+]
+method = "SEARCH"
+username = "foundry_manager"
+password = "{{ management_api_secret }}"
+data_format = "json_v2"
+[[inputs.http.json_v2]]
+[[inputs.http.json_v2.object]]
+path = "backups"
+timestamp_key = "unix"
+timestamp_format = "unix"
+
 [[inputs.elasticsearch]]
 servers = ["http://localhost:9200"]
 cluster_health = true
