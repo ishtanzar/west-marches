@@ -4,7 +4,7 @@ WORKDIR /opt/wm-management-api
 
 LABEL updated_at="202209151200"
 
-RUN apt update && apt install -y ca-certificates curl gnupg && \
+RUN apt update && apt install -y build-essential ca-certificates curl gnupg && \
     install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
     chmod a+r /etc/apt/keyrings/docker.gpg && \
