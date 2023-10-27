@@ -43,13 +43,13 @@ class BackupService:
     def perform(self, schema):
         base_dir = self.data_dir / schema
         cwd = Path.cwd()
-        backup = BackupDocument(datetime.datetime.now(), schema)
+        backup = BackupDocument(datetime.datetime.now(), schema=schema)
 
         self.log.info('Started backup of %s', base_dir)
         try:
             if base_dir.exists():
                 transport_params = {'client': self.s3_client}
-                s3_url = "s3://%s/%s" % (self.bucket, backup.archive_name)
+                s3_url = f's3://{self.bucket}/{backup.prefix}{backup.archive_name}'
 
                 os.chdir(self.data_dir)
                 self.log.info('Creating S3 object %s', s3_url)
@@ -84,7 +84,7 @@ class BackupService:
             self.log.info('Restoring %s', backup_id, extra=backup.asdict(True))
 
             transport_params = {'client': self.s3_client}
-            s3_url = "s3://%s/%s" % (self.bucket, backup.archive_name)
+            s3_url = f's3://{self.bucket}/{backup.prefix}{backup.archive_name}'
 
             # TODO: cleanup safeties
             with smart_open.open(s3_url, 'rb', transport_params=transport_params) as s3_object, \

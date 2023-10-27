@@ -87,12 +87,13 @@ class BackupState(Enum):
 class BackupDocument(AbstractDocument):
 
     def __init__(self, date: datetime.datetime, schema: str = 'worlds', state: BackupState = BackupState.PENDING,
-                 doc_id: uuid.UUID = None, archive_name: str = None) -> None:
+                 doc_id: uuid.UUID = None, archive_name: str = None, prefix: str = 'foundry/') -> None:
         super().__init__(doc_id)
 
         self.date: datetime.datetime = date
+        self.prefix: str = prefix
         self.schema: str = schema
-        self.archive_name = archive_name if archive_name else '%s-%s.zip' % (schema, date.strftime('%Y-%m-%d-%H-%M-%f'))
+        self.archive_name = archive_name if archive_name else f'{schema}-{date.strftime("%Y-%m-%d-%H-%M-%f")}.zip'
         self.state: BackupState = state
 
     @classmethod
@@ -105,10 +106,12 @@ class BackupDocument(AbstractDocument):
             'date': self.date.strftime('%Y-%m-%dT%H:%M:%S%z' + ('%z' if self.date.tzinfo else 'Z')) if serializable else self.date,
             'unix': int(self.date.timestamp()),
             'schema': self.schema,
+            'prefix': self.prefix,
             'archive_name': self.archive_name,
             'state': str(self.state)
         }
 
     @classmethod
     def from_dict(cls, _in: dict) -> Self:
-        return cls(_in['date'], _in['schema'], _in['state'], _in['_id'], _in['archive_name'])
+        prefix = _in['prefix'] if 'prefix' in _in else ''
+        return cls(_in['date'], _in['schema'], _in['state'], _in['_id'], _in['archive_name'], prefix)
