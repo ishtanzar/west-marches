@@ -64,3 +64,25 @@ class Forward(MixinMeta, metaclass=CompositeMetaClass):
         )
         await self.config.destination.set(data["config"])
         await ctx.send(data["msg"])
+
+    @commands.Cog.listener()
+    async def on_message_without_command(self, message):
+        ctx: commands.Context = await self.bot.get_context(message)
+        gm_guild = self.bot.get_guild(await self.config.management.gm_guild())
+
+        if isinstance(message.channel, discord.Thread):
+            notif_channel = None
+            if message.channel.parent_id == await self.config.forward.downtime_channel():
+                notif_channel = gm_guild.get_channel_or_thread(await self.config.forward.downtime_notif_channel())
+
+            if message.channel.parent_id == await self.config.forward.character_sheet_channel():
+                notif_channel = gm_guild.get_channel_or_thread(await self.config.forward.character_sheet_notif_channel())
+
+            if notif_channel:
+                embeds = [discord.Embed(title=message.channel.name, description=message.content, url=message.channel.jump_url)]
+                embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar.url)
+                embeds = self._append_attachements(message, embeds)
+                embeds[-1].timestamp = message.created_at
+
+                for embed in embeds:
+                    await notif_channel.send(None, embed=embed)
