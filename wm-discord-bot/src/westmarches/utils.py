@@ -1,13 +1,7 @@
 import logging
-from abc import ABC, abstractmethod
 
 from discord.ext.commands import Context
-from elasticsearch import AsyncElasticsearch as Elasticsearch
 from redbot.core import Config
-from redbot.core.bot import Red
-from redbot.core.commands import commands
-from socketio import AsyncClient
-from westmarches_utils.api import WestMarchesApi
 
 log = logging.getLogger("red.westmarches")
 
@@ -46,24 +40,3 @@ class DiscordProgress:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         async with self.config.messages() as messages:
             await self.ctx.send(messages[self.key_prefix + '.done'])
-
-
-class MixinMeta(ABC):
-    bot: Red
-    config: Config
-    io: AsyncClient
-    wm_api: WestMarchesApi
-    es: Elasticsearch
-
-    @abstractmethod
-    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
-        pass
-
-
-class CompositeMetaClass(type(commands.Cog), type(ABC)):
-    """
-    This allows the metaclass used for proper type detection to
-    coexist with discord.py's metaclass
-    """
-
-    pass

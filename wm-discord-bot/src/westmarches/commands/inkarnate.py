@@ -1,15 +1,14 @@
-import boto3
 import json
 import logging
-import requests
-from abc import abstractmethod
-from botocore.exceptions import ClientError
-from discord.ext.commands import Context
-from redbot.core import commands, checks
 from secrets import token_hex
 
+import boto3
+import requests
+from botocore.exceptions import ClientError
+from redbot.core import commands, checks
 from westmarches_utils.api import HTTPException
-from westmarches.utils import CompositeMetaClass, MixinMeta
+
+from westmarches.commands import AbstractCommand
 
 log = logging.getLogger("red.westmarches.bot.inkarnate")
 
@@ -52,11 +51,7 @@ class InkarnateApiClient:
         self._request('delete', '/tokens/' + (token if token else self._token))
 
 
-class InkarnateCommands(MixinMeta, metaclass=CompositeMetaClass):
-
-    @abstractmethod
-    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
-        pass
+class InkarnateCommands(AbstractCommand):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

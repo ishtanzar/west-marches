@@ -1,5 +1,6 @@
-#-e ../wm-utils/
-#-e /opt/project/wm-utils/
+-r common-requirements.txt
+
+-e /opt/project/wm-utils/
 
 pytest==7.4.2
 pytest-asyncio==0.21.1
@@ -8,4 +9,3 @@ debugpy==1.6.4
 #pydevd-pycharm~=222.4167.29
 pydevd-pycharm~=223.4884.62
 
--r requirements.txt

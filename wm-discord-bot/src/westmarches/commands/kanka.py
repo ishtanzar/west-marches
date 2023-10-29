@@ -1,19 +1,14 @@
-from http.client import HTTPException
-
-from typing import Optional
-
 import os
-from abc import abstractmethod
+from http.client import HTTPException
+from typing import Optional
 
 import discord
 import requests
 from discord import Member
-from discord.ext.commands import Context
 from discord.raw_models import RawReactionActionEvent
 from redbot.core import commands, checks
 
-from westmarches_utils.api import DiscordUser
-from westmarches.utils import CompositeMetaClass, MixinMeta
+from westmarches.commands import AbstractCommand
 
 
 class CustomReactionActionEvent:
@@ -30,17 +25,12 @@ class CustomReactionActionEvent:
         return CustomReactionActionEvent(raw.message_id, raw.channel_id, raw.user_id, raw.guild_id, raw.emoji.name)
 
 
-class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
-
-    @abstractmethod
-    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
-        pass
+class KankaCommands(AbstractCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._token = os.environ['KANKA_TOKEN']
-        # self._es = es
 
     @checks.has_permissions(administrator=True)
     @commands.group(name="kanka")
@@ -149,9 +139,9 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
         await self.config.kanka_reports_channel.set(ctx.channel.id)
         await ctx.message.add_reaction('\U00002705')  # :white_check_mark:
 
-    # @commands.Cog.listener()
-    async def on_message_without_command(self, message: discord.Message):
-        ctx = await self.bot.get_context(message)  # type: commands.Context
+    @commands.Cog.listener('on_message_without_command')
+    async def on_kanka_report(self, message: discord.Message):
+        ctx: commands.Context = await self.bot.get_context(message)
 
         if ctx.channel.id == await self.config.kanka_reports_channel() and message.author.id != ctx.me.id:
             embed = discord.Embed(description=message.content, timestamp=message.created_at)
@@ -165,6 +155,28 @@ class KankaCommands(MixinMeta, metaclass=CompositeMetaClass):
             #     author=DiscordUser(message.author.id, message.author.name, message.author.discriminator),
             #     created_at=message.created_at.timestamp()
             # ))
+
+            # if message.channel.id == 859433172704690186:
+            #     embed = discord.Embed(description=message.content, timestamp=message.created_at)
+            #     embed.set_author(name=f"{message.author}",
+            #                      icon_url=message.author.avatar.url)
+            #
+            #     bot_message = await message.channel.send(None, embed=embed)
+            #
+            #     report = await api_client.reports.send_report(DiscordMessage(
+            #         id=bot_message.id,
+            #         content=str(message.clean_content),
+            #         author=DiscordUser(message.author.id, message.author.name, message.author.discriminator),
+            #         created_at=message.created_at.timestamp()
+            #     ))
+            #
+            #     await bot_message.edit(view=PlayerReport(f"https://kanka.io/fr/campaign/93396/journals/{report['id']}"))
+            #
+            #     confirm = await message.channel.send(f'{message.author.mention}, merci pour ton rapport. Est-ce que tu '
+            #                                          f'souhaites indiquer un emplacement en lien sur la carte des joueurs ?',
+            #                                          view=PlayerReportConfirm())
+            #
+            #     await message.delete()
 
             await message.delete()
             await bot_message.add_reaction("kanka:1020774086160425040")

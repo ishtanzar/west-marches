@@ -24,6 +24,7 @@ module.exports = {
         ],
         watch: [
             "/opt/project/wm-discord-bot/src",
+            "/opt/project/wm-infra/deploy/local/discordbot-config.json",
             "/opt/project/wm-utils/src",
         ]
     }]

@@ -1,20 +1,16 @@
-import boto3
-from abc import abstractmethod
-from discord import Member
-from redbot.core import commands
 from typing import List
 
-from westmarches.utils import MixinMeta, CompositeMetaClass
+import boto3
+from discord import Member
+from redbot.core import commands
+
+from westmarches.commands import AbstractCommand
 
 
-class ManagementCommands(MixinMeta, metaclass=CompositeMetaClass):
+class ManagementCommands(AbstractCommand):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-
-    @abstractmethod
-    async def discord_api_wrapper(self, ctx: commands.Context, messages_key: str, f):
-        pass
 
     @commands.command()
     async def onboard_gm(self, ctx: commands.Context, member: Member):
@@ -87,7 +83,7 @@ class ManagementCommands(MixinMeta, metaclass=CompositeMetaClass):
             await self.config.management.gms.set(gms)
 
         await gm_guild.kick(member)
-        await member.remove_roles(players_guild.get_role(await self.config.management.gm_role()))
+        await players_guild.get_member(member.id).remove_roles(players_guild.get_role(await self.config.management.gm_role()))
 
         for u in iam.list_users()['Users']:
             if member.name == u['UserName']:
@@ -100,4 +96,7 @@ class ManagementCommands(MixinMeta, metaclass=CompositeMetaClass):
         if member.guild.id == gm_guild.id and member.id in await self.config.management.gms():
             await member.add_roles(gm_guild.get_role(await self.config.management.gm_role()))
 
+    @commands.command(name="deploy")
+    async def command_deploy(self, ctx: commands.Context):
+        pass
 

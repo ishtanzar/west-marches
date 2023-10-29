@@ -1,25 +1,23 @@
-from asyncio import Task
-
 import asyncio
 import logging
 import os
-from abc import abstractmethod
+from asyncio import Task
 from datetime import datetime
+from typing import Optional, Union, List
+
 from dateutil.relativedelta import relativedelta
 from discord import Member, TextChannel
-from discord.ext.commands import Context
 from redbot.core import commands, checks
-from typing import Optional, Union, List
 from westmarches_utils.api import HTTPException
 from westmarches_utils.config import Config
 from westmarches_utils.queue import Queue, JobDefinition
 
-from westmarches.utils import CompositeMetaClass, MixinMeta
+from westmarches.commands import AbstractCommand
 
 log = logging.getLogger("red.westmarches.foundry")
 
 
-class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
+class FoundryCommands(AbstractCommand):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -27,10 +25,6 @@ class FoundryCommands(MixinMeta, metaclass=CompositeMetaClass):
         self._tasks_backups: set[Task] = set()
         self._tasks_restart: set[Task] = set()
         self._delayed_restart_handle = None
-
-    @abstractmethod
-    async def discord_api_wrapper(self, ctx: Context, messages_key: str, f):
-        pass
 
     @property
     def foundry_url(self):

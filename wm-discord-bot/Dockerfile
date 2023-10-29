@@ -11,6 +11,7 @@ RUN apt update && \
 
 RUN locale-gen fr_FR.UTF-8
 
+COPY wm-discord-bot/common-requirements.txt ./
 COPY wm-discord-bot/requirements.txt ./
 
 ENV VIRTUAL_ENV=/opt/venv
