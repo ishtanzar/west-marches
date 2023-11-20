@@ -1,0 +1,7 @@
+Quart==0.18.4
+werkzeug==2.3.7
+requests==2.31.0
+aiocron==1.8
+discord.py==2.3.2
+elasticsearch[async]==8.7.0
+arrow==1.2.2
