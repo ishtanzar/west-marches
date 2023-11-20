@@ -53,7 +53,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./wm-worker
+          context: ./
           file: ./wm-worker/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true

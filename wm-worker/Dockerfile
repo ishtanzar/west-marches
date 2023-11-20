@@ -6,7 +6,8 @@ LABEL updated_at="202210231200"
 
 RUN apt update && apt install -y gcc libev-dev git
 
-COPY requirements.txt ./
+COPY wm-worker/common-requirements.txt ./
+COPY wm-worker/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
