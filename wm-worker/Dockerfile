@@ -11,6 +11,6 @@ COPY wm-worker/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src ./
+COPY wm-worker/src ./
 
 CMD ["python", "./__main__.py"]
