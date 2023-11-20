@@ -174,7 +174,7 @@ class Kanka:
         return users
 
     async def fetch_entity_types(self):
-        resp, __ = await self.fetch('https://kanka.io/api/1.0' + '/entity-types')
+        resp, __ = await self.fetch(self.config.kanka.api_root + '/entity-types')
         return {item['id']: item['code'] for item in resp}
 
     async def refresh_users(self):
