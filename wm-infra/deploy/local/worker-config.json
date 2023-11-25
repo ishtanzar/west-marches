@@ -1,7 +1,7 @@
 {
   "kanka": {
-    "endpoint": "https://kanka.io/fr/campaign/67312",
-    "api_endpoint": "https://kanka.io/api/1.0/campaigns/67312",
+    "endpoint": "https://app.kanka.io/w/67312",
+    "api_endpoint": "https://api.kanka.io/1.0/campaigns/67312",
     "calendar_entity_id": 2156802,
     "gm_role_id": 195422
   },
