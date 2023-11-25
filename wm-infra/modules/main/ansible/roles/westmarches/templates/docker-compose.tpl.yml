@@ -145,7 +145,6 @@ services:
     links:
       - api
       - management_api
-      - discordbot_workaround
     environment:
       - MGMNT_API_SECRET={{ management_api_secret }}
       - API_TOKEN={{ api_secret }}
@@ -186,19 +185,6 @@ services:
         hard: 65536
     ports:
       - "127.0.0.1:9200:9200"
-  discordbot_workaround:
-    image: "{{ discord_workaround_image }}"
-    restart: unless-stopped
-    volumes:
-      - "{{ westmarches_data_path }}/workaround/config.json:/opt/discord_workaround/config.json"
-#    links:
-#      - management_api
-    environment:
-      - CONFIG_PATH=/opt/discord_workaround/config.json
-      - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
-      - WM_API_SECRET=changeme
-      - WM_API_ENDPOINT=http://management_api:5000
-      - PYTHONUNBUFFERED=1
   website:
     image: "{{ website_image }}"
     restart: unless-stopped
