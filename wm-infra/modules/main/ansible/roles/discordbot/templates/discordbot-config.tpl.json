@@ -24,7 +24,20 @@
       "invite_channel": 813736020679589889
     },
     "players_guild": 845325199322775572,
-    "gm_role": 996157256699740232
+    "gm_guild": 776895471875915837,
+    "gm_role": 996157256699740232,
+    "session_role": 996470410721906800
+  },
+  "forward": {
+    "destination": 911374861304234045,
+    "downtime_channel": 1020731919329144862,
+    "downtime_notif_channel": 1050702617476612126,
+    "character_sheet_channel": 996468375150669944,
+    "character_sheet_notif_channel": 1167510633076490401,
+    "questions_channel": 911374861304234045
+  },
+  "sessions": {
+    "session_notif_channel": 893175117012676618
   },
   "destination": 911374861304234045,
   "log": {

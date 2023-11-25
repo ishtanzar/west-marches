@@ -32,8 +32,19 @@
     "gm_role": 839055417668796486,
     "session_role": 1048510200014966795
   },
+  "forward": {
+    "destination": 859433172704690186,
+    "downtime_channel": 0,
+    "downtime_notif_channel": 0,
+    "character_sheet_channel": 0,
+    "character_sheet_notif_channel": 0,
+    "questions_channel": 859433172704690186
+  },
+  "sessions": {
+    "session_notif_channel": 859433172704690186
+  },
   "destination": 859433172704690186,
-  "kanka_reports_channel": 859433172704690186,
+  "kanka_reports_channel": 0,
   "log": {
     "handlers": {
       "json": {
