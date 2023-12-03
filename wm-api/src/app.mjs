@@ -67,6 +67,11 @@ const regex_uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 const processor = new KofiDonationProcessor(config, discord);
 kofiPayloads.process(job => processor.process_kofi_payload(job.data));
 
+for(let job in await kofiPayloads.getJobs('failed')) {
+    await kofiPayloads.createJob(job.data).save();
+    await job.remove();
+}
+
 /**
  *
  * @param {number} zoom
