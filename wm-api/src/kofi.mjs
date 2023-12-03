@@ -26,17 +26,20 @@ export class KofiDonationProcessor {
             /** @type {TextChannel} */
             const progress_channel = await this.fetchChannel(this.config.discord.progress_channel);
 
-            let cache = {}, progress_message;
+            let cache = {}, progress_message, fields = [
+                { name: "Nom", value: '```{0}```'.format(data.from_name || 'Anonyme'), inline: true},
+                { name: "Montant", value: '```{0} {1}```'.format(data.amount, data.currency), inline: true},
+            ]
+
+            if(data.message) {
+                fields.push({ name: "Message", value: data.message})
+            }
 
             // noinspection JSCheckFunctionSignatures
             const gm_embed = new EmbedBuilder()
                 .setColor(0x58b9ff)
                 .setTitle("Nouveau don Ko-fi !")
-                .addFields(
-                    { name: "Nom", value: '```{0}```'.format(data.from_name || 'Anonyme'), inline: true},
-                    { name: "Montant", value: '```{0} {1}```'.format(data.amount, data.currency), inline: true},
-                    { name: "Message", value: data.message},
-                )
+                .addFields(fields)
 
             logger.debug('Notfying of new donation');
             await gm_channel.send({ embeds: [gm_embed] });
