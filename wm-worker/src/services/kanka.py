@@ -12,6 +12,8 @@ import discord
 import elasticsearch.helpers
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
+from meilisearch import Client
+from meilisearch.errors import MeilisearchError
 from westmarches_utils.api import WestMarchesApi
 from westmarches_utils.cache import Cache
 from westmarches_utils.queue import Queue, JobDefinition
@@ -28,6 +30,10 @@ class Permission(Enum):
     PERMISSIONS = 6
 
 
+def task_wrapper(args):
+    pass
+
+
 class Kanka:
     _doc_types = {}
     _users = {}
@@ -42,6 +48,7 @@ class Kanka:
                  discord: discord.Client,
                  queue: Queue,
                  es: Elasticsearch,
+                 ms: Client,
                  foundry: Foundry,
                  api: WestMarchesApi) -> None:
         super().__init__()
@@ -50,6 +57,7 @@ class Kanka:
         self.queue = queue
         self.discord = discord
         self.es = es
+        self.ms = ms
         self.api = api
         self.foundry = foundry
         self.discord_notification_channel = None
@@ -61,22 +69,6 @@ class Kanka:
     async def initialize(self):
         await self.refresh_users()
         self._doc_types = await self.fetch_entity_types()
-
-        await self.es.indices.put_index_template(name='kanka_indices', template={
-            'settings': {
-                'analysis': {
-                    'analyzer': {
-                        'default': {
-                            'type': 'french'
-                        }
-                    }
-                },
-                'index': {
-                    'number_of_shards': 1,
-                    'number_of_replicas': 0
-                }
-            }
-        }, index_patterns=['kanka_*'])
 
     async def fetch(self, endpoint, last_sync=None, page=1, related=False):
         data = []
@@ -204,6 +196,9 @@ class Kanka:
         last_sync = self.entities_cache["last_sync"]
         entities, new_sync = await self.fetch_entities(last_sync)
 
+        calendars, _ = await self.fetch(self.config.kanka.api_endpoint + '/calendars', last_sync)
+        entities.extend([await self.fetch_entity(entity['entity_id']) for entity in calendars])
+
         try:
             await self.notify(entities=entities)
         except Exception as e:
@@ -214,10 +209,10 @@ class Kanka:
         except Exception as e:
             self.logger.exception(f'[Kanka] failed to index: {e.__class__.__name__} {e}', exc_info=False)
 
-        try:
-            await self.ownership(last_sync)
-        except Exception as e:
-            self.logger.exception(f'[Kanka] failed to modify permissions: {e.__class__.__name__} {e}', exc_info=False)
+        # try:
+        #     await self.ownership(last_sync)
+        # except Exception as e:
+        #     self.logger.exception(f'[Kanka] failed to modify permissions: {e.__class__.__name__} {e}', exc_info=False)
 
         self.entities_cache["last_sync"] = new_sync
         self.logger.info(f'Sync ok, entities={len(entities)}, lastSync={self.entities_cache["last_sync"]}')
@@ -288,34 +283,33 @@ class Kanka:
             if value := entity.get(field):
                 misc_ids.append((field.split('_')[0], value))
 
-        resp = await self.es.search(index='kanka_*', query={
-            'bool': {
-                'should': [
-                    {'terms': {'child_id': [ent_id for ent_type, ent_id in misc_ids]}},
-                    {'ids': {'values': [ent_id for ent_type, ent_id in entity_ids]}}
-                ]
-            }
-        })
+        kanka_indices = [result.uid for result in self.ms.get_indexes()['results'] if result.uid.startswith('kanka_')]
+        resp = self.ms.multi_search([{
+            "indexUid": idx,
+            "filter": f'(id IN [{", ".join([str(ent_id) for ent_type, ent_id in entity_ids])}]) OR '
+                      f'(child_id IN [{", ".join([str(ent_id) for ent_type, ent_id in misc_ids])}])'
+        } for idx in kanka_indices])
 
-        for hit in resp['hits']['hits']:
-            type_ = self._doc_types[hit['_source']['type_id']]
-
-            if (type_, hit['_id']) in entity_ids or (type_, hit['_source']['child']['id']) in misc_ids:
-                mentions.append({
-                    'id': hit['_id'],
-                    'type': self._doc_types[hit['_source']['type_id']],
-                    'type_id': hit['_source']['type_id'],
-                    'name': hit['_source']['name']
-                })
-
-            for field in fields:
-                if type_ == field.split('_')[0] and hit['_source']['child']['id'] == entity[field]:
-                    entity[field.split('_')[0]] = {
-                        'id': hit['_id'],
-                        'type': self._doc_types[hit['_source']['type_id']],
-                        'type_id': hit['_source']['type_id'],
-                        'name': hit['_source']['name']
-                    }
+        for index in resp['results']:
+            for hit in index['hits']:
+                type_ = self._doc_types[hit['type_id']]
+    
+                if (type_, hit['id']) in entity_ids or (type_, hit['child']['id']) in misc_ids:
+                    mentions.append({
+                        'id': hit['id'],
+                        'type': self._doc_types[hit['type_id']],
+                        'type_id': hit['type_id'],
+                        'name': hit['name']
+                    })
+    
+                for field in fields:
+                    if type_ == field.split('_')[0] and hit['child']['id'] == entity[field]:
+                        entity[field.split('_')[0]] = {
+                            'id': hit['id'],
+                            'type': self._doc_types[hit['type_id']],
+                            'type_id': hit['type_id'],
+                            'name': hit['name']
+                        }
 
         if mentions:
             entity['mentions'] = mentions
@@ -333,7 +327,6 @@ class Kanka:
             entity_acls = {}
 
             try:
-
                 if 'child' not in entity or 'id' not in entity['child']:
                     entity = await self.fetch_entity(entity_id)
 
@@ -360,7 +353,7 @@ class Kanka:
                 entity['acls'] = entity_acls
 
                 self.logger.debug(f'Indexing {entity_type}/{entity_name}')
-                await self.es.index(index='kanka_' + entity_type, id=entity_id, document=entity)
+                self.ms.index('kanka_' + entity_type).add_documents([entity])
 
                 return entity_id
             except Exception as e:
@@ -414,6 +407,52 @@ class Kanka:
 
         async for doc in docs:
             await self.index(doc['_source'])
+
+    async def meilisearch_migrate(self):
+        # Get all Elasticsearch indices without system indices
+        es_indices = [
+            index for index in list((await self.es.indices.get_alias(index="*")).keys())
+            if not index.startswith('.')
+        ]
+
+        ms_indices = self.ms.get_indexes({'limit': 200})['results']
+
+        for es_index in es_indices:
+            # Meilisearch index name
+            ms_index = es_index
+
+            # Create or get Meilisearch index
+            try:
+                index = next(filter(lambda index: index.uid == ms_index, ms_indices), None)
+                if not index:
+                    task_info = self.ms.create_index(uid=ms_index)
+                    task = self.ms.wait_for_task(task_info.task_uid)
+                    if task.status == "succeeded":
+                        index = self.ms.get_index(uid=ms_index)
+                    else:
+                        raise MeilisearchError(', '.join(task.error.keys()))
+
+            except MeilisearchError as ex:
+                self.logger.warning(f'Failed to create index {ms_index}: ' + ex.message, exc_info=True)
+                continue
+
+            self.ms.wait_for_task(index.update_filterable_attributes(['id', 'child_id']).task_uid)
+
+            # Use generator to scroll through Elasticsearch documents
+            async for doc in elasticsearch.helpers.async_scan(self.es, index=es_index):
+                index.add_documents([doc['_source']], primary_key='id')
+                print(f'Indexing {doc["_source"]["name"]} in {ms_index}')
+
+
+
+    async def meilisearch_purge(self):
+        # Get all indexes
+        indexes = self.ms.get_indexes()
+
+        # Delete all indexes
+        for index in indexes['results']:
+            self.ms.index(index.uid).delete()
+
 
     def init_cache(self):
         users_cache_file = Path(self.config.cache.base_path) / 'users.cache.json'

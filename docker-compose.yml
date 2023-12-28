@@ -41,6 +41,7 @@ services:
       - api
       - website
     ports:
+      - "0.0.0.0:8080:80"
       - "0.0.0.0:8443:443"
     networks:
       default:
@@ -58,12 +59,14 @@ services:
       - twig-cache:/var/cache/website
     links:
       - elasticsearch
+      - meilisearch
     environment:
       - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
       - JWT_SHARED_KEY=${JWT_SHARED_KEY}
       - ADMIN_KEY=${API_ADMIN_KEY}
       - API_ENDPOINT=https://api.westmarches.localhost.lan:8443
       - PLAY_ENDPOINT=https://play.westmarches.localhost.lan:8443
+      - SEARCH_ENDPOINT=http://meilisearch:7700
       - WEB_ROOT=https://westmarches.localhost.lan:8443
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
@@ -84,6 +87,12 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+  meilisearch:
+    image: getmeili/meilisearch:v1.5.0
+    ports:
+      - "7700:7700"
+    volumes:
+      - ./wm-infra/deploy/local/data/meilisearch:/meili_data
   minio:
     image: minio/minio:latest
     environment:
@@ -139,7 +148,7 @@ services:
       - TZ=Europe/Paris
       - COMPOSE_FILES=/opt/project/docker-compose.yml
       - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
-      - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry
+      - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry/Data
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
       - BACKUP_S3_ENDPOINT=http://minio:9000/
@@ -183,14 +192,6 @@ services:
       - KANKA_OAUTH_SECRET=${KANKA_OAUTH_SECRET}
       - JWT_SHARED_KEY=${JWT_SHARED_KEY}
       - KOFI_VERIFICATION=${KOFI_VERIFICATION}
-  arena:
-    image: mixmaxhq/arena:latest
-    links:
-      - redis
-    volumes:
-      - ./arena.json:/opt/arena/index.json
-    ports:
-      - "4567:4567"
   discordbot:
     build:
       context: ./
@@ -246,22 +247,18 @@ services:
 #      - --file
 #      - /opt/project/wm-worker/src/__main__.py
 #      - kanka.live
-  discordbot_workaround:
-    build:
-      context: ./
-      dockerfile: wm-discord-workaround/dev.Dockerfile
+  arena: # UI for BeeQueue
+    image: mixmaxhq/arena:latest
     links:
-      - management_api
+      - redis
     volumes:
-      - ./:/opt/project
-#      - ./wm-management-api-client:/opt/wm-management-api-client
-    environment:
-      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/workaround-config.json
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - WM_API_SECRET=changeme
-      - WM_API_ENDPOINT=http://management_api:5000
-      - PYTHONUNBUFFERED=1
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-workaround/pm2.config.js"]
+      - ./arena.json:/opt/arena/index.json
+    ports:
+      - "4567:4567"
+  meilisearch-ui:
+    image: riccoxie/meilisearch-ui:latest
+    ports:
+      - "24900:24900"
   foundry_debugger:
     image: alpine/socat
     links:

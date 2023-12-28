@@ -4,4 +4,5 @@ requests==2.31.0
 aiocron==1.8
 discord.py==2.3.2
 elasticsearch[async]==8.7.0
+meilisearch==0.28.4
 arrow==1.2.2

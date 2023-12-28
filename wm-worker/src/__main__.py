@@ -7,6 +7,7 @@ import logging.config
 import os
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
+from meilisearch import Client
 from quart import Quart
 from westmarches_utils.api import WestMarchesApiConfig, WestMarchesApi
 from westmarches_utils.api.auth import APIKey, Basic
@@ -22,9 +23,11 @@ from services.questions import Questions
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
     config.set('es.endpoint', os.environ.get('ES_ENDPOINT', config.get('es.endpoint', 'http://elasticsearch:9200')))
+    config.set('meilisearch.endpoint', os.environ.get('MEILI_ENDPOINT', config.get('meilisearch.endpoint', 'http://meilisearch:7700')))
     config.set('api.endpoint', os.environ.get('API_ENDPOINT', config.get('api.endpoint', 'http://api:3000')))
     config.set('kanka.api_root', os.environ.get('KANKA_API_ROOT', config.get('kanka.api_root', 'https://api.kanka.io/1.0')))
     config.set('redis.endpoint', os.environ.get('REDIS_ENDPOINT', config.get('redis.endpoint', 'redis://redis')))
+    config.meilisearch.key = os.environ.get('MEILI_KEY', config.get('meilisearch.key'))
     config.kanka.token = os.environ.get('KANKA_TOKEN', config.get('kanka.token'))
     config.api.token = os.environ.get('API_TOKEN', config.get('api.token'))
     config.discord.token = os.environ.get('DISCORD_BOT_SECRET', config.get('discord.token'))
@@ -50,8 +53,9 @@ async def main():
 
     discord = dpy.Client(intents=intents)
     es = Elasticsearch(config.es.endpoint)
+    ms = Client(config.meilisearch.endpoint, config.meilisearch.key)
     foundry = Foundry(es, discord, api)
-    kanka = Kanka(config, discord, queue, es, foundry, api)
+    kanka = Kanka(config, discord, queue, es, ms, foundry, api)
     questions = Questions(config, discord)
     donations = Donations(config)
 
@@ -138,6 +142,9 @@ async def main():
     subparsers.add_parser('foundry.update').set_defaults(func=foundry.cron)
     subparsers.add_parser('foundry.reindex').set_defaults(func=foundry.reindex)
     subparsers.add_parser('es.recompute').set_defaults(func=kanka.recompute)
+    subparsers.add_parser('meili.migrate').set_defaults(func=kanka.meilisearch_migrate)
+    subparsers.add_parser('meili.purge').set_defaults(func=kanka.meilisearch_purge)
+    subparsers.add_parser('queue.process').set_defaults(func=worker)
     subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
     args = parser.parse_args()
 
