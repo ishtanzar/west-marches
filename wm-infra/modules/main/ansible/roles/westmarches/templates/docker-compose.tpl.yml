@@ -154,9 +154,12 @@ services:
       - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
   worker:
     image: "{{ worker_image }}"
-    restart: unless-stopped
+#    restart: unless-stopped
+    scale: 0
     links:
       - redis
+      - elasticsearch
+      - meilisearch
     volumes:
       - "{{ westmarches_data_path }}/worker/config.json:/opt/worker/config.json"
       - "{{ westmarches_data_path }}/worker/cache:/var/cache/westmarches/worker"
@@ -185,6 +188,11 @@ services:
         hard: 65536
     ports:
       - "127.0.0.1:9200:9200"
+  meilisearch:
+    image: "getmeili/meilisearch:{{ meilisearch_version }}"
+    restart: unless-stopped
+    volumes:
+      - "{{ westmarches_data_path }}/meilisearch:/meili_data"
   website:
     image: "{{ website_image }}"
     restart: unless-stopped
