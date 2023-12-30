@@ -1,0 +1,12 @@
+{
+  "name": "winston-meilisearch",
+  "version": "1.0.0",
+  "dependencies": {
+    "meilisearch": "^0.36.0",
+    "lodash.defaults": "^4.2.0",
+    "lodash.omit": "^4.5.0",
+    "dayjs": "^1.11.7",
+    "winston": "^3.8.2",
+    "winston-transport": "^4.5.0"
+  }
+}
