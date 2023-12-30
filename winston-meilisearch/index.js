@@ -16,10 +16,13 @@ module.exports = class MeiliSearchTransport extends Transport {
             level: 'info',
             index: 'logs-app-default',
             indexPrefix: 'logs',
-            indexSuffixPattern: 'YYYY.MM.DD',
+            indexSuffixPattern: 'YYYY_MM_DD',
+            clientOpts: {
+                host: 'http://meilisearch:7700'
+            }
         });
 
-        this.client = new MeiliSearch({ ...this.opts.clientOpts });
+        this.client = new MeiliSearch(this.opts.clientOpts);
     }
 
     log(info, callback) {
