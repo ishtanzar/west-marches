@@ -1,5 +1,5 @@
 import winston from "winston";
-import {ElasticsearchTransport} from "winston-elasticsearch";
+import MeiliSearchTransport from "winston-meilisearch";
 
 export default class ActorAuditPlugin {
 
@@ -10,61 +10,10 @@ export default class ActorAuditPlugin {
     constructor(base) {
         this.auditLogger = winston.createLogger({
             transports: [
-                new ElasticsearchTransport({
-                    clientOpts: {
-                      node: 'http://elasticsearch:9200'
-                    },
+                new MeiliSearchTransport({
+                    indexName: null,
                     indexPrefix: 'foundry_audit',
-                    indexSuffixPattern: 'YYYY.MM',
-                    indexTemplate: {
-                        "priority": 200,
-                        "template": {
-                            "settings": {
-                                "index": {
-                                    "mapping": {
-                                        "total_fields": {
-                                            "limit": "3000"
-                                        }
-                                    },
-                                    "refresh_interval": "5s",
-                                    "number_of_shards": "1",
-                                    "number_of_replicas": "0"
-                                }
-                            },
-                            "mappings": {
-                                "_source": {
-                                    "enabled": true
-                                },
-                                "properties": {
-                                    "severity": {
-                                        "index": true,
-                                        "type": "keyword"
-                                    },
-                                    "source": {
-                                        "index": true,
-                                        "type": "keyword"
-                                    },
-                                    "@timestamp": {
-                                        "type": "date"
-                                    },
-                                    "@version": {
-                                        "type": "keyword"
-                                    },
-                                    "fields": {
-                                        "dynamic": true,
-                                        "type": "object"
-                                    },
-                                    "message": {
-                                        "index": true,
-                                        "type": "text"
-                                    }
-                                }
-                            }
-                        },
-                        "index_patterns": [
-                            "foundry_audit*"
-                        ]
-                    }
+                    indexSuffixPattern: 'YYYY_MM',
                 })
             ]
         });
