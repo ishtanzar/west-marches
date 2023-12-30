@@ -3,6 +3,7 @@ const defaults = require('lodash.defaults');
 const omit = require('lodash.omit');
 const dayjs = require('dayjs');
 const { MeiliSearch } = require('meilisearch');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = class MeiliSearchTransport extends Transport {
     constructor(opts) {
@@ -33,6 +34,7 @@ module.exports = class MeiliSearchTransport extends Transport {
         });
 
         const entry = {
+            id: new Date().getTime() + '-' + uuidv4(),
             '@timestamp': timestamp ? timestamp : new Date().toISOString(),
             message: message,
             severity: level,
