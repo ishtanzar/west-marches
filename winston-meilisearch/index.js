@@ -15,7 +15,7 @@ module.exports = class MeiliSearchTransport extends Transport {
         // Set defaults
         defaults(opts, {
             level: 'info',
-            index: 'logs-app-default',
+            index: null,
             indexPrefix: 'logs',
             indexSuffixPattern: 'YYYY_MM_DD',
             clientOpts: {
