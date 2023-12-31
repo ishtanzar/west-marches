@@ -1,3 +1,5 @@
+import uuid
+from datetime import datetime
 from enum import Enum
 
 import asyncio
@@ -409,17 +411,17 @@ class Kanka:
             await self.index(doc['_source'])
 
     async def meilisearch_migrate(self):
-        # Get all Elasticsearch indices without system indices
+        # Get all Foundry audit indices without system indices
         es_indices = [
             index for index in list((await self.es.indices.get_alias(index="*")).keys())
-            if not index.startswith('.')
+            if index.startswith('foundry_audit')
         ]
 
         ms_indices = self.ms.get_indexes({'limit': 200})['results']
 
         for es_index in es_indices:
             # Meilisearch index name
-            ms_index = es_index
+            ms_index = es_index.replace('.', '_')
 
             # Create or get Meilisearch index
             try:
@@ -440,10 +442,8 @@ class Kanka:
 
             # Use generator to scroll through Elasticsearch documents
             async for doc in elasticsearch.helpers.async_scan(self.es, index=es_index):
+                doc['_source']['id'] = str(int(datetime.timestamp(datetime.now()))) + '-' + str(uuid.uuid4())
                 index.add_documents([doc['_source']], primary_key='id')
-                print(f'Indexing {doc["_source"]["name"]} in {ms_index}')
-
-
 
     async def meilisearch_purge(self):
         # Get all indexes
