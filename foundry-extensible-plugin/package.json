@@ -18,7 +18,7 @@
     "cookie": "^0.4.1",
     "morgan": "^1.10.0",
     "jasmine": "^5.0.2",
-    "winston-meilisearch": "https://gitpkg.now.sh/ishtanzar/west-marches/winston-meilisearch?releases/winston-meilisearch/v1.0.0"
+    "winston-meilisearch": "https://gitpkg.now.sh/ishtanzar/west-marches/winston-meilisearch?releases/winston-meilisearch/v1.0.1"
   },
   "devDependencies": {
     "express": "^4.17.1",

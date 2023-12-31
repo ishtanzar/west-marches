@@ -11,7 +11,6 @@ export default class ActorAuditPlugin {
         this.auditLogger = winston.createLogger({
             transports: [
                 new MeiliSearchTransport({
-                    indexName: null,
                     indexPrefix: 'foundry_audit',
                     indexSuffixPattern: 'YYYY_MM',
                 })
