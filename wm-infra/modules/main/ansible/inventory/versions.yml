@@ -7,7 +7,7 @@ all:
     influxdb_version: "2.0.7"
     redis_version: "7-alpine"
     meilisearch_version: "v1.5.0"
-    foundry_extensible_plugin_version: "4.0.0"
+    foundry_extensible_plugin_version: "4.0.1"
 
     foundry_docker_image: ishtanzar/wm-docker-foundry:2.3.0
     management_api_image: ishtanzar/wm-management-api:0.13.2
