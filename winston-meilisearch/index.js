@@ -15,15 +15,17 @@ module.exports = class MeiliSearchTransport extends Transport {
         // Set defaults
         defaults(opts, {
             level: 'info',
+            client: null,
             index: null,
             indexPrefix: 'logs',
             indexSuffixPattern: 'YYYY_MM_DD',
+            filterableAttributes: [],
             clientOpts: {
                 host: 'http://meilisearch:7700'
             }
         });
 
-        this.client = new MeiliSearch(this.opts.clientOpts);
+        this.client = this.opts.client || new MeiliSearch(this.opts.clientOpts);
     }
 
     log(info, callback) {
@@ -33,9 +35,11 @@ module.exports = class MeiliSearchTransport extends Transport {
             this.emit('logged', info);
         });
 
+        const ts = new Date().getTime();
+
         const entry = {
-            id: new Date().getTime() + '-' + uuidv4(),
-            '@timestamp': timestamp ? timestamp : new Date().toISOString(),
+            id: ts + '-' + uuidv4(),
+            timestamp: timestamp ? timestamp : ts,
             message: message,
             severity: level,
             fields: meta
