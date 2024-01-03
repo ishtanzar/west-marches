@@ -115,7 +115,7 @@ class Foundry:
 
         resp = self._ms.multi_search([{
             "indexUid": idx.uid,
-            "filter": '@timestamp EXISTS'
+            "filter": "'@timestamp' EXISTS"
         } for idx in self.audit_indexes])
 
         for results in resp['results']:
