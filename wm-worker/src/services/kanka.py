@@ -1,26 +1,21 @@
-import uuid
-from datetime import datetime
-from enum import Enum
-
 import asyncio
 import json
 import logging
 import random
 import re
+from enum import Enum
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 import discord
-import elasticsearch.helpers
 import requests
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 from meilisearch import Client
-from meilisearch.errors import MeilisearchError
+
+from services.foundry import Foundry
 from westmarches_utils.api import WestMarchesApi
 from westmarches_utils.cache import Cache
 from westmarches_utils.queue import Queue, JobDefinition
-
-from services.foundry import Foundry
 
 
 class Permission(Enum):
@@ -397,62 +392,6 @@ class Kanka:
                         for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
                             self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
                             await self.add_user_entity_permission(kanka_character['id'], new_user['kanka']['id'], action.value)
-
-    async def recompute(self):
-        docs = elasticsearch.helpers.async_scan(client=self.es, index='kanka_*', query={
-            'query': {
-                'query_string': {
-                    'query': "*"
-                }
-            }
-        })
-
-        async for doc in docs:
-            await self.index(doc['_source'])
-
-    async def meilisearch_migrate(self):
-        # Get all Foundry audit indices without system indices
-        es_indices = [
-            index for index in list((await self.es.indices.get_alias(index="*")).keys())
-            if index.startswith('foundry_audit')
-        ]
-
-        ms_indices = self.ms.get_indexes({'limit': 200})['results']
-
-        for es_index in es_indices:
-            # Meilisearch index name
-            ms_index = es_index.replace('.', '_')
-
-            # Create or get Meilisearch index
-            try:
-                index = next(filter(lambda index: index.uid == ms_index, ms_indices), None)
-                if not index:
-                    task_info = self.ms.create_index(uid=ms_index)
-                    task = self.ms.wait_for_task(task_info.task_uid)
-                    if task.status == "succeeded":
-                        index = self.ms.get_index(uid=ms_index)
-                    else:
-                        raise MeilisearchError(', '.join(task.error.keys()))
-
-            except MeilisearchError as ex:
-                self.logger.warning(f'Failed to create index {ms_index}: ' + ex.message, exc_info=True)
-                continue
-
-            self.ms.wait_for_task(index.update_filterable_attributes(['id', 'child_id']).task_uid)
-
-            # Use generator to scroll through Elasticsearch documents
-            async for doc in elasticsearch.helpers.async_scan(self.es, index=es_index):
-                doc['_source']['id'] = str(int(datetime.timestamp(datetime.now()))) + '-' + str(uuid.uuid4())
-                index.add_documents([doc['_source']], primary_key='id')
-
-    async def meilisearch_purge(self):
-        # Get all indexes
-        indexes = self.ms.get_indexes()
-
-        # Delete all indexes
-        for index in indexes['results']:
-            self.ms.index(index.uid).delete()
-
 
     def init_cache(self):
         users_cache_file = Path(self.config.cache.base_path) / 'users.cache.json'

@@ -1,11 +1,13 @@
+import logging
+from datetime import datetime
+
 import arrow
 import discord
-import json
-import logging
 import requests
-from elasticsearch import ApiError, AsyncElasticsearch as Elasticsearch
-from pathlib import Path
+from meilisearch import Client
+from meilisearch.errors import MeilisearchApiError
 from typing import Optional
+
 from westmarches_utils.api import WestMarchesApi
 
 
@@ -13,29 +15,20 @@ class Foundry:
 
     def __init__(
             self, 
-            es: Elasticsearch,
+            ms: Client,
             dpy: discord.Client,
             api: WestMarchesApi) -> None:
         
-        self._es = es
+        self._ms = ms
         self._discord = dpy
         self._api = api
+        self.audit_indexes = []
         self._logger = logging.getLogger('foundry')
 
     async def initialize(self):
-        index_name = 'foundry_actor'
-        index_config_file = Path(__file__) / '../../resources/kanka_actor.index.json'
-
-        opts = json.load(index_config_file.resolve().open())
-
-        if await self._es.indices.exists(index=index_name):
-            await self._es.indices.put_settings(index=index_name, settings=opts['settings'])
-            await self._es.indices.put_mapping(index=index_name, **opts['mappings'])
-        else:
-            await self._es.indices.create(index=index_name, **opts)
-
-        for index in await self._es.indices.get(index='*'):
-            await self._es.indices.put_settings(index=index, settings={'index': {'number_of_replicas': 0}})
+        self.audit_indexes = [idx for idx in self._ms.get_indexes()['results'] if idx.uid.startswith('foundry_audit-')]
+        for index in self.audit_indexes:
+            index.update_filterable_attributes(['@timestamp','timestamp','message', 'fields.user.name', 'fields.actor'])
 
     async def fetch_pcs(self, ids=[]):
         query = {
@@ -56,20 +49,21 @@ class Foundry:
         query_from = 0
         query_size = 1000
         last_sync_obj = arrow.get(last_sync) if last_sync else arrow.utcnow().shift(hours=-1)
+        hits_count = 0
 
         while True:
-            resp = await self._es.search(index=f'foundry_audit-{last_sync_obj.strftime("%Y.%m")}', query={
-                'range': {
-                    '@timestamp': {
-                        'gt': last_sync_obj.isoformat()
-                    }
-                }
-            }, size=query_size, from_=query_from)
+            index = self._ms.index('foundry_audit-' + last_sync_obj.strftime("%Y_%m"))
+            resp = index.search('', {
+                'offset': query_from,
+                'limit': query_size,
+                'filter': 'timestamp > ' + str(int(last_sync_obj.timestamp()))
+            })
 
-            for h in resp['hits']['hits']:
-                modified.add(h['_source']['fields']['actor'])
+            for h in resp['hits']:
+                hits_count += 1
+                modified.add(h['fields']['actor'])
 
-            if resp['hits']['total']['value'] < (query_from + query_size):
+            if hits_count < query_size:
                 break
 
             query_from = query_from + query_size
@@ -85,19 +79,19 @@ class Foundry:
             for actor in characters:
                 await self.index_actor(actor)
 
-    async def reindex(self):
+    async def reindex_actors(self):
         for actor in await self.fetch_pcs():
             try:
                 await self.index_actor(actor)
-            except ApiError as e:
-                self._logger.warning(e.info['error']['reason'])
+            except MeilisearchApiError as e:
+                self._logger.warning(str(e))
 
     async def index_actor(self, actor):
         actor['id'] = actor['_id']
         del actor['_id']
 
         self._logger.debug(f'Indexing actor/{actor["name"]}')
-        await self._es.index(index='foundry_actor', id=actor['id'], document=actor)
+        self._ms.index('foundry_actor').add_documents([actor])
 
     async def backup(self, schemas: Optional[list] = None, reaction_msg: Optional[dict] = None):
         clean_schemas = 'all'
@@ -115,3 +109,23 @@ class Foundry:
 
         if channel and message:
             await message.add_reaction('\U00002705')
+
+    async def upgrade_audit(self):
+        indexes = {}
+
+        resp = self._ms.multi_search([{
+            "indexUid": idx.uid,
+            "filter": '@timestamp EXISTS'
+        } for idx in self.audit_indexes])
+
+        for results in resp['results']:
+            if uid := results['indexUid'] not in indexes:
+                indexes[uid] = self._ms.index(uid)
+
+            index = indexes[uid]
+
+            for hit in results['hits']:
+                iso_in = hit.pop('@timestamp')
+                datetime_obj = datetime.fromisoformat(iso_in)
+                hit['timestamp'] = int(datetime_obj.timestamp() * 1000)
+                index.add_documents([hit])

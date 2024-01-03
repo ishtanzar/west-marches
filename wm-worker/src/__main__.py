@@ -1,23 +1,23 @@
-import aiocron
 import argparse
 import asyncio
-import discord as dpy
 import json
 import logging.config
 import os
-import requests
+
+import aiocron
+import discord as dpy
 from elasticsearch import AsyncElasticsearch as Elasticsearch
 from meilisearch import Client
 from quart import Quart
-from westmarches_utils.api import WestMarchesApiConfig, WestMarchesApi
-from westmarches_utils.api.auth import APIKey, Basic
-from westmarches_utils.config import Config
-from westmarches_utils.queue import Queue, JobDefinition
 
 from services.donations import Donations
 from services.foundry import Foundry
 from services.kanka import Kanka
 from services.questions import Questions
+from westmarches_utils.api import WestMarchesApiConfig, WestMarchesApi
+from westmarches_utils.api.auth import APIKey, Basic
+from westmarches_utils.config import Config
+from westmarches_utils.queue import Queue, JobDefinition
 
 
 async def main():
@@ -54,7 +54,7 @@ async def main():
     discord = dpy.Client(intents=intents)
     es = Elasticsearch(config.es.endpoint)
     ms = Client(config.meilisearch.endpoint, config.meilisearch.key)
-    foundry = Foundry(es, discord, api)
+    foundry = Foundry(ms, discord, api)
     kanka = Kanka(config, discord, queue, es, ms, foundry, api)
     questions = Questions(config, discord)
     donations = Donations(config)
@@ -98,39 +98,6 @@ async def main():
     async def health():
         return 'hello'
 
-    @app.route('/kanka/reindex')
-    async def kanka_reindex():
-        url = "https://kanka.io/api/1.0/campaigns/67312/entities?related=1"
-        headers = {"Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNDcwMzQ3ZWFiNzdiMTZkOGMyNDE3MTczYTgyYTZhMGE2NGFmMDYyMDUwZTk1Y2YwNzFhOTVjOWFkNDJhMWQ5ZDEwMjM2YWJkZmZiYmNlYWIiLCJpYXQiOjE2NjcxNjA4OTguNDc5OTk3LCJuYmYiOjE2NjcxNjA4OTguNDgwMDAxLCJleHAiOjE2OTg2OTY4OTguNDcyNTIsInN1YiI6IjY5MTk2Iiwic2NvcGVzIjpbXX0.aXwbgS37aQIyvNkTOmd_CejE9peEsaxqolT1swqcoLsPJHmt2awnIa-5CdqefRzs0FqGHsklarQwiNypimhFDpFut0rKyx0EtjgZe69aq0ziBDyJYFQZv3haoWh6VJTHmrC186svnFIBVmJZIRFFfkkeEVOTK9J1VUwsg-Lrm9tcpgjvzhU_Oe5iIWM-tD3fjr7_LoRMht_oA2lVVf20k6Djr88l7V1ulvRhjon65vIyG3EyBZAl3-pa3UnRV8JfErSJVuv3_pWAZARCkGUpSlF_sMxzflSC54cPJd0B32edBmOEHoi9T9GQEOm9_y93vCVkD1r7CPspBER9Iap9ZCYS1DSM8mkBsKsO5SLO23JaOG24_Ra_bueKTS7MgzEGeAYw1T1JzEZx6u07MCPF7gDG2Rd82OZ2_o5u80ohfwNyNDNZOZBdjwxI1Bz2xYKlGTl6cf08x9M3dfXcctLkwbMxVXgTwHfgx2dtVG55RCzKJJoVPXDOrwmB3buAJFd7qflgZnpECgopuXWQ_vJ7GTTrtT5uMX8pmqRrTH3c5Y4xRZaFXJtLMSfXShZS8f_lwDHVICAfFSGy7orDOzZeVqTbMxRZ2bWyp4UEiSt-mWdJf0VWxNYUd40cCFB-8aD7Q_ZfdHeHWLmVvfBjUA2QCLIWKJfb5b4P64Zy3nF_98o"}
-
-        response = requests.request("GET", url, data='', headers=headers)
-
-        entity = response.json()['data']
-        # es.index(index="kanka_entities", id=entity['entity_id'], document=entity)
-        indexed_docs = 0
-
-        # try:
-        #     with ZipFile('/opt/project/campaign_67312_6445aeb3e8a74_20230423_221827.zip', mode='r') as archive:
-        #         routines = []
-        #         # for filename in archive.namelist():
-        #         # for filename in ['journals/the-bad-batch-s01e04-ishtanzar.json']:
-        #         for filename in ['characters/aldail.json']:
-        #             match = re.search(r'(?P<type>\w+)s/(?P<name>.*).json', filename)
-        #             if match:
-        #                 doc = json.loads(archive.read(filename))
-        #
-        #                 # entity = doc.pop('entity')
-        #                 # entity['child'] = doc
-        #                 # entity['type'] = doc_types[entity['type_id']]
-        #
-        #                 routines.append(kanka.index(entity=entity))
-        #         result = await asyncio.gather(*routines, return_exceptions=True)
-        #         indexed_docs = len([r for r in result if r is not None and not isinstance(r, Exception)])
-        # except BadZipFile:
-        #     return 'KO'
-
-        return f'Indexed {indexed_docs} documents'
-
     queue.register('foundry.cron', foundry.cron)
     queue.register('foundry.backup', foundry.backup)
     queue.register('kanka.sync', kanka.sync)
@@ -138,14 +105,13 @@ async def main():
     queue.register('questions.cron', questions.cron)
     queue.register('donations.reset', donations.reset)
 
-    subparsers.add_parser('kanka.live').set_defaults(func=kanka.sync)
     subparsers.add_parser('foundry.update').set_defaults(func=foundry.cron)
-    subparsers.add_parser('foundry.reindex').set_defaults(func=foundry.reindex)
-    subparsers.add_parser('es.recompute').set_defaults(func=kanka.recompute)
-    subparsers.add_parser('meili.migrate').set_defaults(func=kanka.meilisearch_migrate)
-    subparsers.add_parser('meili.purge').set_defaults(func=kanka.meilisearch_purge)
-    subparsers.add_parser('queue.process').set_defaults(func=worker)
+    subparsers.add_parser('foundry.backup').set_defaults(func=foundry.backup)
+    subparsers.add_parser('foundry.upgrade_audit').set_defaults(func=foundry.upgrade_audit)
+    subparsers.add_parser('kanka.sync').set_defaults(func=kanka.sync)
     subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
+    subparsers.add_parser('foundry.reindex_actors').set_defaults(func=foundry.reindex_actors)
+    subparsers.add_parser('queue.process').set_defaults(func=worker)
     args = parser.parse_args()
 
     if "func" in args:
