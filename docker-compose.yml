@@ -118,6 +118,7 @@ services:
     links:
       - api
       - elasticsearch
+      - meilisearch
     volumes:
 #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
 #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app:ro
@@ -128,6 +129,7 @@ services:
       - ./wm-infra/deploy/local/extensible-config.json:/home/foundry/resources/extensible-config.json
       - foundry-logs:/data/Logs
       - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
+      - ./winston-meilisearch:/home/foundry/resources/foundry-extensible-plugin/node_modules/winston-meilisearch:ro
       - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
     command: ["/usr/local/bin/pm2-runtime", "/home/foundry/resources/foundry-extensible-plugin/pm2.config.js"]
     ports:

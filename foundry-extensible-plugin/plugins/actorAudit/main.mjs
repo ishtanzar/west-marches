@@ -13,6 +13,7 @@ export default class ActorAuditPlugin {
                 new MeiliSearchTransport({
                     indexPrefix: 'foundry_audit',
                     indexSuffixPattern: 'YYYY_MM',
+                    filterableAttributes: ['@timestamp', 'message', 'fields.user.name', 'fields.actor']
                 })
             ]
         });
