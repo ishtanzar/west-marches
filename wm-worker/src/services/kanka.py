@@ -67,6 +67,9 @@ class Kanka:
         await self.refresh_users()
         self._doc_types = await self.fetch_entity_types()
 
+        for type_id in self._doc_types:
+            self.ms.index('kanka_' + self._doc_types[type_id]).update_filterable_attributes(['id', 'name', 'child_id', 'acls.users', 'acls.roles'])
+
     async def fetch(self, endpoint, last_sync=None, page=1, related=False):
         data = []
         params = {"page": page}
@@ -176,14 +179,10 @@ class Kanka:
                 self._roles.update({role['id']: role['name'] for role in roles})
 
     async def search_indexed_character_from_name(self, name):
-        resp = await self.es.search(index='kanka_character', query={
-            'query_string': {
-                'query': f'name:"{name}"'
-            }
-        })
+        resp = self.ms.index('kanka_character').search('', { 'filter': f'name = "{name}"' })
 
-        if resp['hits']['total']['value'] == 1:
-            return resp['hits']['hits'][0]['_source']
+        if resp['totalHits'] == 1:
+            return resp['hits'][0]
         else:
             # todo: WARN
             return None
@@ -206,10 +205,10 @@ class Kanka:
         except Exception as e:
             self.logger.exception(f'[Kanka] failed to index: {e.__class__.__name__} {e}', exc_info=False)
 
-        # try:
-        #     await self.ownership(last_sync)
-        # except Exception as e:
-        #     self.logger.exception(f'[Kanka] failed to modify permissions: {e.__class__.__name__} {e}', exc_info=False)
+        try:
+            await self.ownership(last_sync)
+        except Exception as e:
+            self.logger.exception(f'[Kanka] failed to modify permissions: {e.__class__.__name__} {e}', exc_info=False)
 
         self.entities_cache["last_sync"] = new_sync
         self.logger.info(f'Sync ok, entities={len(entities)}, lastSync={self.entities_cache["last_sync"]}')

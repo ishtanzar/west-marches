@@ -56,7 +56,7 @@ class Foundry:
             resp = index.search('', {
                 'offset': query_from,
                 'limit': query_size,
-                'filter': 'timestamp > ' + str(int(last_sync_obj.timestamp()))
+                'filter': 'timestamp > ' + str(last_sync_obj.int_timestamp)
             })
 
             for h in resp['hits']:
