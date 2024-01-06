@@ -122,7 +122,7 @@ class Foundry:
         for results in resp['results']:
             hit_count = 0
 
-            if uid := results['indexUid'] not in indexes:
+            if (uid := results['indexUid']) not in indexes:
                 self._logger.debug(f'Adding {uid} to index cache')
                 indexes[uid] = self._ms.index(uid)
 
