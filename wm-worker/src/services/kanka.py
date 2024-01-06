@@ -9,7 +9,6 @@ from urllib.parse import urlparse, parse_qs
 
 import discord
 import requests
-from elasticsearch import AsyncElasticsearch as Elasticsearch
 from meilisearch import Client
 
 from services.foundry import Foundry
@@ -44,7 +43,6 @@ class Kanka:
                  config,
                  discord: discord.Client,
                  queue: Queue,
-                 es: Elasticsearch,
                  ms: Client,
                  foundry: Foundry,
                  api: WestMarchesApi) -> None:
@@ -53,7 +51,6 @@ class Kanka:
         self.config = config
         self.queue = queue
         self.discord = discord
-        self.es = es
         self.ms = ms
         self.api = api
         self.foundry = foundry

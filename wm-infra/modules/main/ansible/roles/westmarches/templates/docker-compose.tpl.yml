@@ -155,10 +155,8 @@ services:
   worker:
     image: "{{ worker_image }}"
 #    restart: unless-stopped
-    scale: 0
     links:
       - redis
-      - elasticsearch
       - meilisearch
     volumes:
       - "{{ westmarches_data_path }}/worker/config.json:/opt/worker/config.json"

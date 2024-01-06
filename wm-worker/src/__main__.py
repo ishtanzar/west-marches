@@ -6,7 +6,6 @@ import os
 
 import aiocron
 import discord as dpy
-from elasticsearch import AsyncElasticsearch as Elasticsearch
 from meilisearch import Client
 from quart import Quart
 
@@ -22,7 +21,6 @@ from westmarches_utils.queue import Queue, JobDefinition
 
 async def main():
     config = Config.load(os.environ.get('CONFIG_PATH', '/etc/wm-worker/config.json'))
-    config.set('es.endpoint', os.environ.get('ES_ENDPOINT', config.get('es.endpoint', 'http://elasticsearch:9200')))
     config.set('meilisearch.endpoint', os.environ.get('MEILI_ENDPOINT', config.get('meilisearch.endpoint', 'http://meilisearch:7700')))
     config.set('api.endpoint', os.environ.get('API_ENDPOINT', config.get('api.endpoint', 'http://api:3000')))
     config.set('kanka.api_root', os.environ.get('KANKA_API_ROOT', config.get('kanka.api_root', 'https://api.kanka.io/1.0')))
@@ -52,10 +50,9 @@ async def main():
     api = WestMarchesApi(api_config)
 
     discord = dpy.Client(intents=intents)
-    es = Elasticsearch(config.es.endpoint)
     ms = Client(config.meilisearch.endpoint, config.meilisearch.key)
     foundry = Foundry(ms, discord, api)
-    kanka = Kanka(config, discord, queue, es, ms, foundry, api)
+    kanka = Kanka(config, discord, queue, ms, foundry, api)
     questions = Questions(config, discord)
     donations = Donations(config)
 
