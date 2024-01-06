@@ -58,7 +58,6 @@ services:
       - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
       - twig-cache:/var/cache/website
     links:
-      - elasticsearch
       - meilisearch
     environment:
       - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
@@ -68,25 +67,6 @@ services:
       - PLAY_ENDPOINT=https://play.westmarches.localhost.lan:8443
       - SEARCH_ENDPOINT=http://meilisearch:7700
       - WEB_ROOT=https://westmarches.localhost.lan:8443
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
-    volumes:
-      - ./wm-infra/deploy/local/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
-    environment:
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - xpack.security.enrollment.enabled=false
-    ports:
-      - "9200:9200"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
   meilisearch:
     image: getmeili/meilisearch:v1.5.0
     ports:
@@ -117,7 +97,6 @@ services:
       - API_ADMIN_KEY=${API_ADMIN_KEY}
     links:
       - api
-      - elasticsearch
       - meilisearch
     volumes:
 #      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
