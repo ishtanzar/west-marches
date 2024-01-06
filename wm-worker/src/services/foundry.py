@@ -126,6 +126,6 @@ class Foundry:
 
             for hit in results['hits']:
                 iso_in = hit.pop('@timestamp')
-                datetime_obj = datetime.fromisoformat(iso_in)
-                hit['timestamp'] = int(datetime_obj.timestamp() * 1000)
+                arrow_obj = arrow.get(iso_in)
+                hit['timestamp'] = arrow_obj.int_timestamp
                 index.add_documents([hit])
