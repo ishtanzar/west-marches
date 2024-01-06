@@ -227,7 +227,7 @@ services:
     volumes:
       - ./:/opt/project
     links:
-      - elasticsearch
+      - meilisearch
       - api
       - redis
     environment:

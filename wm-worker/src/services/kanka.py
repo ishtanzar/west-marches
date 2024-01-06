@@ -236,6 +236,11 @@ class Kanka:
                     await self.queue.put(JobDefinition('kanka.notify', entity=entity))
         elif entity:
             author = await self.get_user(entity["updated_by"])
+
+            if api_user := (await self.api.users.findOne({'kanka.id': entity["updated_by"]}, {'value': None}))['value']:
+                if discord_username := api_user.get("discord", {}).get("username"):
+                    author = f'{discord_username} (kanka : {author})'
+
             await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'
                                f'{self.get_entity_url(entity)}')
 
