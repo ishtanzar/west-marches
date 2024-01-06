@@ -24,6 +24,8 @@ class SessionsCommands(AbstractCommand):
                     thread_message += f'- {member.mention}\n'
                     gm_notif += f'- {member.name}\n'
 
+                gm_notif += ctx.channel.jump_url
+
                 notif_channel = gm_guild.get_channel_or_thread(await self.config.sessions.session_notif_channel())
                 await notif_channel.send(gm_notif)
                 await ctx.channel.send(thread_message)
