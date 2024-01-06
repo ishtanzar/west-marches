@@ -120,7 +120,7 @@ class Foundry:
         } for idx in self.audit_indexes])
 
         for results in resp['results']:
-            self._logger.debug(f'Upgrading {results["totalHits"]} entries from {uid}')
+            self._logger.debug(f'Upgrading {results["estimatedTotalHits"]} entries from {uid}')
             if uid := results['indexUid'] not in indexes:
                 self._logger.debug(f'Adding {uid} to index cache')
                 indexes[uid] = self._ms.index(uid)
@@ -134,4 +134,4 @@ class Foundry:
                 hit['timestamp'] = arrow_obj.int_timestamp
                 index.add_documents([hit])
                 hit_count += 1
-                self._logger.debug(f'Upgraded {hit_count}/{results["totalHits"]}')
+                self._logger.debug(f'Upgraded {hit_count}/{results["estimatedTotalHits"]}')
