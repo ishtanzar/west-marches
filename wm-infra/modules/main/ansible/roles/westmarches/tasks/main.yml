@@ -19,7 +19,6 @@
   loop:
     - { src: telegraf.tpl.toml, dest: "/etc/telegraf/telegraf.d/custom.conf" }
     - { src: docker-compose.tpl.yml, dest: "{{ westmarches_data_path }}/docker-compose.yml" }
-    - { src: elasticsearch.tpl.yml, dest: "{{ westmarches_data_path }}/elasticsearch/elasticsearch.yml" }
     - { src: grafana-datasources.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/datasources.yml" }
     - { src: grafana-dashboards.tpl.yml, dest: "{{ westmarches_data_path }}/grafana/dashboards.yml" }
 
@@ -106,4 +105,3 @@
     - telegraf.service
 
 - include_tasks: docker-compose-facts.yml
-- include_tasks: elasticsearch-snapshots.yml
