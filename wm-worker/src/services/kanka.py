@@ -465,7 +465,10 @@ class Kanka:
                 + ('\n'.join(['- ' + pc.get('name') for pc in missing_pcs])) +
                 '\n ======== \n'
                 'Journals utilisant un Tag alors que le personnage existe comme Character :\n'
-                + ('\n'.join(['- ' + journal_.get('name') for journal_ in malformed_journals]))
+                + ('\n'.join(['- ' + journal_.get('name') for journal_ in malformed_journals])) +
+                '\n ======== \n'
+                'Warnings :\n'
+                + ('\n'.join(warns))
             )
 
             # channel = await self.discord.fetch_channel(859352329294577684)  # PM
