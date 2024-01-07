@@ -68,7 +68,8 @@ class Kanka:
         pass
 
         for type_id in self._doc_types:
-            self.ms.index('kanka_' + self._doc_types[type_id]).update_filterable_attributes(['id', 'name', 'child_id', 'acls.users', 'acls.roles'])
+            self.ms.index('kanka_' + self._doc_types[type_id]).update_filterable_attributes(
+                self.config.meilisearch.indexes.kanka.filterable_attributes)
 
     async def fetch(self, endpoint, last_sync=None, page=1, related=False):
         data = []
@@ -400,31 +401,31 @@ class Kanka:
 
     async def sync_tag_characters(self):
         self.logger.debug('Fetching characters from foundry')
-        foundry = requests.get('http://foundry:30000/api/actors')
 
-        if foundry.status_code == 200:
+        if actors := await self.foundry.fetch_pcs():
             missing_pcs = []
             malformed_journals = []
             warns = []
 
-            for foundry_pc in foundry.json().get('actors', []):
+            for foundry_pc in actors:
                 pc_name = foundry_pc.get('name')
                 tags = []
                 characters = []
 
                 self.logger.debug(f'Searching for a tag named "{pc_name}" in ES')
                 try:
-                    docs = await self.es.search(index=['kanka_tag', 'kanka_character'], query={
-                        'query_string': {
-                            'query': f'name:"{pc_name}"'
-                        }
-                    })
+                    quoted_name = pc_name.replace('"','\\"')
+                    resp = self.ms.multi_search([{
+                        "indexUid": uid,
+                        "filter": f'name = "{quoted_name}"',
+                    } for uid in ['kanka_tag', 'kanka_character']])
 
-                    for es_pc in docs.get('hits', {}).get('hits', []):
-                        if es_pc.get('_source', {}).get('type') == 'tag':
-                            tags.append(es_pc.get('_source', {}))
-                        else:
-                            characters.append(es_pc.get('_source', {}))
+                    for result in resp['results']:
+                        for hit in result['hits']:
+                            if result['indexUid'] == 'kanka_tag':
+                                tags.append(hit)
+                            else:
+                                characters.append(hit)
 
                     if (pc_hits := len(characters)) == 0:
                         self.logger.info(f'No Character matching Actor named "{pc_name}"')
@@ -440,18 +441,19 @@ class Kanka:
                             self.logger.warning(warn := f'{tag_hits} Tags matching Actor named "{pc_name}"')
                             warns.append(warn)
                         elif tag_hits == 1:
-                            resp = await self.es.search(index=['kanka_journal'], query={
-                                'query_string': {'query': f'child.tags:{tags[0].get("child_id")}'}})
-                            journals_tag = resp.get('hits', {}).get('hits', [])
+                            journals_idx = self.ms.index('kanka_journal')
+                            journals_tag = journals_idx.search('', {
+                                'filter': f'child.tags IN [{tags[0].get("child_id")}]'
+                            }).get('hits', {})
 
-                            resp = await self.es.search(index=['kanka_journal'], query={
-                                'query_string': {'query': f'child.mentions.id:{characters[0].get("child_id")}'}})
-                            journals_ids_character = [journal.get('_id') for journal in
-                                                      resp.get('hits', {}).get('hits', [])]
+                            journals_ids_character = [journal.get('id') for journal in
+                                                      journals_idx.search('', {
+                                                          'filter': f'child.mentions.id IN [{characters[0].get("child_id")}]'
+                                                      }).get('hits', {})]
 
                             for journal in journals_tag:
-                                if journal.get('_id') not in journals_ids_character:
-                                    malformed_journals.append(journal.get('_source', {}))
+                                if journal.get('id') not in journals_ids_character:
+                                    malformed_journals.append(journal)
 
                 except ApiError as e:
                     self.logger.error(f'Failed to search in ES: {e.message}')
@@ -461,6 +463,7 @@ class Kanka:
                 '======== \n'
                 'PJ n\'ayant pas de fiche Kanka du type Character : \n'
                 + ('\n'.join(['- ' + pc.get('name') for pc in missing_pcs])) +
+                '\n ======== \n'
                 'Journals utilisant un Tag alors que le personnage existe comme Character :\n'
                 + ('\n'.join(['- ' + journal_.get('name') for journal_ in malformed_journals]))
             )

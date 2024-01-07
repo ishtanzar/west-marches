@@ -35,16 +35,32 @@
   },
   "cron": {
     "kanka": {
-      "live": "* 4 * * *"
+      "live": "* * 31 2 *"
     },
     "foundry": {
-      "update": "* 4 * * *"
+      "update": "* * 31 2 *"
     },
     "questions": {
-      "review": "0 4 * * *"
+      "review": "* * 31 2 *"
     },
     "donations": {
-      "reset": "0 4 * * *"
+      "reset": "* * 31 2 *"
+    }
+  },
+  "meilisearch": {
+    "indexes": {
+      "kanka": {
+        "filterable_attributes": [
+          "id",
+          "name",
+          "child_id",
+          "child.id",
+          "child.mentions.id",
+          "child.tags",
+          "acls.users",
+          "acls.roles"
+        ]
+      }
     }
   },
   "log": {

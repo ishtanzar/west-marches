@@ -47,6 +47,22 @@
       "reset": "0 3 1 * *"
     }
   },
+  "meilisearch": {
+    "indexes": {
+      "kanka": {
+        "filterable_attributes": [
+          "id",
+          "name",
+          "child_id",
+          "child.id",
+          "child.mentions.id",
+          "child.tags",
+          "acls.users",
+          "acls.roles"
+        ]
+      }
+    }
+  },
   "log": {
     "version": 1,
     "formatters": {

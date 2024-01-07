@@ -160,7 +160,7 @@ services:
       - "9228:9228"
     links:
       - redis
-      - elasticsearch
+      - meilisearch
     environment:
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
       - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
