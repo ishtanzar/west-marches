@@ -9,12 +9,14 @@ import discord as dpy
 from meilisearch import Client
 from quart import Quart
 
+from services.chatgpt import ChatGPT
 from services.donations import Donations
 from services.foundry import Foundry
 from services.kanka import Kanka
 from services.questions import Questions
 from westmarches_utils.api import WestMarchesApiConfig, WestMarchesApi
-from westmarches_utils.api.auth import APIKey, Basic
+from westmarches_utils.api.auth import APIKey, Basic, Bearer
+from westmarches_utils.api.kanka import KankaApiConfig
 from westmarches_utils.config import Config
 from westmarches_utils.queue import Queue, JobDefinition
 
@@ -43,8 +45,9 @@ async def main():
     intents.guilds = True
 
     api_config = WestMarchesApiConfig(
-        api_auth=APIKey(os.environ['API_TOKEN']),
-        management_api_auth=Basic('foundry_manager', os.environ['MGMNT_API_SECRET'])
+        api_auth=APIKey(config.api.token),
+        management_api_auth=Basic('foundry_manager', os.environ['MGMNT_API_SECRET']),
+        kanka=KankaApiConfig(config.kanka.campaign, Bearer(config.kanka.token))
     )
 
     api = WestMarchesApi(api_config)

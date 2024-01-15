@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import random
@@ -6,17 +5,15 @@ import re
 from enum import Enum
 from io import StringIO
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs
 
 import discord
-import requests
 from meilisearch import Client
+from meilisearch.errors import MeilisearchError
 
 from services.foundry import Foundry
 from westmarches_utils.api import WestMarchesApi
 from westmarches_utils.cache import Cache
 from westmarches_utils.queue import Queue, JobDefinition
-from elasticsearch.exceptions import ApiError
 
 
 class Permission(Enum):
@@ -64,50 +61,11 @@ class Kanka:
 
     async def initialize(self):
         await self.refresh_users()
-        self._doc_types = await self.fetch_entity_types()
-        pass
+        self._doc_types = {item['id']: item['code'] for item in await self.api.kanka.entity_types.list()}
 
         for type_id in self._doc_types:
             self.ms.index('kanka_' + self._doc_types[type_id]).update_filterable_attributes(
                 self.config.meilisearch.indexes.kanka.filterable_attributes)
-
-    async def fetch(self, endpoint, last_sync=None, page=1, related=False):
-        data = []
-        params = {"page": page}
-
-        if related:
-            params["related"] = 1
-
-        if last_sync:
-            params["lastSync"] = last_sync
-
-        resp = requests.get(endpoint,
-                            params=params,
-                            headers={
-                                'Authorization': 'Bearer ' + self.config.kanka.token,
-                                'User-Agent': 'kanka-sync/0.0.1'
-                            })
-
-        if resp.status_code == 200:
-            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
-            resp_json = resp.json()
-            data += resp_json['data'] if isinstance(resp_json['data'], list) else [resp_json['data']]
-            if 'links' in resp_json and 'next' in resp_json['links']:
-                query = urlparse(resp_json['links']['next']).query
-                if query:
-                    next_data, _ = await self.fetch(endpoint, last_sync, parse_qs(query)['page'])
-                    data += next_data
-            last_sync = resp_json['sync'] if 'sync' in resp_json else None
-        elif resp.status_code == 429:
-            self.logger.info(f'GET {resp.url} - {resp.status_code} - {resp.text}')
-            await asyncio.sleep(61)
-
-            return await self.fetch(endpoint, last_sync, page)
-        else:
-            self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
-            raise Exception('Unable to fetch from API')
-
-        return data, last_sync
 
     async def get_user(self, user_id):
         users = await self.get_users()
@@ -138,43 +96,10 @@ class Kanka:
     def get_date_announce(self, day, month, year):
         return random.choice(self.config.discord.random.date_announce) % {'day': day, 'month': month, 'year': year}
 
-    async def fetch_entity(self, _id: int):
-        [entity], __ = await self.fetch(self.config.kanka.api_endpoint + f'/entities/{_id}', related=True)
-        return entity
-
-    async def fetch_permissions(self, _id: int):
-        permissions, __ = await self.fetch(self.config.kanka.api_endpoint + f'/entities/{_id}/entity_permissions')
-        return permissions
-
-    async def add_user_entity_permission(self, _id: int, user: int, action:int = 1):
-        resp = requests.post(self.config.kanka.api_endpoint + f'/entities/{_id}/entity_permissions', json={
-            'user_id': user,
-            'action': action,
-            'access': True
-        })
-
-        if resp.status_code == 200:
-            self.logger.debug(f'GET {resp.url} - {resp.status_code}')
-            return resp.json()['data']
-        else:
-            self.logger.warning(f'GET {resp.url} - {resp.status_code} - {resp.text}')
-            raise Exception('Unable to create permission')
-
-    async def fetch_entities(self, last_sync=None):
-        return await self.fetch(self.config.kanka.api_endpoint + '/entities', last_sync)
-
-    async def fetch_users(self):
-        users, __ = await self.fetch(self.config.kanka.api_endpoint + '/users')
-        return users
-
-    async def fetch_entity_types(self):
-        resp, __ = await self.fetch(self.config.kanka.api_root + '/entity-types')
-        return {item['id']: item['code'] for item in resp}
-
     async def refresh_users(self):
         self.logger.info('Refreshing users & groups')
 
-        for user in await self.fetch_users():
+        for user in await self.api.kanka.users.list():
             self._users[user['id']] = user['name']
 
             if roles := user.get('role'):
@@ -183,19 +108,23 @@ class Kanka:
     async def search_indexed_character_from_name(self, name):
         resp = self.ms.index('kanka_character').search('', { 'filter': f'name = "{name}"' })
 
-        if resp['totalHits'] == 1:
+        if resp['totalHits'] > 1:
+            self.logger.warning(f'[Kanka] Multiple hits for Character named {name}')
+
+        if resp['totalHits'] >= 1:
+            self.logger.debug(f'[Kanka] Found {resp["totalHits"]} Characters named {name}')
             return resp['hits'][0]
         else:
-            # todo: WARN
+            self.logger.warning(f'[Kanka] No hits for Character named {name}')
             return None
 
     async def sync(self):
         self.logger.info('Syncing')
         last_sync = self.entities_cache["last_sync"]
-        entities, new_sync = await self.fetch_entities(last_sync)
+        entities, new_sync = await self.api.kanka.entities.list_since(last_sync=last_sync)
 
-        calendars, _ = await self.fetch(self.config.kanka.api_endpoint + '/calendars', last_sync)
-        entities.extend([await self.fetch_entity(entity['entity_id']) for entity in calendars])
+        calendars, _ = await self.api.kanka.calendars.list_since(last_sync=last_sync)
+        entities.extend([await self.api.kanka.entity(entity['entity_id']).get() for entity in calendars])
 
         try:
             await self.notify(entities=entities)
@@ -237,7 +166,7 @@ class Kanka:
                     logging.getLogger('kanka.notify').debug('Queued')
                     await self.queue.put(JobDefinition('kanka.notify', entity=entity))
         elif entity:
-            author = await self.get_user(entity["updated_by"])
+            author = await self.api.kanka.users.get(entity["updated_by"])
 
             if api_user := (await self.api.users.findOne({'kanka.id': entity["updated_by"]}, {'value': None}))['value']:
                 if discord_username := api_user.get("discord", {}).get("username"):
@@ -248,7 +177,7 @@ class Kanka:
 
             if entity['id'] == calendar_id:
                 try:
-                    entity = await self.fetch_entity(entity['id'])
+                    entity = await self.api.kanka.entity(entity['id']).get()
                     months = entity['child']['months']
                     [cal_year, cal_month, cal_day] = entity['child']['date'].split('-')
 
@@ -331,12 +260,12 @@ class Kanka:
 
             try:
                 if 'child' not in entity or 'id' not in entity['child']:
-                    entity = await self.fetch_entity(entity_id)
+                    entity = await self.api.kanka.entity(entity_id).get()
 
                 self.logger.debug(f'Flattening {entity_type}/{entity_name}')
                 await self.flatten(entity)
 
-                if acls := await self.fetch_permissions(entity_id):
+                if acls := await self.api.kanka.entity(entity_id).permissions.list():
                     acl_users = []
                     acl_roles = []
 
@@ -376,28 +305,34 @@ class Kanka:
             self.logger.debug(f'Searching for kanka character named {foundry_actor["name"]}')
             kanka_character = await self.search_indexed_character_from_name(foundry_actor["name"])
 
-            if kanka_character:
-                kanka_acls = kanka_character['acls']
+            if not kanka_character:
+                pass
 
-                foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
-                kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
-                self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
-                users_from_kanka_owners = await self.api.users.search({"kanka.id": { "$in": kanka_owners_ids }})
+            kanka_acls = kanka_character['acls']
 
-                for owner in foundry_owners:
-                    found = False
+            foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
+            kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
+            self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
+            users_from_kanka_owners = await self.api.users.search({"kanka.id": { "$in": kanka_owners_ids }})
 
-                    for user in users_from_kanka_owners:
-                        if user['foundry']['_id'] == owner:
-                            found = True
-                            break
+            for owner in foundry_owners:
+                found = False
 
-                    if not found:
-                        self.logger.debug(f'Searching for kanka user {owner}')
-                        [new_user] = await self.api.users.search({"foundry._id": owner})
-                        for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
-                            self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
-                            await self.add_user_entity_permission(kanka_character['id'], new_user['kanka']['id'], action.value)
+                for user in users_from_kanka_owners:
+                    if user['foundry']['_id'] == owner:
+                        found = True
+                        break
+
+                if not found:
+                    self.logger.debug(f'Searching for kanka user {owner}')
+                    [new_user] = await self.api.users.search({"foundry._id": owner})
+                    for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
+                        self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
+                        await self.api.kanka.entity(kanka_character['id']).permissions.post(json={
+                            'user_id': new_user['kanka']['id'],
+                            'action': action.value,
+                            'access': True
+                        })
 
     async def sync_tag_characters(self):
         self.logger.debug('Fetching characters from foundry')
@@ -455,7 +390,7 @@ class Kanka:
                                 if journal.get('id') not in journals_ids_character:
                                     malformed_journals.append(journal)
 
-                except ApiError as e:
+                except MeilisearchError as e:
                     self.logger.error(f'Failed to search in ES: {e.message}')
 
             msg = StringIO(

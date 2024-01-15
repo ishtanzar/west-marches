@@ -1,3 +1,3 @@
 -r common-requirements.txt
 
-wm-utils@git+https://github.com/ishtanzar/west-marches.git@releases/wm-utils/v0.0.2#subdirectory=wm-utils
+wm-utils@git+https://github.com/ishtanzar/west-marches.git@releases/wm-utils/v0.0.4#subdirectory=wm-utils
