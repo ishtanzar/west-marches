@@ -5,6 +5,7 @@ from westmarches_utils.api.auth import AbstractClientAuth
 from westmarches_utils.api.config import WestMarchesApiConfig
 from westmarches_utils.api.discord import DiscordUser
 from westmarches_utils.api.exception import HTTPException, ServerException, ClientException
+from westmarches_utils.api.kanka import KankaApi
 from westmarches_utils.api.management import ManagementApi
 
 
@@ -24,6 +25,7 @@ class WestMarchesApi(AbstractApi):
 
         self._management = ManagementApi(config.mgmnt_api_endpoint, config.management_api_auth)
         self._users = UsersApi(config.api_endpoint, config.api_auth)
+        self._kanka = KankaApi(config.kanka)
 
     @property
     def management(self):
@@ -32,3 +34,7 @@ class WestMarchesApi(AbstractApi):
     @property
     def users(self):
         return self._users
+
+    @property
+    def kanka(self):
+        return self._kanka

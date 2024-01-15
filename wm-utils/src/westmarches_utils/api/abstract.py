@@ -58,17 +58,19 @@ class AbstractApi(ABC):
     async def create(self, create):
         return (await self.post(json=create)).json()
 
-    def on_response(self, resp: requests.Response) -> requests.Response:
+    def on_response(self, response: requests.Response) -> requests.Response:
         ex: Optional[HTTPException] = None
 
-        if 400 <= resp.status_code < 500:
-            ex = ClientException(resp)
-        elif 500 <= resp.status_code:
-            ex = ServerException(resp)
+        if response_code := response.status_code == 200:
+            self._logger.debug(f'GET {response.request.url} - {response_code}')
+        elif 400 <= response_code < 500:
+            ex = ClientException(response)
+        elif 500 <= response_code:
+            ex = ServerException(response)
 
         if ex:
-            self._logger.warning('Received %d when calling %s', resp.status_code, resp.request.url,
-                        extra={'exception': ex.asdict()})
+            self._logger.warning(f'GET {response.request.url} - {response_code} - {response.text}',
+                                 extra={'exception': ex.asdict()})
             raise ex
 
-        return resp
+        return response
