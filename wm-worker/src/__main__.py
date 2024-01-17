@@ -9,7 +9,6 @@ import discord as dpy
 from meilisearch import Client
 from quart import Quart
 
-from services.chatgpt import ChatGPT
 from services.donations import Donations
 from services.foundry import Foundry
 from services.kanka import Kanka
