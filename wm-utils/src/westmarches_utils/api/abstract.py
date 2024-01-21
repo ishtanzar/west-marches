@@ -61,7 +61,7 @@ class AbstractApi(ABC):
     def on_response(self, response: requests.Response) -> requests.Response:
         ex: Optional[HTTPException] = None
 
-        if response_code := response.status_code == 200:
+        if (response_code := response.status_code) == 200:
             self._logger.debug(f'GET {response.request.url} - {response_code}')
         elif 400 <= response_code < 500:
             ex = ClientException(response)
