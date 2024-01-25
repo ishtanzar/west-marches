@@ -48,7 +48,6 @@ class Foundry:
         query_from = 0
         query_size = 1000
         last_sync_obj = arrow.get(last_sync) if last_sync else arrow.utcnow().shift(hours=-1)
-        hits_count = 0
 
         while True:
             index = self._ms.index('foundry_audit-' + last_sync_obj.strftime("%Y_%m"))
@@ -59,6 +58,7 @@ class Foundry:
             })
             self._logger.debug(f'ms.search {index.uid} - offset={query_from} limit={query_size} ts>{str(last_sync_obj.int_timestamp)}')
 
+            hits_count = 0
             for h in resp['hits']:
                 hits_count += 1
                 modified.add(h['fields']['actor'])
