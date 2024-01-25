@@ -2,7 +2,6 @@
 
 use Dflydev\FigCookies\Cookies;
 use Dflydev\FigCookies\FigResponseCookies;
-use Elastic\Elasticsearch\ClientBuilder;
 use GuzzleHttp\Psr7\Uri;
 use Lcobucci\Clock\SystemClock;
 use Lcobucci\JWT\Encoding\JoseEncoder;
@@ -14,6 +13,8 @@ use Lcobucci\JWT\Validation\Constraint\ValidAt;
 use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Lcobucci\JWT\Validation\Validator;
 use League\Uri\Components\Query;
+use Meilisearch\Client;
+use Meilisearch\Contracts\SearchQuery;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
@@ -47,29 +48,30 @@ $config->jwt_key = InMemory::plainText(getenv('JWT_SHARED_KEY'));
 $config->apiKey = getenv('ADMIN_KEY');
 $config->api_endpoint = getenv('API_ENDPOINT');
 $config->play_endpoint = getenv('PLAY_ENDPOINT');
+$config->search_endpoint = getenv('SEARCH_ENDPOINT');
 $config->web_root = getenv('WEB_ROOT');
 $config->jwt_algorithm = new Sha256();
+$config->search_indices = [
+    "kanka_ability","kanka_calendar","kanka_character","kanka_creature","kanka_event","kanka_family","kanka_item",
+    "kanka_journal","kanka_location","kanka_map","kanka_note","kanka_organisation","kanka_quest","kanka_race",
+    "kanka_tag","kanka_timeline"
+];
 
-$es = ClientBuilder::create()
-    ->setHosts(['elasticsearch:9200'])
-    ->build();
+$search = new Client($config->search_endpoint);
 
-$app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config, $es) {
+$app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config, $search) {
     // Home
-    $group->get('/', function (Request $request, Response $response) use ($es) {
+    $group->get('/', function (Request $request, Response $response) use ($search) {
         $view = Twig::fromRequest($request);
 
-        $es_resp = $es->get([
-            'index' => 'kanka_note',
-            'id' => '1729087'
-        ]);
+        $resp = $search->index('kanka_note')->getDocument('1729087');
 
         return $view->render($response, 'index.html', [
-            'content' => $es_resp['_source']['child']['entry_parsed']
+            'content' => $resp['child']['entry_parsed']
         ]);
     });
 
-    $group->group('', function (RouteCollectorProxy $group) use ($user, $es) {
+    $group->group('', function (RouteCollectorProxy $group) use ($user, $search, $config) {
         // Map
         $group->get('/map', function (Request $request, Response $response) {
             $view = Twig::fromRequest($request);
@@ -77,7 +79,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
             return $view->render($response, 'map.html');
         });
 
-        $group->get('/search', function (Request $request, Response $response) use ($user, $es) {
+        $group->get('/search', function (Request $request, Response $response) use ($user, $search, $config) {
             if(!$user->isGM()) {
                 throw new \Slim\Exception\HttpNotFoundException($request);
             }
@@ -91,31 +93,22 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
                 $fields[] = '*';
             }
 
-            $es_resp = $es->search([
-                'index' => 'kanka_*',
-                'body' => [
-                    'query' => [
-                        'query_string' => [
-                            'query' => $query,
-                            'fields' => $fields,
-                        ]
-                    ],
-//                    'highlight' => [
-//                        'boundary_scanner_locale' => 'fr-FR',
-//                        'fields' => [
-//                            '*.*' => (object) []
-//                        ]
-//                    ],
-                    'size' => 50
-                ]
-            ]);
+            $queries = array_map(
+                function ($index) use ($query) {
+                    return (new SearchQuery())
+                        ->setIndexUid($index)
+                        ->setQuery($query);
+                }, $config->search_indices
+            );
+
+            $resp = $search->multiSearch($queries);
 
             $results = [];
-            foreach($es_resp['hits']['hits'] as $hit) {
-                $type = $hit['_source']['type'];
-
-                $type = $hit['_source']['child']['type'] == 'Rapport-MJ' ? 'session_report' : $type;
-                $results[$type][] = $hit['_source'];
+            foreach($resp['results'] as $index) {
+                foreach ($index['hits'] as $hit) {
+                    $type = $hit['child']['type'] == 'Rapport-MJ' ? 'session_report' : $index['indexUid'];
+                    $results[$type][] = $hit;
+                }
             }
 
             if(isset($results['session_report'])) {
@@ -190,6 +183,7 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
 
             $guzzle = new \GuzzleHttp\Client();
             $api_response = $guzzle->get($config->api_endpoint.'/users/'.$user->id, [
+//                'verify' => false,
                 'headers' => [
                     'Authorization' => 'ApiKey-v1 '.$config->apiKey
                 ]
