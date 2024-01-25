@@ -55,7 +55,7 @@ class Foundry:
             resp = index.search('', {
                 'offset': query_from,
                 'limit': query_size,
-                'filter': 'timestamp > ' + str(last_sync_obj.int_timestamp)
+                'filter': "message = 'Actor modified' AND timestamp > " + str(last_sync_obj.int_timestamp)
             })
 
             for h in resp['hits']:
