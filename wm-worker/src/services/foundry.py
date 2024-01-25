@@ -57,6 +57,7 @@ class Foundry:
                 'limit': query_size,
                 'filter': "message = 'Actor modified' AND timestamp > " + str(last_sync_obj.int_timestamp)
             })
+            self._logger.debug(f'ms.search {index.uid} - offset={query_from} limit={query_size} ts>{str(last_sync_obj.int_timestamp)}')
 
             for h in resp['hits']:
                 hits_count += 1
@@ -67,6 +68,7 @@ class Foundry:
 
             query_from = query_from + query_size
 
+        self._logger.debug(f'Found {len(modified)} characters modified')
         return list(modified)
 
     async def cron(self):
