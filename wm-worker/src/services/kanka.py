@@ -107,12 +107,13 @@ class Kanka:
 
     async def search_indexed_character_from_name(self, name):
         resp = self.ms.index('kanka_character').search('', { 'filter': f'name = "{name}"' })
+        hits = len(resp['hits'])
 
-        if resp['totalHits'] > 1:
+        if hits > 1:
             self.logger.warning(f'[Kanka] Multiple hits for Character named {name}')
 
-        if resp['totalHits'] >= 1:
-            self.logger.debug(f'[Kanka] Found {resp["totalHits"]} Characters named {name}')
+        if hits >= 1:
+            self.logger.debug(f'[Kanka] Found {hits} Characters named {name}')
             return resp['hits'][0]
         else:
             self.logger.warning(f'[Kanka] No hits for Character named {name}')
