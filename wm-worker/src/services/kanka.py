@@ -307,7 +307,7 @@ class Kanka:
             kanka_character = await self.search_indexed_character_from_name(foundry_actor["name"])
 
             if not kanka_character:
-                pass
+                continue
 
             kanka_acls = kanka_character['acls']
 
