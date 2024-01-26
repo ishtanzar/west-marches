@@ -314,7 +314,7 @@ class Kanka:
             foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
             kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
             self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
-            users_from_kanka_owners = await self.api.users.search({"kanka.id": { "$in": kanka_owners_ids }})
+            users_from_kanka_owners = await self.api.users.search(json={"kanka.id": { "$in": kanka_owners_ids }})
 
             for owner in foundry_owners:
                 found = False
