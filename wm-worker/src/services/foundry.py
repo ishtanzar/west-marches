@@ -48,7 +48,7 @@ class Foundry:
             self._logger.debug(f'GET {resp.url} - {resp.status_code}')
             return resp.json()['actors']
 
-    async def list_modified_characters(self, last_sync: str = None) -> list:
+    async def list_modified_characters(self, last_sync: str | int = None) -> list:
         modified = set()
         query_from = 0
         query_size = 1000
@@ -89,7 +89,7 @@ class Foundry:
             for actor in characters:
                 await self.index_actor(actor)
 
-        self._cache["last_modified_characters_sync"] = str(new_sync.int_timestamp)
+        self._cache["last_modified_characters_sync"] = new_sync.int_timestamp
 
     async def reindex_actors(self):
         for actor in await self.fetch_pcs():
