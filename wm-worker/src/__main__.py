@@ -53,7 +53,7 @@ async def main():
 
     discord = dpy.Client(intents=intents)
     ms = Client(config.meilisearch.endpoint, config.meilisearch.key)
-    foundry = Foundry(ms, discord, api)
+    foundry = Foundry(config, ms, discord, api)
     kanka = Kanka(config, discord, queue, ms, foundry, api)
     questions = Questions(config, discord)
     donations = Donations(config)

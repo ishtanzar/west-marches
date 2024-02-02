@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import arrow
 import discord
@@ -8,21 +9,25 @@ from meilisearch.errors import MeilisearchApiError
 from typing import Optional
 
 from westmarches_utils.api import WestMarchesApi
+from westmarches_utils.cache import Cache
 
 
 class Foundry:
 
     def __init__(
-            self, 
+            self,
+            config,
             ms: Client,
             dpy: discord.Client,
             api: WestMarchesApi) -> None:
-        
+
+        self._config = config
         self._ms = ms
         self._discord = dpy
         self._api = api
         self.audit_indexes = []
         self._logger = logging.getLogger('foundry')
+        self._cache = Cache(Path(config.cache.base_path) / 'foundry.cache.json')
 
     async def initialize(self):
         self.audit_indexes = [idx for idx in self._ms.get_indexes()['results'] if idx.uid.startswith('foundry_audit-')]
@@ -72,13 +77,19 @@ class Foundry:
         return list(modified)
 
     async def cron(self):
-        char_ids = await self.list_modified_characters()
+        self._logger.debug('Cron')
+        last_sync = self._cache["last_modified_characters_sync"]
+        new_sync = arrow.utcnow()
+
+        char_ids = await self.list_modified_characters(last_sync)
 
         if char_ids:
             characters = await self.fetch_pcs(ids=char_ids)
 
             for actor in characters:
                 await self.index_actor(actor)
+
+        self._cache["last_modified_characters_sync"] = str(new_sync.int_timestamp)
 
     async def reindex_actors(self):
         for actor in await self.fetch_pcs():
