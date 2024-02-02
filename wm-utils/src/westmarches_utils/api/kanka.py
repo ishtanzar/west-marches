@@ -120,7 +120,7 @@ class KankaApi(AbstractApi):
         return self._calendars
 
     def user(self, entity_id: str) -> AbstractEntityApi:
-        return AbstractEntityApi(self._entities_endpoint + self._users_endpoint + '/' + entity_id)
+        return AbstractEntityApi(self._entities_endpoint + self._users_endpoint + '/' + str(entity_id))
 
     def entity(self, entity_id: str) -> EntityApi:
-        return EntityApi(self._campaign_endpoint + self._entities_endpoint + '/' + entity_id)
+        return EntityApi(self._campaign_endpoint + self._entities_endpoint + '/' + str(entity_id))
