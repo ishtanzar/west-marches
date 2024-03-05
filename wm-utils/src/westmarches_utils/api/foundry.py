@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from westmarches_utils.api import AbstractApi, AbstractClientAuth
+from westmarches_utils.api.abstract import AbstractApi
+from westmarches_utils.api.auth import AbstractClientAuth
 
 
 @dataclass

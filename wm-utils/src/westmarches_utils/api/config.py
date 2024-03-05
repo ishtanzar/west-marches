@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from westmarches_utils.api import AbstractClientAuth
+from westmarches_utils.api.auth import AbstractClientAuth
 from westmarches_utils.api.kanka import KankaApiConfig
 
 

@@ -5,7 +5,9 @@ from urllib.parse import urlparse, parse_qs
 import requests
 from typing import Optional
 
-from westmarches_utils.api import AbstractApi, AbstractClientAuth
+from westmarches_utils.api.abstract import AbstractApi
+from westmarches_utils.api.auth import AbstractClientAuth
+from westmarches_utils.api.exception import ClientException
 
 
 @dataclass
@@ -40,14 +42,15 @@ class KankaApiResponse:
 class AbstractKankaApi(AbstractApi):
 
     async def get(self, **kwargs) -> KankaApiResponse:
-        response = KankaApiResponse(await self._request('get', **kwargs))
+        try:
+            return KankaApiResponse(await super().get(**kwargs))
+        except ClientException as e:
+            if e.response.status_code == 429:
+                await asyncio.sleep(61)
 
-        if response.status_code == 429:
-            await asyncio.sleep(61)
-
-            return await self.get(**kwargs)
-
-        return response
+                return await AbstractKankaApi.get(self, **kwargs)
+            else:
+                raise e
 
     async def list_since(self,  page=1, related=False, last_sync=None, **kwargs) -> (list, str):
         params = {"page": page}
@@ -58,26 +61,26 @@ class AbstractKankaApi(AbstractApi):
         if last_sync:
             params["lastSync"] = last_sync
 
-        data = (response := await self.get(params=params, **kwargs)).data
+        data = (response := await AbstractKankaApi.get(self, params=params, **kwargs)).data
         response_json = response.json
 
         if next_url := response_json.get('links', {}).get('next'):
             if next_query := urlparse(next_url).query:
                 if (next_page := int(parse_qs(next_query).get('page', [None])[0])) > page:
-                    data += (await self.list_since(page=next_page, **kwargs))[0]
+                    data += (await AbstractKankaApi.list_since(self, page=next_page, **kwargs))[0]
 
         return data, response_json.get('sync')
 
     async def list(self,  page=1, related=False, **kwargs) -> (list, str):
-        data, _ = await self.list_since(page, related, **kwargs)
+        data, _ = await AbstractKankaApi.list_since(self, page, related, **kwargs)
 
         return data
 
 
 class AbstractEntityApi(AbstractKankaApi):
 
-    async def get(self, *args, **kwargs) -> dict:
-        [object_], sync = await AbstractKankaApi.list(self)
+    async def get(self, **kwargs) -> dict:
+        [object_] = await super().list()
         return object_
 
 
@@ -85,7 +88,7 @@ class EntityApi(AbstractEntityApi):
 
     @property
     def permissions(self):
-        return AbstractApi(self._endpoint + '/entity_permissions')
+        return AbstractKankaApi(self._endpoint + '/entity_permissions', self._auth)
 
 
 class KankaApi(AbstractApi):
@@ -96,6 +99,7 @@ class KankaApi(AbstractApi):
     def __init__(self, config: "KankaApiConfig") -> None:
         super().__init__(config.endpoint, config.auth)
 
+        self.__config = config
         self._campaign_endpoint = config.endpoint + '/campaigns/' + str(config.campaign)
         self._journals = AbstractKankaApi(self._campaign_endpoint + '/journals', self._auth)
         self._calendars = AbstractKankaApi(self._campaign_endpoint + '/calendars', self._auth)
@@ -120,7 +124,10 @@ class KankaApi(AbstractApi):
         return self._calendars
 
     def user(self, entity_id: str) -> AbstractEntityApi:
-        return AbstractEntityApi(self._entities_endpoint + self._users_endpoint + '/' + str(entity_id))
+        return AbstractEntityApi(
+            self._entities_endpoint + self._users_endpoint + '/' + str(entity_id),
+            self.__config.auth
+        )
 
     def entity(self, entity_id: str) -> EntityApi:
-        return EntityApi(self._campaign_endpoint + self._entities_endpoint + '/' + str(entity_id))
+        return EntityApi(self._campaign_endpoint + self._entities_endpoint + '/' + str(entity_id), self.__config.auth)
