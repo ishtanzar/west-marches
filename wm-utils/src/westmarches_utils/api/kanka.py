@@ -67,7 +67,7 @@ class AbstractKankaApi(AbstractApi):
         if next_url := response_json.get('links', {}).get('next'):
             if next_query := urlparse(next_url).query:
                 if (next_page := int(parse_qs(next_query).get('page', [None])[0])) > page:
-                    data += (await AbstractKankaApi.list_since(self, page=next_page, **kwargs))[0]
+                    data += (await AbstractKankaApi.list_since(self, next_page, related, last_sync, **kwargs))[0]
 
         return data, response_json.get('sync')
 
