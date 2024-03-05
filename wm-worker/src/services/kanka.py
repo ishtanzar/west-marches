@@ -169,7 +169,7 @@ class Kanka:
         elif entity:
             author = await self.api.kanka.users.get(entity["updated_by"])
 
-            if api_user := (await self.api.users.findOne({'kanka.id': entity["updated_by"]}, {'value': None}))['value']:
+            if api_user := (await self.api.users.find_one({'kanka.id': entity["updated_by"]}, {'value': None}))['value']:
                 if discord_username := api_user.get("discord", {}).get("username"):
                     author = f'{discord_username} (kanka : {author})'
 
@@ -314,7 +314,7 @@ class Kanka:
             foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
             kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
             self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
-            users_from_kanka_owners = await self.api.users.search(json={"kanka.id": { "$in": kanka_owners_ids }})
+            users_from_kanka_owners = await self.api.users.find({"kanka.id": { "$in": kanka_owners_ids }})
 
             for owner in foundry_owners:
                 found = False
@@ -326,7 +326,7 @@ class Kanka:
 
                 if not found:
                     self.logger.debug(f'Searching for kanka user {owner}')
-                    [new_user] = await self.api.users.search({"foundry._id": owner})
+                    new_user = await self.api.users.find_one({"foundry._id": owner})
                     for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
                         self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
                         await self.api.kanka.entity(kanka_character['id']).permissions.post(json={
