@@ -53,25 +53,32 @@ class Foundry:
         query_from = 0
         query_size = 1000
         last_sync_obj = arrow.get(last_sync) if last_sync else arrow.utcnow().shift(hours=-1)
+        index = self._ms.index('foundry_audit-' + last_sync_obj.strftime("%Y_%m"))
 
         while True:
-            index = self._ms.index('foundry_audit-' + last_sync_obj.strftime("%Y_%m"))
-            resp = index.search('', {
-                'offset': query_from,
-                'limit': query_size,
-                'filter': "message = 'Actor modified' AND timestamp > " + str(last_sync_obj.int_timestamp)
-            })
-            self._logger.debug(f'ms.search {index.uid} - offset={query_from} limit={query_size} ts>{str(last_sync_obj.int_timestamp)}')
+            try:
+                hits_count = 0
+                ts = str(int(last_sync_obj.float_timestamp * 1000))
 
-            hits_count = 0
-            for h in resp['hits']:
-                hits_count += 1
-                modified.add(h['fields']['actor'])
+                self._logger.debug(f'ms.search {index.uid} - offset={query_from} limit={query_size} ts>{ts}')
 
-            if hits_count < query_size:
-                break
+                resp = index.search('', {
+                    'offset': query_from,
+                    'limit': query_size,
+                    'filter': "message = 'Actor modified' AND timestamp > " + ts
+                })
 
-            query_from = query_from + query_size
+                for h in resp['hits']:
+                    hits_count += 1
+                    modified.add(h['fields']['actor'])
+
+                if hits_count < query_size:
+                    break
+
+                query_from = query_from + query_size
+            except MeilisearchApiError as e:
+                self._logger.exception(f'Failed to query index: ' + e.message)
+                return []
 
         self._logger.debug(f'Found {len(modified)} characters modified')
         return list(modified)
