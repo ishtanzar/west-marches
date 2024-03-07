@@ -4,6 +4,7 @@ import random
 import re
 from enum import Enum
 from io import StringIO
+from operator import itemgetter
 from pathlib import Path
 
 import discord
@@ -325,15 +326,17 @@ class Kanka:
                         break
 
                 if not found:
-                    self.logger.debug(f'Searching for kanka user {owner}')
-                    new_user = await self.api.users.find_one({"foundry._id": owner})
-                    for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
-                        self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {new_user["kanka"]["name"]}[{new_user["kanka"]["id"]}]')
-                        await self.api.kanka.entity(kanka_character['id']).permissions.post(json={
-                            'user_id': new_user['kanka']['id'],
-                            'action': action.value,
-                            'access': True
-                        })
+                    self.logger.debug(f'Searching for user with foundry._id={owner}')
+                    if api_user := (await self.api.users.find_one({"foundry._id": owner}, {})).get('value'):
+                        if "kanka" in api_user:
+                            self.logger.debug(f'Found user "{api_user["foundry"]["name"]}" with kanka name "{api_user["kanka"]["name"]}"')
+                            for action in [Permission.READ, Permission.EDIT, Permission.DELETE, Permission.PERMISSIONS]:
+                                self.logger.info(f'Granting {action} for {kanka_character["name"]}[{kanka_character["id"]}] to {api_user["kanka"]["name"]}[{api_user["kanka"]["id"]}]')
+                                await self.api.kanka.entity(kanka_character['id']).permissions.post(json=[{
+                                    'user_id': api_user['kanka']['id'],
+                                    'action': action.value,
+                                    'access': True
+                                }])
 
     async def sync_tag_characters(self):
         self.logger.debug('Fetching characters from foundry')
