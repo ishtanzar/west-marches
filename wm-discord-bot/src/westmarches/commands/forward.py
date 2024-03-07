@@ -65,32 +65,38 @@ class Forward(AbstractCommand):
     async def on_question_thread_message(self, message):
         if isinstance(message.channel, discord.Thread) and \
                 message.channel.parent_id == await self.config.forward.questions_channel() and message.content == '✅':
-                log.info(f"Question is considered answered, closing the thread")
-                await message.channel.send('Ce sujet est désormais clos, merci.')
-                log.debug('Fetching original message')
-                original_message = await self._get_thread_original_message(message.channel)
-                log.debug('Fetching full original message')
-                full_message = await message.channel.parent.fetch_message(original_message.id)
-                log.debug('Adding reaction')
-                await full_message.add_reaction('✅')
-                log.debug('Archiving thread')
-                await message.channel.edit(archived=True)
+            log.info(f"Question is considered answered, closing the thread")
+            await message.channel.send('Ce sujet est désormais clos, merci.')
+            log.debug('Fetching original message')
+            original_message = await self._get_thread_original_message(message.channel)
+            log.debug('Fetching full original message')
+            full_message = await message.channel.parent.fetch_message(original_message.id)
+            log.debug('Adding reaction')
+            await full_message.add_reaction('✅')
+            log.debug('Archiving thread')
+            await message.channel.edit(archived=True)
         
     @commands.Cog.listener('on_message_without_command')
-    async def forward_on_message_without_command(self, message):
+    async def forward_on_message_without_command(self, message: discord.Message):
         ctx: commands.Context = await self.bot.get_context(message)
         gm_guild = self.bot.get_guild(await self.config.management.gm_guild())
 
-        if isinstance(message.channel, discord.Thread):
+        if isinstance(thread := message.channel, discord.Thread):
+            channel = thread.parent
+            category = channel.category
+
             notif_channel = None
-            if message.channel.parent_id == await self.config.forward.downtime_channel():
+            if channel.id == await self.config.forward.downtime_channel():
                 notif_channel = gm_guild.get_channel_or_thread(await self.config.forward.downtime_notif_channel())
 
-            if message.channel.parent_id == await self.config.forward.character_sheet_channel():
+            if channel.id == await self.config.forward.character_sheet_channel():
                 notif_channel = gm_guild.get_channel_or_thread(await self.config.forward.character_sheet_notif_channel())
 
+            if category.id == await self.config.forward.roleplay_category():
+                notif_channel = gm_guild.get_channel_or_thread(await self.config.forward.roleplay_notif_channel())
+
             if notif_channel:
-                embeds = [discord.Embed(title=message.channel.name, description=message.content, url=message.channel.jump_url)]
+                embeds = [discord.Embed(title=thread.name, description=message.content, url=thread.jump_url)]
                 embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar.url)
                 embeds = self._append_attachements(message, embeds)
                 embeds[-1].timestamp = message.created_at
