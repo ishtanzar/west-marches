@@ -41,14 +41,14 @@ class KankaApiResponse:
 
 class AbstractKankaApi(AbstractApi):
 
-    async def get(self, **kwargs) -> KankaApiResponse:
+    async def _request(self, method, url='', **kwargs) -> KankaApiResponse:
         try:
-            return KankaApiResponse(await super().get(**kwargs))
+            return KankaApiResponse(await super()._request(method, url, **kwargs))
         except ClientException as e:
             if e.response.status_code == 429:
                 await asyncio.sleep(61)
 
-                return await AbstractKankaApi.get(self, **kwargs)
+                return await AbstractKankaApi._request(self, method, url, **kwargs)
             else:
                 raise e
 
@@ -90,6 +90,10 @@ class EntityApi(AbstractEntityApi):
     def permissions(self):
         return AbstractKankaApi(self._endpoint + '/entity_permissions', self._auth)
 
+    @property
+    def attributes(self):
+        return AbstractKankaApi(self._endpoint + '/attributes', self._auth)
+
 
 class KankaApi(AbstractApi):
 
@@ -101,10 +105,14 @@ class KankaApi(AbstractApi):
 
         self.__config = config
         self._campaign_endpoint = config.endpoint + '/campaigns/' + str(config.campaign)
-        self._journals = AbstractKankaApi(self._campaign_endpoint + '/journals', self._auth)
-        self._calendars = AbstractKankaApi(self._campaign_endpoint + '/calendars', self._auth)
-        self._users = AbstractKankaApi(self._campaign_endpoint + self._users_endpoint, self._auth)
+        self._journals_endpoint = self._campaign_endpoint + '/journals'
+
         self._entity_types = AbstractKankaApi(config.endpoint + '/entity-types', self._auth)
+
+        self._journals = AbstractKankaApi(self._journals_endpoint, self._auth)
+        self._calendars = AbstractKankaApi(self._campaign_endpoint + '/calendars', self._auth)
+        self._characters = AbstractKankaApi(self._campaign_endpoint + '/characters', self._auth)
+        self._users = AbstractKankaApi(self._campaign_endpoint + self._users_endpoint, self._auth)
         self._entities = AbstractKankaApi(self._campaign_endpoint + self._entities_endpoint, self._auth)
 
     @property
@@ -116,6 +124,14 @@ class KankaApi(AbstractApi):
         return self._entities
 
     @property
+    def journals(self):
+        return self._journals
+
+    @property
+    def characters(self):
+        return self._characters
+
+    @property
     def entity_types(self):
         return self._entity_types
 
@@ -125,9 +141,12 @@ class KankaApi(AbstractApi):
 
     def user(self, entity_id: str) -> AbstractEntityApi:
         return AbstractEntityApi(
-            self._entities_endpoint + self._users_endpoint + '/' + str(entity_id),
+            self._campaign_endpoint + self._users_endpoint + '/' + str(entity_id),
             self.__config.auth
         )
+
+    def journal(self, journal_id: str) -> AbstractKankaApi:
+        return AbstractKankaApi(self._journals_endpoint + '/' + str(journal_id), self.__config.auth)
 
     def entity(self, entity_id: str) -> EntityApi:
         return EntityApi(self._campaign_endpoint + self._entities_endpoint + '/' + str(entity_id), self.__config.auth)
