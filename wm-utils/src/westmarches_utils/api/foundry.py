@@ -17,12 +17,18 @@ class FoundryActivityApi(AbstractApi):
         return (await super().get()).json()
 
 
+class FoundryActorsApi(AbstractApi):
+
+    async def search(self, query: dict, *args, **kwargs) -> dict:
+        return (await super().search(json=query, *args, **kwargs)).json()['actors']
+
+
 class FoundryApi(AbstractApi):
 
     def __init__(self, config: "FoundryApiConfig") -> None:
         super().__init__(config.endpoint, config.auth)
 
-        self._actors = AbstractApi(config.endpoint + '/api/actors')
+        self._actors = FoundryActorsApi(config.endpoint + '/api/actors')
         self._users = AbstractApi(config.endpoint + '/api/users')
         self._activity = FoundryActivityApi(config.endpoint + '/api/activity')
 
