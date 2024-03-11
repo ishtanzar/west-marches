@@ -1,5 +1,5 @@
 import requests
-from typing import Optional
+from typing import Optional, List
 
 from abc import ABC
 
@@ -41,11 +41,11 @@ class AbstractApi(ABC):
     async def put(self, *args, **kwargs) -> requests.Response:
         return await self._request('put', *args, **kwargs)
 
-    async def find(self, query: Optional[object] = None):
+    async def find(self, query: Optional[object] = None) -> List[dict]:
         resp = await self.search(json=query)
         return resp.json()
 
-    async def find_one(self, query: Optional[object] = None, default=None):
+    async def find_one(self, query: Optional[object] = None, default=None) -> dict:
         items = await self.find(query)
         return (items or (default,))[0]
 
@@ -61,16 +61,16 @@ class AbstractApi(ABC):
     def on_response(self, response: requests.Response) -> requests.Response:
         ex: Optional[HTTPException] = None
 
-        if (response_code := response.status_code) == 200:
-            self._logger.debug(f'GET {response.request.url} - {response_code}')
-        elif 400 <= response_code < 500:
+        if 400 <= (response_code := response.status_code) < 500:
             ex = ClientException(response)
         elif 500 <= response_code:
             ex = ServerException(response)
 
         if ex:
-            self._logger.warning(f'GET {response.request.url} - {response_code} - {response.text}',
+            self._logger.warning(f'{response.request.method} {response.request.url} - {response_code} - {response.text}',
                                  extra={'exception': ex.asdict()})
             raise ex
+        else:
+            self._logger.debug(f'{response.request.method} {response.request.url} - {response_code}')
 
         return response
