@@ -3,10 +3,10 @@ from pathlib import Path
 
 import arrow
 import discord
-import requests
 from meilisearch import Client
 from meilisearch.errors import MeilisearchApiError
 from typing import Optional
+from westmarches_utils.api.exception import HTTPException
 
 from westmarches_utils.api import WestMarchesApi
 from westmarches_utils.cache import Cache
@@ -34,7 +34,10 @@ class Foundry:
         for index in self.audit_indexes:
             index.update_filterable_attributes(['@timestamp','timestamp','message', 'fields.user.name', 'fields.actor'])
 
-    async def fetch_pcs(self, ids=[]):
+    async def fetch_pcs(self, ids: list = None) -> list:
+        if ids is None:
+            ids = []
+
         query = {
             'type': 'character'
         }
@@ -42,11 +45,10 @@ class Foundry:
         if len(ids) > 0:
             query['_id'] = {'$in': ids}
 
-        resp = requests.request('search', 'http://foundry:30000/api/actors', json=query)
-
-        if resp.status_code == 200:
-            self._logger.debug(f'GET {resp.url} - {resp.status_code}')
-            return resp.json()['actors']
+        try:
+            return await self._api.foundry.actors.search(query)
+        except HTTPException:
+            return []
 
     async def list_modified_characters(self, last_sync: str | int = None) -> list:
         modified = set()
@@ -91,7 +93,7 @@ class Foundry:
         char_ids = await self.list_modified_characters(last_sync)
 
         if char_ids:
-            characters = await self.fetch_pcs(ids=char_ids)
+            characters = await self.fetch_pcs(char_ids)
 
             for actor in characters:
                 await self.index_actor(actor)
