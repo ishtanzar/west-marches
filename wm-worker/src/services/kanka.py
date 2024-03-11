@@ -4,12 +4,13 @@ import random
 import re
 from enum import Enum
 from io import StringIO
-from operator import itemgetter
 from pathlib import Path
+from typing import Optional
 
 import discord
 from meilisearch import Client
 from meilisearch.errors import MeilisearchError
+from westmarches_utils.api.exception import ClientException
 
 from services.foundry import Foundry
 from westmarches_utils.api import WestMarchesApi
@@ -106,7 +107,7 @@ class Kanka:
             if roles := user.get('role'):
                 self._roles.update({role['id']: role['name'] for role in roles})
 
-    async def search_indexed_character_from_name(self, name):
+    async def search_indexed_character_from_name(self, name) -> Optional[dict]:
         resp = self.ms.index('kanka_character').search('', { 'filter': f'name = "{name}"' })
         hits = len(resp['hits'])
 
@@ -139,7 +140,7 @@ class Kanka:
             self.logger.exception(f'[Kanka] failed to index: {e.__class__.__name__} {e}', exc_info=False)
 
         try:
-            await self.ownership(last_sync)
+            await self.foundry_sync(last_sync)
         except Exception as e:
             self.logger.exception(f'[Kanka] failed to modify permissions: {e.__class__.__name__} {e}', exc_info=False)
 
@@ -168,11 +169,11 @@ class Kanka:
                     logging.getLogger('kanka.notify').debug('Queued')
                     await self.queue.put(JobDefinition('kanka.notify', entity=entity))
         elif entity:
-            author = await self.api.kanka.users.get(entity["updated_by"])
+            author = await self.api.kanka.user(entity["updated_by"]).get()
 
             if api_user := (await self.api.users.find_one({'kanka.id': entity["updated_by"]}, {'value': None}))['value']:
                 if discord_username := api_user.get("discord", {}).get("username"):
-                    author = f'{discord_username} (kanka : {author})'
+                    author = f'{discord_username} (kanka : {author["name"]})'
 
             await channel.send(f'{author or "Inconnu"} a modifié "{entity["name"]}"\n'
                                f'{self.get_entity_url(entity)}')
@@ -293,27 +294,60 @@ class Kanka:
             except Exception as e:
                 self.logger.error(f'Failed to index {entity_type}/{entity_name}', exc_info=e)
 
-    async def ownership(self, last_sync):
-        actors = []
-
-        self.logger.debug(f'Checking for modified characters since {last_sync}')
+    async def foundry_sync(self, last_sync):
+        self.logger.info(f'Checking for modified characters since {last_sync}')
         modified_ids = await self.foundry.list_modified_characters(last_sync)
+        foundry_attribute = '_foundry.id'
+        ignore_sync_attribute = '_kanka_sync.ignore'
+        actors = []
 
         if modified_ids:
             self.logger.debug(f'Fetching foundry actors {modified_ids}')
-            actors = await self.foundry.fetch_pcs(ids=modified_ids)
+            actors = await self.foundry.fetch_pcs(modified_ids)
 
         for foundry_actor in actors:
             self.logger.debug(f'Searching for kanka character named {foundry_actor["name"]}')
             kanka_character = await self.search_indexed_character_from_name(foundry_actor["name"])
 
             if not kanka_character:
+                try:
+                    self.logger.info(f'Creating kanka character named {foundry_actor["name"]}')
+                    resp = await self.api.kanka.characters.post(json={
+                        'name': foundry_actor["name"]
+                    })
+
+                    child = resp.json['data']
+                    kanka_character = {
+                        'attributes': [],
+                        'child': child,
+                        'id': child['entity_id'],
+                        'name': foundry_actor["name"],
+                    }
+                except ClientException:
+                    self.logger.warning(f'Failed to create kanka character name {foundry_actor["name"]}')
+                    continue
+
+            attributes_map = {a['name']: a for a in kanka_character.get('attributes', [])}
+
+            if attributes_map.get(ignore_sync_attribute, False):
+                self.logger.debug(f'Kanka sync ignore flag is set, ignoring actor')
                 continue
 
-            kanka_acls = kanka_character['acls']
+            if not foundry_attribute in attributes_map:
+                try:
+                    self.logger.info(f'Linking kanka character {kanka_character["child"]["id"]} and foundry actor {foundry_actor["_id"]}/')
+                    await self.api.kanka.entity(kanka_character['id']).attributes.post(json={
+                        'name': foundry_attribute,
+                        'value': foundry_actor["_id"],
+                        'entity_id': kanka_character['id']
+                    })
+                except ClientException:
+                    self.logger.warning(f'Failed to create link between kanka character and foundry actor')
+
+            kanka_acls = kanka_character.get('acls', {})
 
             foundry_owners = [u for u in foundry_actor['permission'] if u != 'default' and foundry_actor['permission'][u] == 3]
-            kanka_owners_ids = kanka_acls['users'] if 'users' in kanka_acls else []
+            kanka_owners_ids = kanka_acls.get('users', [])
             self.logger.debug(f'Searching for kanka users {kanka_owners_ids}')
             users_from_kanka_owners = await self.api.users.find({"kanka.id": { "$in": kanka_owners_ids }})
 
