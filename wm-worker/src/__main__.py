@@ -3,11 +3,15 @@ import asyncio
 import json
 import logging.config
 import os
+import re
+from types import SimpleNamespace
 
 import aiocron
 import discord as dpy
 from meilisearch import Client
+from meilisearch.models.document import Document
 from quart import Quart
+from westmarches_utils.api.exception import ClientException
 
 from services.donations import Donations
 from services.foundry import Foundry
@@ -97,6 +101,116 @@ async def main():
     async def health():
         return 'hello'
 
+    async def maintenance():
+        logger = logging.getLogger('maintenance')
+        # resp = ms.index('kanka_journal').search('', {
+        #     "filter": "child.type = 'Rapport-MJ'",
+        #     "limit": 2000
+        # })
+
+        # Full reindex an entity type
+        # for entity in await api.kanka.entities.list(params={"types": "journal"}):
+        #     await kanka.index(entity=entity)
+
+        # # Compare tags vs characters
+        # resp = ms.index('kanka_journal').get_documents({"limit": 5000})
+        # tags = {}
+        # characters = {}
+        # for journal in resp.results:
+        #     if journal.child['type'] == 'Rapport-MJ':
+        #         for tag_id in journal.tags:
+        #             if tag_id in tags:
+        #                 tag = tags[tag_id]
+        #             elif tag := (ms.index('kanka_tag').search('', {"filter": f"child_id = {tag_id}"})['hits'][0:] + [None])[0]:
+        #                 tags[tag_id] = tag
+        #             else:
+        #                 logger.warning(f'No such tag {tag_id}')
+        #                 continue
+        #
+        #             tag_name = tag['name']
+        #             ms_name = tag_name.replace("'", r"\'")
+        #
+        #             if tag_name in characters:
+        #                 continue
+        #             elif pc := (ms.index('kanka_character').search('', {"filter": f"name = '{ms_name}'"})['hits'][0:] + [None])[0]:
+        #                 characters[tag_name] = pc
+        #             else:
+        #                 logger.info(f'No such character {tag_name} (id: {tag_id}), creating')
+        #                 resp = await api.kanka.characters.post(json={"name": tag_name})
+        #                 await kanka.index(entity=(pc:={
+        #                     "child": (new_char := resp.json['data']),
+        #                     "name": new_char["name"],
+        #                     "id": new_char["entity_id"],
+        #                     "child_id": new_char["id"],
+        #                     "type": "character"
+        #                 }))
+        #                 characters[tag_name] = pc
+
+        # Migrate tag => character
+        resp = ms.index('kanka_journal').get_documents({"limit": 5000})
+
+        # resp = SimpleNamespace()
+        # resp.results = [
+        #     ms.index('kanka_journal').get_document("5909972")
+        # ]
+        #
+        logger.info('Hits: ' + str(len(resp.results)))
+
+        journal: Document
+        for journal in resp.results:
+            if journal.child['type'] == 'Rapport-MJ':
+                logger.info(f'{journal.name}: {journal.tags}')
+                remaining_tags = []
+                new_pcs = []
+                for tag_id in journal.tags:
+                    if tag := (ms.index('kanka_tag').search('', {"filter": f"child_id = {tag_id}"})['hits'][0:] + [None])[0]:
+                        # tag_name = tag['name'].replace("'", r"\'")
+                        # logger.debug(f'Tag {tag_id}: {tag_name}')
+                        # if not (pc := (ms.index('kanka_character').search('', {"filter": f"name = '{tag_name}'"})['hits'][0:] + [None])[0]):
+                        #     logger.info(f'No such character {tag_name}, creating')
+                        #     resp = await api.kanka.characters.post(json={"name": tag_name, "is_dead": True})
+                        #     await kanka.index(entity={
+                        #         "child": (pc := resp.json['data']),
+                        #         "name": pc["name"],
+                        #         "id": pc["entity_id"],
+                        #         "child_id": pc["id"],
+                        #         "type": "character"
+                        #     })
+
+                        try:
+                            if tag['type'] != 'PJ':
+                                await api.kanka.tag(tag_id).put(json={
+                                    'type': 'PJ'
+                                })
+                                tag['type'] = 'PJ'
+                        except ClientException as e:
+                            logger.warning(e.response.text)
+
+                        new_pcs.append(f'<a href="#" class="mention" data-name="{tag["name"]}" data-mention="[tag:{tag["id"]}]">{tag["name"]}</a>')
+                    else:
+                        logger.warning('Tag not found')
+                        remaining_tags.append(tag_id)
+
+                if new_pcs:
+                    entry, count = re.subn(
+                        r'(<h4>.*?Personnages.*?</h4>.*?(?:<a[^>]*data-mention="\[tag:[0-9]*]"[^>]*>[^<]*</a>[, ]*)*)(.*?<hr>)',
+                        rf'\1{", ".join(new_pcs)}\2',
+                        journal.child['entry'] or ''
+                    )
+                    if not count:
+                        entry = f'''<h4><font color="#424242">Personnages</font></h4>
+                        <p>{", ".join(new_pcs)}</p>
+                        <hr>''' + (journal.child['entry'] or '')
+
+                    journal.child.update(updated_journal:={
+                        "entry": entry,
+                        "tags": remaining_tags
+                    })
+                    await api.kanka.journal(journal.child_id).put(json=updated_journal)
+                    await kanka.index(entity=journal.__dict__)
+
+        logger.info('Done')
+
     queue.register('foundry.cron', foundry.cron)
     queue.register('foundry.backup', foundry.backup)
     queue.register('kanka.sync', kanka.sync)
@@ -113,6 +227,7 @@ async def main():
     subparsers.add_parser('donations.reset').set_defaults(func=donations.reset)
     subparsers.add_parser('foundry.reindex_actors').set_defaults(func=foundry.reindex_actors)
     subparsers.add_parser('queue.process').set_defaults(func=worker)
+    subparsers.add_parser('maintenance').set_defaults(func=maintenance)
     args = parser.parse_args()
 
     if "func" in args:
