@@ -10,6 +10,7 @@
   "intents": [],
   "taverns": [],
   "kanka": {
+    "campaign": 67312,
     "endpoint": "https://kanka.io/api/1.0/campaigns/67312",
     "gm_role": 195422,
     "player_role": 199680
@@ -34,7 +35,9 @@
     "downtime_notif_channel": 1050702617476612126,
     "character_sheet_channel": 996468375150669944,
     "character_sheet_notif_channel": 1167510633076490401,
-    "questions_channel": 911374861304234045
+    "questions_channel": 911374861304234045,
+    "roleplay_category": 996146013221949570,
+    "roleplay_notif_channel": 1215420007459192914
   },
   "sessions": {
     "session_notif_channel": 893175117012676618

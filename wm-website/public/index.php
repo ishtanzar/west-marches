@@ -97,7 +97,8 @@ $app->group('', function (RouteCollectorProxy $group) use ($app, $user, $config,
                 function ($index) use ($query) {
                     return (new SearchQuery())
                         ->setIndexUid($index)
-                        ->setQuery($query);
+                        ->setQuery($query)
+                        ->setLimit(5000);
                 }, $config->search_indices
             );
 

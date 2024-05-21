@@ -20,9 +20,9 @@
       "scopes": ["identify"]
     },
     "kanka": {
-      "endpoint": "https://kanka.io/oauth/authorize?client_id={client_id}&response_type=code&state={state}&redirect_uri={redirect_uri}",
-      "token_endpoint": "https://kanka.io/oauth/token",
-      "resource_owner_details": "https://kanka.io/api/1.0/profile",
+      "endpoint": "https://app.kanka.io/oauth/authorize?client_id={client_id}&response_type=code&state={state}&redirect_uri={redirect_uri}",
+      "token_endpoint": "https://app.kanka.io/oauth/token",
+      "resource_owner_details": "https://api.kanka.io/1.0/profile",
       "scopes": []
     }
   },

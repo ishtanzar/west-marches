@@ -3,7 +3,8 @@
     "endpoint": "https://app.kanka.io/w/67312",
     "api_endpoint": "https://api.kanka.io/1.0/campaigns/67312",
     "calendar_entity_id": 2156802,
-    "gm_role_id": 195422
+    "gm_role_id": 195422,
+    "campaign": 67312
   },
   "discord": {
     "kanka_notify_channel": 813731633177296906,
@@ -57,6 +58,7 @@
           "child.id",
           "child.mentions.id",
           "child.tags",
+          "child.type",
           "acls.users",
           "acls.roles"
         ]
