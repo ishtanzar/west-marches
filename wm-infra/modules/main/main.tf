@@ -102,7 +102,7 @@ resource "null_resource" "ansible" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -i inventory -l par1 deploy.yml"
+    command = "ansible-playbook -i inventory -l fr-par-1 deploy.yml"
     working_dir = "${path.module}/ansible"
 
     environment = {
