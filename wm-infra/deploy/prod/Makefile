@@ -1,5 +1,5 @@
 
-PROVIDER = par1
+PROVIDER = fr-par-1
 ANSIBLE_SKIP :=
 ANSIBLE_OPTS :=
 
@@ -23,6 +23,9 @@ endif
 
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS = false
 
+deploy:
+	terraform15 apply
+
 modules:
 	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) ../../modules/main/ansible/foundry-modules.yml
 
@@ -31,3 +34,6 @@ ingress:
 
 playtest:
 	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) $(ANSIBLE_OPTS) ../../modules/main/ansible/playtest.yml
+
+test:
+	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) $(ANSIBLE_OPTS) ../../modules/main/ansible/test.yml

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     scaleway = {
       source = "scaleway/scaleway"
-      version = "2.47.0"
+      version = "2.60.0"
     }
 
     restapi = {
@@ -49,9 +49,9 @@ data "scaleway_account_ssh_key" "ssh" {
 
 resource "scaleway_instance_ip" "public_ip" {}
 
-resource "scaleway_instance_volume" "data" {
-  type = "b_ssd"
+resource "scaleway_block_volume" "data" {
   size_in_gb = 40
+  iops       = 5000
 }
 
 resource "scaleway_instance_security_group" "front" {
@@ -84,7 +84,7 @@ resource "scaleway_instance_server" "main" {
   image = "ubuntu_focal"
   ip_id = scaleway_instance_ip.public_ip.id
   tags = ["foundry", "playtest"]
-  additional_volume_ids = [scaleway_instance_volume.data.id]
+  additional_volume_ids = [scaleway_block_volume.data.id]
   security_group_id = scaleway_instance_security_group.front.id
 }
 
@@ -107,7 +107,7 @@ resource "null_resource" "ansible" {
 
     environment = {
       ANSIBLE_FORCE_COLOR="1"
-      SCW_VOLUME_ID=element(split("/", scaleway_instance_volume.data.id), 1)
+      SCW_VOLUME_ID=element(split("/", scaleway_block_volume.data.id), 1)
       BACKUP_S3_BUCKET=var.backup_bucket
       BACKUP_S3_ENDPOINT="https://s3.fr-par.scw.cloud"
       FOUNDRY_HOSTNAME=var.host_name
@@ -115,14 +115,14 @@ resource "null_resource" "ansible" {
   }
 }
 
-resource "restapi_object" "dns_record" {
-  path = "/domains/ishtanzar.net/records"
-  read_path = "/domains/ishtanzar.net/records/{id}/A"
-  data = jsonencode({
-    rrset_name = var.host_name
-    rrset_type = "A"
-    rrset_values = [scaleway_instance_ip.public_ip.address]
-    rrset_ttl = 300
-  })
-}
+# resource "restapi_object" "dns_record" {
+#   path = "/domains/ishtanzar.net/records"
+#   read_path = "/domains/ishtanzar.net/records/{id}/A"
+#   data = jsonencode({
+#     rrset_name = var.host_name
+#     rrset_type = "A"
+#     rrset_values = [scaleway_instance_ip.public_ip.address]
+#     rrset_ttl = 300
+#   })
+# }
 
