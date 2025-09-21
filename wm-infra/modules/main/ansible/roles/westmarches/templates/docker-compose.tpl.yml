@@ -40,7 +40,7 @@ services:
       - GF_AUTH_GENERIC_OAUTH_NAME=Discord
       - GF_AUTH_GENERIC_OAUTH_ENABLED=true
       - GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ OAUTH_CLIENT }}
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ OAUTH_SECRET }}
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET="{{ OAUTH_SECRET }}"
       - GF_AUTH_GENERIC_OAUTH_SCOPES=identify email
       - GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://discordapp.com/api/oauth2/authorize
       - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://discordapp.com/api/oauth2/token
@@ -87,10 +87,10 @@ services:
       - COMPOSE_FILES=/opt/foundry-compose.yml,/opt/discordbot-compose.yml,/opt/westmarches-compose.yml
       - BACKUP_S3_ENDPOINT={{ BACKUP_S3_ENDPOINT }}
       - AWS_ACCESS_KEY_ID={{ SCW_ACCESS_KEY }}
-      - AWS_SECRET_ACCESS_KEY={{ SCW_SECRET_KEY }}
+      - AWS_SECRET_ACCESS_KEY="{{ SCW_SECRET_KEY }}"
       - AWS_DEFAULT_REGION={{ SCW_REGION }}
-      - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
-      - KANKA_TOKEN={{ KANKA_TOKEN }}
+      - DISCORD_SECRET="{{ DISCORD_BOT_SECRET }}"
+      - KANKA_TOKEN="{{ KANKA_TOKEN }}"
       - KANKA_CAMPAIGN={{ KANKA_CAMPAIGN }}
     ports:
       - "127.0.0.1:5000:5000"
@@ -104,16 +104,16 @@ services:
       - "{{ westmarches_data_path }}/worker/cache:/var/cache/westmarches/worker"
     environment:
       - CONFIG_PATH=/opt/api/config.json
-      - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
+      - DISCORD_BOT_SECRET="{{ DISCORD_BOT_SECRET }}"
       - DISCORD_BOT_PUBLIC_KEY={{ DISCORD_BOT_PUBLIC_KEY }}
       - KOFI_VERIFICATION={{ KOFI_VERIFICATION }}
       - WEB_ROOT=https://{{ api_fqdn }}
-      - ADMIN_KEY={{ api_secret }}
+      - ADMIN_KEY="{{ api_secret }}"
       - DISCORD_OAUTH_CLIENT={{ OAUTH_CLIENT }}
-      - DISCORD_OAUTH_SECRET={{ OAUTH_SECRET }}
+      - DISCORD_OAUTH_SECRET="{{ OAUTH_SECRET }}"
       - KANKA_OAUTH_CLIENT={{ KANKA_OAUTH_CLIENT }}
-      - KANKA_OAUTH_SECRET={{ KANKA_OAUTH_SECRET }}
-      - JWT_SHARED_KEY={{ JWT_SHARED_KEY }}
+      - KANKA_OAUTH_SECRET="{{ KANKA_OAUTH_SECRET }}"
+      - JWT_SHARED_KEY="{{ JWT_SHARED_KEY }}"
     links:
       - redis
     healthcheck:
@@ -126,7 +126,7 @@ services:
     restart: unless-stopped
     environment:
       - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
-      - API_ADMIN_KEY={{ api_secret }}
+      - API_ADMIN_KEY="{{ api_secret }}"
     volumes:
       - "{{ westmarches_data_path }}/foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin"
       - "{{ westmarches_data_path }}/extensible-config.json:/home/foundry/resources/extensible-config.json:ro"
@@ -139,19 +139,19 @@ services:
       - "--headless"
       - "--noupdate"
       - "--dataPath=/data"
-      - "--extensibleAuthJwt-api-key={{ api_secret }}"
+      - '--extensibleAuthJwt-api-key="{{ api_secret }}"'
   discordbot:
     restart: unless-stopped
     links:
       - api
       - management_api
     environment:
-      - MGMNT_API_SECRET={{ management_api_secret }}
-      - API_TOKEN={{ api_secret }}
-      - AWS_ACCESS_KEY_ID={{ DISCORD_AWS_ACCESS_KEY_ID }}
-      - AWS_SECRET_ACCESS_KEY={{ DISCORD_AWS_SECRET_KEY }}
-      - KANKA_TOKEN={{ KANKA_TOKEN }}
-      - DISCORD_SECRET={{ DISCORD_BOT_SECRET }}
+      - MGMNT_API_SECRET="{{ management_api_secret }}"
+      - API_TOKEN="{{ api_secret }}"
+      - AWS_ACCESS_KEY_ID="{{ DISCORD_AWS_ACCESS_KEY_ID }}"
+      - AWS_SECRET_ACCESS_KEY="{{ DISCORD_AWS_SECRET_KEY }}"
+      - KANKA_TOKEN="{{ KANKA_TOKEN }}"
+      - DISCORD_SECRET="{{ DISCORD_BOT_SECRET }}"
   worker:
     image: "{{ worker_image }}"
 #    restart: unless-stopped
@@ -164,10 +164,10 @@ services:
       - "{{ westmarches_data_path }}/worker/cache:/var/cache/westmarches/worker"
     environment:
       - CONFIG_PATH=/opt/worker/config.json
-      - KANKA_TOKEN={{ KANKA_TOKEN }}
-      - DISCORD_BOT_SECRET={{ DISCORD_BOT_SECRET }}
-      - MGMNT_API_SECRET={{ management_api_secret }}
-      - API_TOKEN={{ api_secret }}
+      - KANKA_TOKEN="{{ KANKA_TOKEN }}"
+      - DISCORD_BOT_SECRET="{{ DISCORD_BOT_SECRET }}"
+      - MGMNT_API_SECRET="{{ management_api_secret }}"
+      - API_TOKEN="{{ api_secret }}"
       - PYTHONUNBUFFERED=1
   meilisearch:
     image: "getmeili/meilisearch:{{ meilisearch_version }}"
@@ -187,8 +187,8 @@ services:
     entrypoint: /fpm-entrypoint.sh
     command: /usr/local/sbin/php-fpm
     environment:
-      - JWT_SHARED_KEY={{ JWT_SHARED_KEY }}
-      - ADMIN_KEY={{ api_secret }}
+      - JWT_SHARED_KEY="{{ JWT_SHARED_KEY }}"
+      - ADMIN_KEY="{{ api_secret }}"
       - API_ENDPOINT=https://{{ api_fqdn }}
       - PLAY_ENDPOINT=https://{{ foundry_fqdn }}
       - SEARCH_ENDPOINT=http://meilisearch:7700
