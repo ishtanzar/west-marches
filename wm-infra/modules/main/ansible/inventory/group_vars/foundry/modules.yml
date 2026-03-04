@@ -131,7 +131,7 @@ foundry_modules:
 #    version: 2.3.0
 #    url: https://github.com/moo-man/FVTT-DD-Import/releases/download/{version}/uvtt-import.zip
 #    rename: true
-#extensibleModules:
+extensibleModules: []
 #  - accessLogs
 #  - api
 #  - metrics
