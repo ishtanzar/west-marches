@@ -1,4 +1,4 @@
-FROM felddy/foundryvtt:9.269
+FROM felddy/foundryvtt:13.351
 
 COPY package.json package-custom.json
 
