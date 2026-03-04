@@ -127,19 +127,19 @@ services:
     environment:
       - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
       - API_ADMIN_KEY={{ api_secret }}
-    volumes:
-      - "{{ westmarches_data_path }}/foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin"
-      - "{{ westmarches_data_path }}/extensible-config.json:/home/foundry/resources/extensible-config.json:ro"
+#    volumes:
+#      - "{{ westmarches_data_path }}/foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin"
+#      - "{{ westmarches_data_path }}/extensible-config.json:/home/foundry/resources/extensible-config.json:ro"
     command:
-      - "--inspect=0.0.0.0:9229"
-      - "--experimental-vm-modules"
-      - "--loader=/home/foundry/resources/foundry-extensible-plugin/custom-resolver.mjs"
-      - "resources/app/main.js"
+#      - "--inspect=0.0.0.0:9229"
+#      - "--experimental-vm-modules"
+#      - "--loader=/home/foundry/resources/foundry-extensible-plugin/custom-resolver.mjs"
+#      - "resources/app/main.js"
       - "--port=30000"
       - "--headless"
       - "--noupdate"
       - "--dataPath=/data"
-      - "--extensibleAuthJwt-api-key={{ api_secret }}"
+#      - "--extensibleAuthJwt-api-key={{ api_secret }}"
   discordbot:
     restart: unless-stopped
     links:
