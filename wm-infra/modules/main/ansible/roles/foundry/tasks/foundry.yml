@@ -3,8 +3,8 @@
   ansible.builtin.file:
     path: "{{ foundry_data_path }}/{{ item }}"
     state: directory
-    owner: 421
-    group: 421
+    owner: 1000
+    group: 1000
   loop:
     - container_cache
     - container_patches/resources
