@@ -39,5 +39,4 @@
   roles:
     - foundry
     - discordbot
-    - nextcloud
     - westmarches
