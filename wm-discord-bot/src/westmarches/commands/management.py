@@ -95,8 +95,3 @@ class ManagementCommands(AbstractCommand):
         gm_guild = self.bot.get_guild(await self.config.management.onboard.invite_guild())
         if member.guild.id == gm_guild.id and member.id in await self.config.management.gms():
             await member.add_roles(gm_guild.get_role(await self.config.management.gm_role()))
-
-    @commands.command(name="deploy")
-    async def command_deploy(self, ctx: commands.Context):
-        pass
-
