@@ -20,12 +20,12 @@ services:
       - CONTAINER_PRESERVE_CONFIG=true
       - FOUNDRY_PROXY_PORT=443
       - FOUNDRY_PROXY_SSL=true
-    healthcheck:
-      test: curl localhost:30000/api/status || exit -1
-      interval: 10s
-      timeout: 2s
-      retries: 3
-      start_period: 10s
+#    healthcheck:
+#      test: curl localhost:30000/api/status || exit -1
+#      interval: 10s
+#      timeout: 2s
+#      retries: 3
+#      start_period: 10s
     secrets:
       - source: config_json
         target: config.json
