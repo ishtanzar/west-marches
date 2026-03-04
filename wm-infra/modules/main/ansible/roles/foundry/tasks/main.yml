@@ -27,29 +27,24 @@
 
 - include_tasks: foundry.yml
 
-- name: Fetch patch resources
-  amazon.aws.aws_s3:
-    bucket: "{{ foundry_s3_bucket }}"
-    object: "private/foundryvtt/crack/{{ foundry_version }}/{{ item }}"
-    dest: "{{ foundry_data_path }}/container_patches/resources/{{ item }}"
-    region: eu-west-3
-    aws_access_key: "{{ FOUNDRY_BUCKET_ACCESS_KEY_ID }}"
-    aws_secret_key: "{{ FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}"
-    mode: get
-  ignore_errors: yes
-  loop:
-    - auth.js
-    - init.js
+#- name: Fetch patch resources
+#  amazon.aws.aws_s3:
+#    bucket: "{{ foundry_s3_bucket }}"
+#    object: "private/foundryvtt/crack/{{ foundry_version }}/{{ item }}"
+#    dest: "{{ foundry_data_path }}/container_patches/resources/{{ item }}"
+#    region: eu-west-3
+#    aws_access_key: "{{ FOUNDRY_BUCKET_ACCESS_KEY_ID }}"
+#    aws_secret_key: "{{ FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}"
+#    mode: get
+#  ignore_errors: yes
+#  loop:
+#    - auth.js
+#    - init.js
     
-- name: Upload patches
-  ansible.builtin.copy:
-    src: patches/custom.sh
-    dest: "{{ foundry_data_path }}/container_patches/"
-
-- name: Upload default intents
-  ansible.builtin.copy:
-    src: default-intents.json
-    dest: "{{ foundry_data_path }}/default-intents.json"
+#- name: Upload patches
+#  ansible.builtin.copy:
+#    src: patches/custom.sh
+#    dest: "{{ foundry_data_path }}/container_patches/"
 
 - name: Manager API htpasswd file
   community.general.htpasswd:
@@ -63,7 +58,7 @@
     dest: "{{ item.dest }}"
   loop:
     - { src: docker-compose.tpl.yml, dest: "{{ foundry_data_path }}-compose.yml" }
-    - { src: api-logging.tpl.yml, dest: "{{ foundry_data_path }}/api-logging.yml" }
+#    - { src: api-logging.tpl.yml, dest: "{{ foundry_data_path }}/api-logging.yml" }
     - { src: secrets.tpl.json, dest: "{{ foundry_data_path }}/secrets.json" }
     - { src: options.tpl.json, dest: "{{ foundry_data_path }}/Config/options.json" }
 
