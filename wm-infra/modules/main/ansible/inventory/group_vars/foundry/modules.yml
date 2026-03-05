@@ -3,7 +3,6 @@ foundry_modules:
     version: 5.3.0
     url: https://github.com/foundryvtt/dnd5e/releases/download/release-{version}/dnd5e-release-{version}.zip
     install_path: "{{ foundry_data_path }}/Data/systems"
-    rename: true
 
 #  - name: betterrolls5e
 #    version: 1.7.2
