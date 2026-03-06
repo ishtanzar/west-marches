@@ -134,7 +134,7 @@ services:
 #      - "--inspect=0.0.0.0:9229"
 #      - "--experimental-vm-modules"
 #      - "--loader=/home/foundry/resources/foundry-extensible-plugin/custom-resolver.mjs"
-#      - "resources/app/main.js"
+      - "resources/app/main.js"
       - "--port=30000"
       - "--headless"
       - "--noupdate"
