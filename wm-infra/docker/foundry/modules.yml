@@ -1,0 +1,99 @@
+foundry_systems:
+  - name: dnd5e
+    version: "5.3.0"
+    url: https://github.com/foundryvtt/dnd5e/releases/download/release-{version}/dnd5e-release-{version}.zip
+
+foundry_modules:
+  - name: Active-Auras
+    version: "0.12.7"
+    url: https://github.com/Kandashi/Active-Auras/archive/{version}.zip
+    rename: true
+  - name: dfreds-chat-pins
+    version: "5.0.5"
+    url: https://github.com/DFreds/dfreds-chat-pins/releases/download/v{version}/dfreds-chat-pins.zip
+    rename: true
+  - name: dfreds-convenient-effects
+    version: "8.2.5"
+    url: https://github.com/DFreds/dfreds-convenient-effects/releases/download/v{version}/dfreds-convenient-effects.zip
+    rename: true
+  - name: dfreds-droppables
+    version: "5.4.0"
+    url: https://github.com/DFreds/dfreds-droppables/releases/download/v{version}/dfreds-droppables.zip
+    rename: true
+  - name: dfreds-effects-panel
+    version: "5.3.0"
+    url: https://github.com/DFreds/dfreds-effects-panel/releases/download/v{version}/dfreds-effects-panel.zip
+    rename: true
+  - name: dice-calculator
+    version: "3.1.0"
+    url: https://github.com/mclemente/fvtt-dice-tray/releases/download/{version}/module.zip
+    rename: true
+  - name: lib-dfreds-migrations
+    version: "1.0.4"
+    url: https://github.com/DFreds/lib-dfreds-migrations/releases/download/v{version}/lib-dfreds-migrations.zip
+    rename: true
+  - name: lib-dfreds-ui-extender
+    version: "2.2.0"
+    url: https://github.com/DFreds/lib-dfreds-ui-extender/releases/download/v{version}/lib-dfreds-ui-extender.zip
+    rename: true
+  - name: lib-wrapper
+    version: "1.13.5.1"
+    url: https://github.com/ruipin/fvtt-lib-wrapper/releases/download/v{version}/lib-wrapper-v{version}.zip
+    rename: true
+  - name: loot-sheet-npc-5e
+    version: "14.0.0"
+    url: https://github.com/jopeek/fvtt-loot-sheet-npc-5e/archive/{version}.zip
+    rename: true
+  - name: monks-scene-navigation
+    version: "13.03"
+    url: https://github.com/ironmonk108/monks-scene-navigation/archive/{version}.zip
+    rename: true
+  - name: monks-tokenbar
+    version: "13.02"
+    url: https://github.com/ironmonk108/monks-tokenbar/archive/{version}.zip
+    rename: true
+  - name: pdf-sheet
+    version: "0.24.15"
+    url: https://github.com/arcanistzed/pdf-sheet/releases/download/{version}/module.zip
+    rename: true
+  - name: pings
+    version: "1.4.3"
+    url: https://gitlab.com/foundry-azzurite/pings/-/jobs/artifacts/{version}/raw/dist/pings.zip?job=build
+  - name: plutonium
+    version: "2.17.2"
+    url: https://github.com/TheGiddyLimit/plutonium-next/releases/download/v{version}/plutonium-foundry13.zip
+  - name: settings-extender
+    version: "1.2.0"
+    url: https://gitlab.com/foundry-azzurite/settings-extender/-/jobs/artifacts/{version}/raw/dist/settings-extender.zip?job=build
+  - name: socketlib
+    version: "1.1.3"
+    url: https://github.com/farling42/foundryvtt-socketlib/releases/download/v{version}/module.zip
+    rename: true
+  - name: splatter
+    version: "5.0.1"
+    url: https://github.com/theripper93/Splatter/releases/download/{version}/module.zip
+    rename: true
+  - name: stairways
+    version: "0.11.1"
+    url: https://gitlab.com/SWW13/foundryvtt-stairways/-/archive/v{version}/foundryvtt-stairways-v{version}.zip
+    rename: true
+  - name: tidy5e-sheet
+    version: "13.9.1"
+    url: https://github.com/kgar/foundry-vtt-tidy-5e-sheets/releases/download/v{version}/module.zip
+    rename: true
+  - name: token-action-hud-core
+    version: "2.1.1"
+    url: https://github.com/Larkinabout/fvtt-token-action-hud-core/releases/download/{version}/module.zip
+    rename: true
+  - name: token-action-hud-dnd5e
+    version: "2.1.0"
+    url: https://github.com/Larkinabout/fvtt-token-action-hud-dnd5e/releases/download/{version}/module.zip
+    rename: true
+  - name: torch
+    version: "3.3.0"
+    url: https://github.com/League-of-Foundry-Developers/torch/releases/download/v{version}/torch-v{version}.zip
+    rename: true
+  - name: zoom-pan-options
+    version: "2.1.2"
+    url: https://github.com/shemetz/ZoomPanOptions/releases/download/{version}/module.zip
+    rename: true
