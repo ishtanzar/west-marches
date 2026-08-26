@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - .github/workflows/wm-docker-foundry.yml
-      - wm-infra/docker/foundry/*
+      - wm-infra/docker/foundry/**
     branches:
       - main
     tags:
@@ -12,31 +12,46 @@ on:
   pull_request:
     paths:
       - .github/workflows/wm-docker-foundry.yml
-      - wm-infra/docker/foundry/*
+      - wm-infra/docker/foundry/**
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SCW_REGION: fr-par
+      SCW_REGISTRY_NAMESPACE: westmarches-prod
+      IMAGE_NAME: wm-docker-foundry
+      KEEP_LAST_TAGS: "3"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-docker-foundry
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=match,pattern=releases\/wm-docker-foundry\/v(\d+.\d+.\d+),group=1
+      - name: Set image tags
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE="rg.${SCW_REGION}.scw.cloud/${SCW_REGISTRY_NAMESPACE}/${IMAGE_NAME}"
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+          TAGS="${IMAGE}:sha-${SHORT_SHA}"
+          if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAGS="${TAGS}"$'\n'"${IMAGE}:latest"
+          fi
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" =~ ^releases/wm-docker-foundry/v(.+)$ ]]; then
+            TAGS="${TAGS}"$'\n'"${IMAGE}:${BASH_REMATCH[1]}"
+          fi
+          echo "image=${IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "tags<<EOF" >> "${GITHUB_OUTPUT}"
+          echo "${TAGS}" >> "${GITHUB_OUTPUT}"
+          echo "EOF" >> "${GITHUB_OUTPUT}"
 
-      - name: Login to Docker Hub
+      - name: Login to Scaleway Container Registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          registry: rg.${{ env.SCW_REGION }}.scw.cloud
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
 
       - name: Set up Docker Buildx
         id: buildx
@@ -53,10 +68,53 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./foundry-extensible-plugin
+          context: ./wm-infra
           file: ./wm-infra/docker/foundry/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.image.outputs.tags }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Install Scaleway CLI
+        if: github.event_name != 'pull_request' && github.ref_name == 'main'
+        run: curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
+
+      - name: Cleanup old registry tags
+        if: github.event_name != 'pull_request' && github.ref_name == 'main'
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_PROJECT_ID: 395a81f2-0abe-417b-9e08-95079a607e2f
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          namespace_id="$(scw registry namespace list name="${SCW_REGISTRY_NAMESPACE}" region="${SCW_REGION}" -o json | jq -r '.[0].id')"
+          image_id="$(scw registry image list namespace-id="${namespace_id}" name="${IMAGE_NAME}" region="${SCW_REGION}" -o json | jq -r '.[0].id')"
+
+          [[ "${namespace_id}" != "null" && -n "${namespace_id}" ]]
+          [[ "${image_id}" != "null" && -n "${image_id}" ]]
+
+          protected_re='^(latest|stable|prod|release-.*)$'
+          keep_count=0
+
+          scw registry tag list image-id="${image_id}" order-by=created_at_desc region="${SCW_REGION}" -o json | \
+          jq -c '.[]' | while read -r tag; do
+            tag_id="$(jq -r '.id' <<<"${tag}")"
+            tag_name="$(jq -r '.name' <<<"${tag}")"
+
+            if [[ "${tag_name}" =~ ${protected_re} ]]; then
+              echo "keep protected ${tag_name}"
+              continue
+            fi
+
+            keep_count=$((keep_count + 1))
+            if (( keep_count <= KEEP_LAST_TAGS )); then
+              echo "keep recent ${tag_name}"
+              continue
+            fi
+
+            echo "delete ${tag_name}"
+            scw registry tag delete "${tag_id}" region="${SCW_REGION}"
+          done
