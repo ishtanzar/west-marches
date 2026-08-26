@@ -1,15 +1,24 @@
-FROM felddy/foundryvtt:13.351
+FROM python:3.12-slim AS content-builder
 
-COPY package.json package-custom.json
+RUN apt-get update && apt-get install -y --no-install-recommends unzip ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir pyyaml requests
+
+WORKDIR /opt/foundry-build
+
+COPY docker/foundry/modules.yml /opt/foundry-build/modules.yml
+COPY docker/foundry/install_foundry_content.py /opt/foundry-build/install_foundry_content.py
+
+RUN python /opt/foundry-build/install_foundry_content.py \
+  --output /opt/foundry-content
+
+FROM felddy/foundryvtt:13.351
 
 USER root
 
-RUN chown -R 1000:1000 "/home/node/.npm"
+COPY --from=content-builder /opt/foundry-content /opt/foundry-content
 
-#RUN jq -r '.dependencies | to_entries[] | .key + "@" + .value' package-custom.json | xargs npm install
+RUN chown -R 421:421 /opt/foundry-content
 
-RUN npm install -g pm2
-
-RUN apt update && apt install -y python3 unzip
-
-USER node
+USER foundry
