@@ -2,7 +2,7 @@ terraform {
   required_providers {
     scaleway = {
       source = "scaleway/scaleway"
-      version = "2.60.0"
+      version = "2.89.0"
     }
 
     restapi = {
@@ -88,32 +88,28 @@ resource "scaleway_instance_server" "main" {
   security_group_id = scaleway_instance_security_group.front.id
 }
 
-resource "scaleway_object_bucket" "backups" {
-  name = var.backup_bucket
-}
-
-resource "null_resource" "ansible" {
-  depends_on = [
-    scaleway_instance_server.main,
-  ]
-
-  triggers = {
-    timestamp = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = "ansible-playbook -i inventory -l fr-par-1 deploy.yml"
-    working_dir = "${path.module}/ansible"
-
-    environment = {
-      ANSIBLE_FORCE_COLOR="1"
-      SCW_VOLUME_ID=element(split("/", scaleway_block_volume.data.id), 1)
-      BACKUP_S3_BUCKET=var.backup_bucket
-      BACKUP_S3_ENDPOINT="https://s3.fr-par.scw.cloud"
-      FOUNDRY_HOSTNAME=var.host_name
-    }
-  }
-}
+# resource "null_resource" "ansible" {
+#   depends_on = [
+#     scaleway_instance_server.main,
+#   ]
+#
+#   triggers = {
+#     timestamp = timestamp()
+#   }
+#
+#   provisioner "local-exec" {
+#     command = "ansible-playbook -i inventory -l fr-par-1 deploy.yml"
+#     working_dir = "${path.module}/ansible"
+#
+#     environment = {
+#       ANSIBLE_FORCE_COLOR="1"
+#       SCW_VOLUME_ID=element(split("/", scaleway_block_volume.data.id), 1)
+#       BACKUP_S3_BUCKET=var.backup_bucket
+#       BACKUP_S3_ENDPOINT="https://s3.fr-par.scw.cloud"
+#       FOUNDRY_HOSTNAME=var.host_name
+#     }
+#   }
+# }
 
 # resource "restapi_object" "dns_record" {
 #   path = "/domains/ishtanzar.net/records"

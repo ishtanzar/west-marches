@@ -2,6 +2,11 @@
 PROVIDER = fr-par-1
 ANSIBLE_SKIP :=
 ANSIBLE_OPTS :=
+FOUNDRY_IMAGE ?= rg.fr-par.scw.cloud/westmarches-prod/wm-docker-foundry:latest
+REFRESH ?= false
+APT_REFRESH = $(if $(filter true,$(REFRESH)),$(shell \date -u +%s%N),initial)
+KUBE_CONFIG ?= $(CURDIR)/kubeconfig.yml
+KUBECTL = KUBECONFIG="$(KUBE_CONFIG)" kubectl
 
 ifdef SKIP_MODULES
 ANSIBLE_SKIP := $(ANSIBLE_SKIP),modules
@@ -26,6 +31,9 @@ export ANSIBLE_DISPLAY_SKIPPED_HOSTS = false
 deploy:
 	terraform15 apply
 
+init:
+	terraform15 init -upgrade
+
 modules:
 	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) ../../modules/main/ansible/foundry-modules.yml
 
@@ -37,3 +45,21 @@ playtest:
 
 test:
 	ansible-playbook -i ../../modules/main/ansible/inventory/ -l $(PROVIDER) $(ANSIBLE_OPTS) ../../modules/main/ansible/test.yml
+
+docker/foundry:
+	docker build \
+		--file ../../docker/foundry/Dockerfile \
+		--tag "$(FOUNDRY_IMAGE)" \
+		--build-arg APT_REFRESH="$(APT_REFRESH)" \
+		--secret id=aws_access_key_id,env=FOUNDRY_BUCKET_ACCESS_KEY_ID \
+		--secret id=aws_secret_access_key,env=FOUNDRY_BUCKET_SECRET_ACCESS_KEY \
+		../..
+
+docker/foundry/push:
+	docker push "$(FOUNDRY_IMAGE)"
+
+exec/foundry:
+	$(KUBECTL) exec -it -n lesaventuriersducairn-prod deploy/foundry -c foundry -- /bin/bash
+
+logs/foundry:
+	$(KUBECTL) logs -f -n lesaventuriersducairn-prod deploy/foundry -c foundry

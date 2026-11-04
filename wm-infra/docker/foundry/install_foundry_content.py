@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 import shutil
 import sys
 import tempfile
@@ -35,11 +36,21 @@ def download_zip(module: dict, destination: Path) -> None:
                 f.write(chunk)
 
 
-def discover_content_root(extract_dir: Path) -> Path:
-    manifests = list(extract_dir.rglob("module.json")) + list(extract_dir.rglob("system.json"))
+def discover_manifest(extract_dir: Path, kind: str) -> Path:
+    manifest_name = "system.json" if kind == "systems" else "module.json"
+    manifests = sorted(extract_dir.rglob(manifest_name), key=lambda p: len(p.parts))
     if not manifests:
-        raise RuntimeError("Could not find module.json or system.json in archive")
-    return manifests[0].parent
+        raise RuntimeError(f"Could not find {manifest_name} in archive")
+    return manifests[0]
+
+
+def manifest_id(manifest: Path) -> str:
+    # Foundry v10+ requires the install directory to match the manifest id
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    package_id = data.get("id") or data.get("name")
+    if not package_id:
+        raise RuntimeError(f"Manifest {manifest} has no id")
+    return package_id
 
 
 def install_module(module: dict, output_dir: Path) -> None:
@@ -59,9 +70,9 @@ def install_module(module: dict, output_dir: Path) -> None:
         with zipfile.ZipFile(zip_path) as zf:
             zf.extractall(extract_path)
 
-        content_root = discover_content_root(extract_path)
-        target_name = module_name if module.get("rename", False) else content_root.name
-        target_path = target_root / target_name
+        manifest = discover_manifest(extract_path, kind)
+        content_root = manifest.parent
+        target_path = target_root / manifest_id(manifest)
         target_root.mkdir(parents=True, exist_ok=True)
 
         if target_path.exists():
