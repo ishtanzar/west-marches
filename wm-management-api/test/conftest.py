@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock
 from montydb import MontyClient
 
-from api import WestMarchesApi
+from api import BasicAuth, WestMarchesApi
 from services.database import Engine
 
 resources = Path(__file__).parent / 'resources'
@@ -16,24 +16,26 @@ def mock_basic_auth(request):
     if 'disable_auth_mock' in request.keywords:
         yield
     else:
-        with mock.patch('passlib.apache.HtpasswdFile.check_password') as check_password, \
-            mock.patch('werkzeug.sansio.request.Request.authorization') as authorization:
-
-            check_password.return_value = True
-            authorization.username.return_value = 'my_user'
-
+        with mock.patch('api.BasicAuth.authenticate', return_value=(True, 'foundry_manager')):
             yield
 
 
 @pytest.fixture(scope='session')
 def app():
-    with mock.patch.dict(os.environ, {'HTPASSWD_PATH': '/dev/null'}):
+    from services.discord import DiscordService
+
+    with mock.patch.dict(os.environ, {'MGMNT_API_SECRET': 'testpassword'}):
+        discord = AsyncMock()
+        discord.validate_member = DiscordService.validate_member
         app = WestMarchesApi(
-            __name__,
-            Mock(),
-            Mock(),
-            Mock(),
-            Mock()
+            import_name=__name__,
+            auth=BasicAuth("testpassword"),
+            compose=Mock(),
+            backup=Mock(),
+            foundry=Mock(),
+            kanka=Mock(),
+            discord=discord,
+            scaleway=AsyncMock()
         )
 
         yield app

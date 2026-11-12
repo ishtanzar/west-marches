@@ -15,11 +15,12 @@ RUN apt update && apt install -y build-essential ca-certificates curl gnupg && \
 
 RUN apt update && apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-COPY requirements.txt ./
-COPY common-requirements.txt ./
+COPY ./wm-utils /opt/wm-utils
+COPY wm-management-api/requirements.txt ./
+COPY wm-management-api/common-requirements.txt ./
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt /opt/wm-utils
 
-COPY src ./
+COPY wm-management-api/src ./
 
 CMD ["python", "./__main__.py"]

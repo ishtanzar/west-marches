@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/wm-management-api.yml
       - wm-management-api/**
+      - wm-utils/**
     branches:
       - main
     tags:
@@ -13,6 +14,7 @@ on:
     paths:
       - .github/workflows/wm-management-api.yml
       - wm-management-api/**
+      - wm-utils/**
 
 jobs:
   build:
@@ -25,18 +27,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/wm-management-api
+          images: |
+            rg.fr-par.scw.cloud/westmarches-prod/wm-management-api
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
             type=match,pattern=releases\/wm-management-api\/v(\d+.\d+.\d+(?:[a-zA-Z0-9\-]*)),group=1
 
-      - name: Login to Docker Hub
+      - name: Login to Scaleway registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          registry: rg.fr-par.scw.cloud
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
 
       - name: Set up Docker Buildx
         id: buildx
@@ -53,10 +58,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./wm-management-api
+          context: ./
           file: ./wm-management-api/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache

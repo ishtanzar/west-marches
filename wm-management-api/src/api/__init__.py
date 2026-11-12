@@ -1,24 +1,25 @@
 from logging import Logger
 
-import asyncio
-import os
-import threading
+import hmac
 from functools import wraps
 from inspect import getfullargspec
-from passlib.apache import HtpasswdFile
 from quart import Quart, request, abort
-from typing import Optional, Any
+from typing import Optional
 
 from services.backup import BackupService
+from services.discord import DiscordService
 from services.docker import FoundryProject
 from services.kanka import KankaService
+from services.scaleway import ScalewayService
 from utils import get_logger
 from westmarches_utils.api.foundry import FoundryApi
 
 
 class BasicAuth:
-    def __init__(self, htpasswd):
-        self.users = HtpasswdFile(htpasswd)
+    def __init__(self, password):
+        if not password:
+            raise ValueError("MGMNT_API_SECRET must be set and non-empty")
+        self._password = password.encode("utf-8")
         self.log = get_logger(self)
 
     def required(self, func):
@@ -26,7 +27,7 @@ class BasicAuth:
         async def decorated(*args, **kwargs):
             is_valid, user = self.authenticate()
             if not is_valid:
-                self.log.warning('Invalid login from %s', user)
+                self.log.warning('Invalid authentication')
                 abort(401)
 
             argspec = getfullargspec(func)
@@ -38,29 +39,37 @@ class BasicAuth:
         return decorated
 
     def authenticate(self):
-        is_valid = False
-        user = None
-
-        if request.authorization:
-            user = request.authorization.username
-            is_valid = self.users.check_password(user, request.authorization.password)
-
-        return is_valid, user
+        authorization = request.authorization
+        if (
+            authorization is not None
+            and authorization.type == "basic"
+            and authorization.username == "foundry_manager"
+            and authorization.password is not None
+            and hmac.compare_digest(
+                authorization.password.encode("utf-8"), self._password
+            )
+        ):
+            return True, "foundry_manager"
+        return False, None
 
 
 class WestMarchesApi(Quart):
     _auth: BasicAuth
     _compose: FoundryProject
     _backup: BackupService
-    _task: asyncio.Future
-
     instance: "WestMarchesApi"
     log: Logger
 
     def __init__(
-        self, import_name: str, compose: FoundryProject,
-        backup: BackupService, foundry: FoundryApi,
-        kanka: KankaService
+        self, *,
+        import_name: str,
+        auth: BasicAuth,
+        compose: Optional[FoundryProject] = None,
+        backup: Optional[BackupService] = None,
+        foundry: Optional[FoundryApi] = None,
+        kanka: Optional[KankaService] = None,
+        discord: DiscordService,
+        scaleway: ScalewayService
     ) -> None:
         super().__init__(import_name)
         WestMarchesApi.instance = self
@@ -70,26 +79,13 @@ class WestMarchesApi(Quart):
         self._backup = backup
         self._foundry = foundry
         self._kanka = kanka
-        self._auth = BasicAuth(os.environ['HTPASSWD_PATH'])
+        self._discord = discord
+        self._scaleway = scaleway
+        self._auth = auth
 
+        self.before_serving(self.discord.start)
         self.setup_routes()
-
-    def run(self, host: Optional[str] = None, port: Optional[int] = None, debug: Optional[bool] = None,
-            use_reloader: bool = True, loop: Optional[asyncio.AbstractEventLoop] = None, ca_certs: Optional[str] = None,
-            certfile: Optional[str] = None, keyfile: Optional[str] = None, **kwargs: Any) -> None:
-
-        if loop is None:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        bg_loop = asyncio.new_event_loop()
-        threading.Thread(target=bg_loop.run_forever, daemon=True).start()
-
-        fut = asyncio.run_coroutine_threadsafe(self.setup(), loop=bg_loop)
-        self._task = asyncio.wrap_future(fut, loop=loop)
-        # bg_loop.call_soon_threadsafe(self._task)
-
-        super().run(host, port, use_reloader=use_reloader, loop=loop)
+        self.after_serving(self.discord.close)
 
     @property
     def auth(self) -> BasicAuth:
@@ -111,8 +107,13 @@ class WestMarchesApi(Quart):
     def kanka(self) -> KankaService:
         return self._kanka
 
-    async def setup(self):
-        pass
+    @property
+    def discord(self) -> DiscordService:
+        return self._discord
+
+    @property
+    def scaleway(self) -> ScalewayService:
+        return self._scaleway
 
     @staticmethod
     def setup_routes() -> None:
@@ -121,3 +122,4 @@ class WestMarchesApi(Quart):
         import api.backups.routes
         import api.reports.routes
         import api.routes
+        import api.s3.routes
