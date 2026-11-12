@@ -1,4 +1,3 @@
-# syntax = docker/dockerfile:1.2
 FROM python:3.11-slim
 
 WORKDIR /opt/wm-management-api
@@ -16,14 +15,15 @@ RUN apt update && apt install -y build-essential ca-certificates curl gnupg && \
 
 RUN apt update && apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+RUN apt install -y npm
+
+RUN npm install pm2 -g
+
 COPY ./wm-utils /opt/project/wm-utils
-COPY ./wm-management-api /opt/project/wm-management-api
+COPY wm-management-api/requirements.txt ./
+COPY wm-management-api/common-requirements.txt ./
 
 RUN pip install --no-cache-dir -r /opt/project/wm-management-api/dev-requirements.txt
 #RUN --mount=type=cache,target=/root/.cache/pip pip install -r /opt/project/wm-management-api/dev-requirements.txt
-
-RUN apt update && apt install -y npm
-
-RUN npm install pm2 -g
 
 CMD ["python", "./__main__.py"]

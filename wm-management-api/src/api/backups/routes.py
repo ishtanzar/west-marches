@@ -111,4 +111,3 @@ async def backup_restore(backup_id):
     except Exception as e:
         logger.exception(e)
         return str(e), 500
-
