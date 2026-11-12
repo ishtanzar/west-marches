@@ -1,10 +1,26 @@
+import logging
 from typing import List
 
-import boto3
-from discord import Member
+from discord import Member, NotFound
 from redbot.core import commands
 
 from westmarches.commands import AbstractCommand
+
+
+log = logging.getLogger('red.westmarches.management')
+
+
+async def in_gm_guild(ctx: commands.Context):
+    gm_guild_id = await ctx.cog.config.management.gm_guild()
+    gm_guild = ctx.bot.get_guild(gm_guild_id)
+    if gm_guild is None:
+        raise commands.CheckFailure('The configured GM guild is unavailable.')
+    try:
+        await gm_guild.fetch_member(ctx.author.id)
+    except NotFound:
+        raise commands.CheckFailure('Only members of the configured GM guild can use this command.') from None
+    return True
+
 
 
 class ManagementCommands(AbstractCommand):
@@ -12,7 +28,7 @@ class ManagementCommands(AbstractCommand):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    @commands.command()
+    # @commands.command()
     async def onboard_gm(self, ctx: commands.Context, member: Member):
         guild_id = await self.config.management.onboard.invite_guild()
         gm_guild = self.bot.get_guild(guild_id)
@@ -31,52 +47,49 @@ class ManagementCommands(AbstractCommand):
         await member.add_roles(players_guild.get_role(await self.config.management.gm_role()))
 
     @commands.group(name='s3')
+    @commands.check(in_gm_guild)
     async def group_s3(self, ctx: commands.Context):
         pass
 
     @group_s3.command(name='password')
+    @commands.check(in_gm_guild)
+    @commands.max_concurrency(1, per=commands.BucketType.user, wait=False)
     async def command_s3_passwd(self, ctx: commands.Context):
-        await self.s3_passwd(ctx.author)
+        try:
+            await self.s3_passwd(ctx)
+        except Exception as error:
+            log.error('S3 credential provisioning failed for Discord member %s (%s)',
+                      ctx.author.id, type(error).__name__)
+            async with self.config.messages() as messages:
+                await ctx.send(messages.get(
+                    'management.s3.failed',
+                    "S3 credentials could not be issued. Contact an administrator before using Object Storage.",
+                ))
+            return
         await ctx.message.add_reaction('\U00002705')
 
-    async def s3_passwd(self, member: Member):
-        iam = boto3.client('iam')
-        iam_user = None
-
-        username = member.name
-        for u in iam.list_users()['Users']:
-            if username == u['UserName']:
-                iam_user = u
-
-        if not iam_user:
-            iam.create_user(
-                Path='/westmarches_du_cairne/',
-                UserName=username
-            )
-
-        iam_group = 'caveduroliste-westmarches-admins'
-        if iam_group not in [g['GroupName'] for g in iam.list_groups_for_user(UserName=username)['Groups']]:
-            iam.add_user_to_group(GroupName=iam_group, UserName=username)
-
-        for iam_key in iam.list_access_keys(UserName=username)['AccessKeyMetadata']:
-            iam.delete_access_key(
-                UserName=username,
-                AccessKeyId=iam_key['AccessKeyId']
-            )
-
-        iam_key = iam.create_access_key(UserName=username)['AccessKey']
+    async def s3_passwd(self, ctx: commands.Context):
+        client = self.wm_api.management.s3
+        member = {
+            "type": "discord",
+            "discord_username": ctx.author.name,
+            "discord_id": str(ctx.author.id),
+        }
+        credentials = await client.credentials(member)
+        if not credentials.access_key or not credentials.secret_key:
+            raise RuntimeError("Credential response incomplete.")
         async with self.config.messages() as messages:
-            await member.send(
-                messages['management.s3.credentials'] % (iam_key['AccessKeyId'], iam_key['SecretAccessKey']),
-                delete_after=30
+            dm = await ctx.author.send(
+                messages['management.s3.credentials']
+                % (credentials.access_key, credentials.secret_key)
             )
+        await dm.delete(delay=30)
 
-    @commands.command()
+    # @commands.command()
     async def offboard_gm(self, ctx: commands.Context, member: Member):
-        gm_guild = self.bot.get_guild(await self.config.management.onboard.invite_guild())
+        gm_guild = self.bot.get_guild(await self.config.management.gm_guild())
         players_guild = self.bot.get_guild(await self.config.management.players_guild())
         gms: List[int] = await self.config.management.gms()
-        iam = boto3.client('iam')
 
         if member.id in gms:
             gms.remove(member.id)
@@ -85,12 +98,7 @@ class ManagementCommands(AbstractCommand):
         await gm_guild.kick(member)
         await players_guild.get_member(member.id).remove_roles(players_guild.get_role(await self.config.management.gm_role()))
 
-        for u in iam.list_users()['Users']:
-            if member.name == u['UserName']:
-                iam.delete_user(UserName=member.name)
-                break
-
-    @commands.Cog.listener()
+    # @commands.Cog.listener()
     async def on_member_join(self, member: Member):
         gm_guild = self.bot.get_guild(await self.config.management.onboard.invite_guild())
         if member.guild.id == gm_guild.id and member.id in await self.config.management.gms():
