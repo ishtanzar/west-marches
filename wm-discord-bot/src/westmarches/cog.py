@@ -14,9 +14,9 @@ from .utils import log_message
 log = logging.getLogger('red.westmarches')
 
 class Commands(
-    FoundryCommands,
+    # FoundryCommands,
     InkarnateCommands,
-    KankaCommands,
+    # KankaCommands,
     Forward,
     ManagementCommands,
     SessionsCommands):
