@@ -1,15 +1,13 @@
 import logging.config
 import os
 import re
-from urllib.parse import urlparse
 
 import boto3
 import yaml
-from montydb import set_storage, MontyClient
 
 from api import BasicAuth, WestMarchesApi
 from services.backup import BackupService
-from services.database import Engine
+from services.database import Database
 from services.discord import DiscordService
 from services.docker import FoundryProject
 from services.kanka import KankaService
@@ -20,7 +18,6 @@ compose_files = os.environ['COMPOSE_FILES'] if 'COMPOSE_FILES' in os.environ.key
 foundry_data_path = os.environ['FOUNDRY_DATA_PATH']
 foundry_endpoint = os.environ['FOUNDRY_ENDPOINT']
 backup_bucket = os.environ['BACKUP_S3_BUCKET']
-db_endpoint = os.environ['DATABASE_ENDPOINT']
 s3_endpoint = os.environ['BACKUP_S3_ENDPOINT'] if 'BACKUP_S3_ENDPOINT' in os.environ.keys() else None
 kanka_token = os.environ['KANKA_TOKEN']
 kanka_campaign = os.environ['KANKA_CAMPAIGN']
@@ -31,15 +28,14 @@ with open(os.environ['LOGGING_CONFIG']) as fd:
 logging.config.dictConfig(config)
 log = logging.getLogger()
 
-db_url = urlparse(db_endpoint)
-set_storage(db_url.path, storage=db_url.scheme)
-Engine._client = MontyClient(db_url.path)
+# Validates the configuration only; the connection is lazy so S3 routes do not depend on the database.
+database = Database.from_env(os.environ)
 
 app = WestMarchesApi(
     import_name=__name__,
     auth=BasicAuth(os.environ.get("MGMNT_API_SECRET")),
     # compose=FoundryProject(re.split(r', ?', compose_files)),
-    # backup=BackupService(foundry_data_path, backup_bucket, s3=boto3.client('s3', endpoint_url=s3_endpoint)),
+    backup=BackupService(foundry_data_path, backup_bucket, database=database, s3_endpoint=s3_endpoint),
     # foundry=FoundryApi(FoundryApiConfig()),
     # kanka=KankaService(kanka_token, kanka_campaign),
     discord=DiscordService(
@@ -58,6 +54,8 @@ app = WestMarchesApi(
         "log_level": os.environ.get("SCW_LOG_LEVEL", "WARNING"),
     }),
 )
+
+app.after_serving(database.dispose)
 
 
 def main():

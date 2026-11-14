@@ -1,7 +1,7 @@
 *.tflearn.*
 *.pickle
 checkpoint
-.terraform
+#.terraform
 .terraform.lock.hcl
 .envrc
 .direnv

@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   influxdb:
     image: influxdb:2.0.7
@@ -76,8 +74,8 @@ services:
   minio:
     image: minio/minio:latest
     environment:
-      - MINIO_ROOT_USER=BUH8JVS2CJYK8HH22UI6-XIP
-      - MINIO_ROOT_PASSWORD=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     command: server /data
   redis:
     image: redis:7-alpine
@@ -125,24 +123,33 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-management-api/pm2.config.js"]
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
 #      - "5678:5678" # VScode
     environment:
       - TZ=Europe/Paris
       - COMPOSE_FILES=/opt/project/docker-compose.yml
-      - HTPASSWD_PATH=/opt/project/wm-management-api/test/resources/.htpasswd
+      - MGMNT_API_SECRET=${MGMNT_API_SECRET}
       - FOUNDRY_DATA_PATH=/opt/project/wm-infra/deploy/local/data/foundry/Data
       - FOUNDRY_ENDPOINT=http://foundry:30000
       - BACKUP_S3_BUCKET=backups
       - BACKUP_S3_ENDPOINT=http://minio:9000/
-      - DISCORD_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_GM_GUILD_ID=${DISCORD_GM_GUILD_ID}
+      - DISCORD_BOT_ID=${DISCORD_BOT_ID}
+      - SCW_ORGANIZATION_ID=${SCW_DEFAULT_ORGANIZATION_ID}
+      - SCW_PROJECT_ID=${SCW_DEFAULT_PROJECT_ID}
+      - SCW_ACCESS_KEY=${SCW_ACCESS_KEY}
+      - SCW_SECRET_KEY=${SCW_SECRET_KEY}
+      - S3_EDITORS_GROUP_ID=${S3_EDITORS_GROUP_ID}
+      - S3_EDITORS_KEY_TTL=${S3_EDITORS_KEY_TTL:-14400}
+      - S3_EDITORS_APP_PREFIX=${S3_EDITORS_APP_PREFIX:-wm-test}
+      - SCW_LOG_LEVEL=${SCW_LOG_LEVEL:-WARNING}
       - KANKA_TOKEN=${KANKA_TOKEN}
       - KANKA_CAMPAIGN=${KANKA_CAMPAIGN}
-      - DATABASE_ENDPOINT=lightning:///opt/project/wm-infra/deploy/local/data/api/westmarches.db
-      - INTENT_MODEL_DIR=/opt/project/wm-infra/deploy/local/data/api/intents
+      - DATABASE_ENDPOINT=sqlite+aiosqlite:////opt/project/wm-infra/deploy/local/data/api/westmarches.sqlite3
       - LOGGING_CONFIG=/opt/project/wm-infra/deploy/local/api-logging.yml
-      - AWS_ACCESS_KEY_ID=BUH8JVS2CJYK8HH22UI6-XIP
-      - AWS_SECRET_ACCESS_KEY=tchtIVtvwW2EICkqzD4wh_KzdRcxVrJ9VmzB8NizmDTKH1Ra
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
     links:
       - minio
       - foundry

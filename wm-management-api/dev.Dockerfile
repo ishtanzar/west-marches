@@ -20,10 +20,9 @@ RUN apt install -y npm
 RUN npm install pm2 -g
 
 COPY ./wm-utils /opt/project/wm-utils
-COPY wm-management-api/requirements.txt ./
+COPY wm-management-api/dev-requirements.txt ./
 COPY wm-management-api/common-requirements.txt ./
 
-RUN pip install --no-cache-dir -r /opt/project/wm-management-api/dev-requirements.txt
-#RUN --mount=type=cache,target=/root/.cache/pip pip install -r /opt/project/wm-management-api/dev-requirements.txt
+RUN pip install --no-cache-dir -r dev-requirements.txt
 
 CMD ["python", "./__main__.py"]
