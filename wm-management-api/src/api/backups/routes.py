@@ -4,9 +4,10 @@ import uuid
 from typing import Optional
 
 from quart import request
+from werkzeug.exceptions import BadRequest
 
 from api import WestMarchesApi
-from services.database import BackupState
+from services.database import InvalidQuery
 from services.docker import NoSuchService
 
 app = WestMarchesApi.instance
@@ -17,33 +18,40 @@ logger = logging.getLogger('backup')
 @app.auth.required
 async def backup_list():
     return {
-        'backups': [backup.asdict(serializable=True) for backup in app.backup.list(sort=[('date', 1)])]
+        'backups': [backup.asdict(serializable=True) for backup in await app.backup.list(sort=[('date', 1)])]
     }
 
 @app.route('/backup', methods=['SEARCH'])
 @app.auth.required
 async def backup_search():
-    query_filter = (await request.json) or {}
-    query_sort = [(k.split('_')[1], int(v)) for k, v in request.args.items() if k.startswith('sort_')]
-    query_limit = int(request.args.get('limit', 0))
+    try:
+        query_filter = await request.get_json()
+        if query_filter is None:
+            query_filter = {}
+    except BadRequest:
+        return 'Body must be valid JSON', 400
+    try:
+        query_sort = [(k[len('sort_'):], int(v)) for k, v in request.args.items() if k.startswith('sort_')]
+        query_limit = int(request.args.get('limit', 0))
+    except ValueError:
+        return 'sort_* and limit arguments must be integers', 400
 
     if 'latest' in request.args.keys():
         query_filter = {'state': 'BackupState.SUCCESS'}
         query_sort = [('date', -1)]
         query_limit = 1
 
-    return {
-        'backups': [backup.asdict(serializable=True) for backup in app.backup.find(
-            filter=query_filter,
-            sort=query_sort,
-            limit=query_limit
-        )]
-    }
+    try:
+        backups = await app.backup.find(filter=query_filter, sort=query_sort, limit=query_limit)
+    except InvalidQuery as ex:
+        return str(ex), 400
+
+    return {'backups': [backup.asdict(serializable=True) for backup in backups]}
 
 @app.route('/backup/<backup_id>', methods=['DELETE'])
 @app.auth.required
 async def backup_delete(backup_id):
-    app.backup.delete(backup_id)
+    await app.backup.delete(backup_id)
     return 'Done', 204
 
 @app.route('/backup/perform', methods=['POST'])
@@ -70,7 +78,7 @@ async def backup_perform():
 
         try:
             for schema in schemas:
-                app.backup.perform(schema)
+                await app.backup.perform(schema)
         except Exception as nse:
             error = nse
 
@@ -96,7 +104,7 @@ async def backup_restore(backup_id):
         app.compose.stop(service_name)
 
         try:
-            app.backup.restore(backup_id)
+            await app.backup.restore(backup_id)
         except Exception as ex:
             error = ex
 

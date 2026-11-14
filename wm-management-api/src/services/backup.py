@@ -11,36 +11,39 @@ from typing import List
 import boto3
 import smart_open
 
-from services.database import BackupDocument, BackupState
+from services.database import BackupDocument, BackupState, Database
 from utils import get_logger
 
 
 class BackupService:
 
-    def __init__(self, data_path: str, bucket: str, s3=None) -> None:
+    def __init__(self, data_path: str, bucket: str, s3=None, database: Database = None,
+                 s3_endpoint: str = None) -> None:
         self.log = get_logger(self)
         self.data_dir = Path(data_path)
         self.bucket = bucket
         self._s3 = s3
+        self._s3_endpoint = s3_endpoint
+        self.database = database
 
     @property
     def s3_client(self):
-        return self._s3 or boto3.client('s3')
+        return self._s3 or boto3.client('s3', endpoint_url=self._s3_endpoint)
 
     @s3_client.setter
     def s3_client(self, client):
         self._s3 = client
 
-    def find(self, *args, **kwargs) -> List[BackupDocument]:
-        return BackupDocument.find(*args, **kwargs)
+    async def find(self, filter=None, sort=None, limit: int = 0) -> List[BackupDocument]:
+        return await BackupDocument.find(self.database, filter=filter, sort=sort, limit=limit)
 
-    def list(self, sort=None) -> List[BackupDocument]:
-        return BackupDocument.find(sort=sort)
+    async def list(self, sort=None) -> List[BackupDocument]:
+        return await BackupDocument.find(self.database, sort=sort)
 
-    def delete(self, backup_id: str):
-        BackupDocument.delete(backup_id)
+    async def delete(self, backup_id: str):
+        await BackupDocument.delete(self.database, backup_id)
 
-    def perform(self, schema):
+    async def perform(self, schema):
         base_dir = self.data_dir / schema
         cwd = Path.cwd()
         backup = BackupDocument(datetime.datetime.now(), schema=schema)
@@ -76,10 +79,10 @@ class BackupService:
             raise ex
         finally:
             os.chdir(cwd)
-            backup.insert()
+            await backup.insert(self.database)
 
-    def restore(self, backup_id: str):
-        backup = BackupDocument.get({'_id': backup_id})
+    async def restore(self, backup_id: str):
+        backup = await BackupDocument.get(self.database, backup_id)
         if backup:
             self.log.info('Restoring %s', backup_id, extra=backup.asdict(True))
 

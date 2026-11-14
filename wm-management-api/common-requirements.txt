@@ -4,8 +4,9 @@ werkzeug==2.3.7
 logging-utilities==1.2.4
 
 python-on-whales==0.60.1
-montydb[lmdb]==2.5.0
-lmdb==1.4.0
+SQLAlchemy[asyncio]==2.0.36
+asyncmy==0.2.10
+aiosqlite==0.20.0
 dateparser==1.1.8
 discord.py==2.6.4
 requests==2.31.0
