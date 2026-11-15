@@ -2,30 +2,30 @@ import logging.config
 import os
 import re
 
-import boto3
 import yaml
 
 from api import BasicAuth, WestMarchesApi
-from services.backup import BackupService
+# from services.backup import BackupService
 from services.database import Database
 from services.discord import DiscordService
-from services.docker import FoundryProject
-from services.kanka import KankaService
+# from services.docker import FoundryProject
+# from services.kanka import KankaService
 from services.scaleway import ScalewayService
-from westmarches_utils.api.foundry import FoundryApi, FoundryApiConfig
+# from westmarches_utils.api.foundry import FoundryApi, FoundryApiConfig
 
-compose_files = os.environ['COMPOSE_FILES'] if 'COMPOSE_FILES' in os.environ.keys() else ''
-foundry_data_path = os.environ['FOUNDRY_DATA_PATH']
-foundry_endpoint = os.environ['FOUNDRY_ENDPOINT']
-backup_bucket = os.environ['BACKUP_S3_BUCKET']
-s3_endpoint = os.environ['BACKUP_S3_ENDPOINT'] if 'BACKUP_S3_ENDPOINT' in os.environ.keys() else None
-kanka_token = os.environ['KANKA_TOKEN']
-kanka_campaign = os.environ['KANKA_CAMPAIGN']
+# compose_files = os.environ.get('COMPOSE_FILES', '')
+# foundry_endpoint = os.environ['FOUNDRY_ENDPOINT']
+# kanka_token = os.environ['KANKA_TOKEN']
+# kanka_campaign = os.environ['KANKA_CAMPAIGN']
 
-with open(os.environ['LOGGING_CONFIG']) as fd:
-    config = yaml.safe_load(fd.read())
-
-logging.config.dictConfig(config)
+if os.environ.get('LOGGING_CONFIG'):
+    with open(os.environ['LOGGING_CONFIG']) as fd:
+        logging.config.dictConfig(yaml.safe_load(fd))
+else:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s %(name)s: %(message)s',
+    )
 log = logging.getLogger()
 
 # Validates the configuration only; the connection is lazy so S3 routes do not depend on the database.
@@ -35,7 +35,12 @@ app = WestMarchesApi(
     import_name=__name__,
     auth=BasicAuth(os.environ.get("MGMNT_API_SECRET")),
     # compose=FoundryProject(re.split(r', ?', compose_files)),
-    backup=BackupService(foundry_data_path, backup_bucket, database=database, s3_endpoint=s3_endpoint),
+    # backup=BackupService(
+    #     os.environ.get('FOUNDRY_DATA_PATH'),
+    #     os.environ.get('BACKUP_S3_BUCKET'),
+    #     database=database,
+    #     s3_endpoint=os.environ.get('BACKUP_S3_ENDPOINT'),
+    # ),
     # foundry=FoundryApi(FoundryApiConfig()),
     # kanka=KankaService(kanka_token, kanka_campaign),
     discord=DiscordService(
