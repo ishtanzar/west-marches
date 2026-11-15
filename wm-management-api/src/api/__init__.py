@@ -71,7 +71,7 @@ class WestMarchesApi(Quart):
         discord: DiscordService,
         scaleway: ScalewayService
     ) -> None:
-        super().__init__(import_name)
+        super().__init__(import_name, static_folder=None)
         WestMarchesApi.instance = self
         WestMarchesApi.log = get_logger(self)
 
@@ -118,8 +118,12 @@ class WestMarchesApi(Quart):
     @staticmethod
     def setup_routes() -> None:
         WestMarchesApi.log.debug('setup_routes')
-        import api.foundry.routes
-        import api.backups.routes
-        import api.reports.routes
+        # import api.foundry.routes
+        # import api.backups.routes
+        # import api.reports.routes
         import api.routes
         import api.s3.routes
+
+        for rule in sorted(WestMarchesApi.instance.url_map.iter_rules(), key=lambda rule: rule.rule):
+            methods = ', '.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+            WestMarchesApi.log.info('Registered route: %s %s -> %s', methods, rule.rule, rule.endpoint)

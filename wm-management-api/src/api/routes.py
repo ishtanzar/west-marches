@@ -30,7 +30,7 @@ class ServerSentEvent:
         message = f"{message}\r\n\r\n"
         return message.encode('utf-8')
 
-@app.get("/sse")
+# @app.get("/sse")
 async def sse():
     if "text/event-stream" not in request.accept_mimetypes:
         abort(400)
