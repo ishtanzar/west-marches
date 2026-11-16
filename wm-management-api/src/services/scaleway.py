@@ -21,7 +21,7 @@ class ScalewayError(Exception):
         if self.code in {"invalid_discord_id", "invalid_discord_username"}:
             raise BadRequest(self.code) from None
         if self.code in {"application_not_owned", "group_not_owned",
-                         "application_key_mismatch", "ambiguous_application"}:
+                         "ambiguous_application"}:
             raise Conflict(self.code) from None
         raise ServiceUnavailable(self.code) from None
 
@@ -41,6 +41,8 @@ class _CredentialLogFilter(logging.Filter):
 
 
 _credential_log_filter = _CredentialLogFilter()
+_logger = logging.getLogger(__name__)
+_logger.addFilter(_credential_log_filter)
 
 
 def api_key_ttl_seconds(value):
@@ -87,7 +89,9 @@ def sdk_call(method):
                 raise asyncio.CancelledError from None
         except ScalewayError:
             raise
-        except Exception:
+        except Exception as error:
+            _logger.warning("Scaleway IAM call %s failed: %s: %s",
+                            method.__name__, type(error).__name__, error)
             raise ScalewayError("iam_unavailable") from None
     return call
 
@@ -145,29 +149,17 @@ class ScalewayService:
         application = self._application(discord_id, discord_username, create=True)
         self._group_member(application.id, add=True)
 
-        old_keys = self._keys(application.id)
-        for key in old_keys:
-            self.api.delete_api_key(access_key=key.access_key)
-
-        try:
-            key = self.api.create_api_key(
-                application_id=application.id,
-                default_project_id=self.project_id,
-                description=f"westmarches-discord:{discord_id}",
-                expires_at=datetime.now(timezone.utc) + timedelta(seconds=self.ttl_seconds),
-            )
-        except Exception:
-            raise ScalewayError("iam_unavailable") from None
+        # Previous keys are left to expire: IAM conditions cannot scope API-key
+        # deletion to GM applications, so the manager is not granted that right.
+        key = self.api.create_api_key(
+            application_id=application.id,
+            default_project_id=self.project_id,
+            description=f"westmarches-discord:{discord_id}",
+            expires_at=datetime.now(timezone.utc) + timedelta(seconds=self.ttl_seconds),
+        )
 
         if key.application_id != application.id or not key.access_key or not key.secret_key:
-            self.api.delete_api_key(access_key=key.access_key)
             raise ScalewayError("credential_creation_failed")
-
-        current_keys = self._keys(application.id)
-        if len(current_keys) != 1 or current_keys[0].access_key != key.access_key:
-            for existing in current_keys:
-                self.api.delete_api_key(access_key=existing.access_key)
-            raise ScalewayError("credential_state_conflict")
 
         return Credentials(application.id, key.access_key, key.secret_key)
 
@@ -177,9 +169,8 @@ class ScalewayService:
         if application is None:
             return {"revoked": True}
 
+        # Keys only grant S3 access through the editors group membership.
         self._group_member(application.id, add=False)
-        for key in self._keys(application.id):
-            self.api.delete_api_key(access_key=key.access_key)
         return {"revoked": True}
 
     def _application(self, discord_id, discord_username, create):
@@ -226,12 +217,3 @@ class ScalewayService:
             self.api.add_group_member(group_id=self.group_id, application_id=application_id)
         elif not add and application_id in members:
             self.api.remove_group_member(group_id=self.group_id, application_id=application_id)
-
-    def _keys(self, application_id):
-        keys = self.api.list_api_keys_all(
-            organization_id=self.organization_id,
-            application_id=application_id,
-        )
-        if any(key.application_id != application_id for key in keys):
-            raise ScalewayError("application_key_mismatch")
-        return keys

@@ -69,7 +69,6 @@ class FakeIAM:
         self.applications = []
         self.keys = []
         self.group_members = []
-        self.deleted = []
         self.events = []
 
     def list_applications_all(self, **kwargs):
@@ -104,14 +103,13 @@ class FakeIAM:
         self.group_members.remove(kwargs["application_id"])
 
     def list_api_keys_all(self, **kwargs):
-        assert kwargs["organization_id"] == ORG
-        return list(self.keys)
+        raise AssertionError("API keys must not be listed")
 
     def create_api_key(self, **kwargs):
         self.events.append("create_key")
         key = SimpleNamespace(
             application_id=kwargs["application_id"],
-            access_key="new-access",
+            access_key=f"new-access-{len(self.keys) + 1}",
             secret_key="one-time-secret",
             expires_at=kwargs["expires_at"],
         )
@@ -119,10 +117,7 @@ class FakeIAM:
         return key
 
     def delete_api_key(self, **kwargs):
-        self.events.append("delete_key")
-        key = next(key for key in self.keys if key.access_key == kwargs["access_key"])
-        self.deleted.append(key.access_key)
-        self.keys.remove(key)
+        raise AssertionError("API keys must not be deleted")
 
 
 def service(ttl_seconds=14400, application_prefix="westmarches"):
@@ -144,7 +139,7 @@ def reset_route_mocks(app):
     app.scaleway.revoke.reset_mock()
 
 
-async def test_credentials_replace_all_keys_and_create_owned_application():
+async def test_credentials_keep_existing_keys_and_create_owned_application():
     iam = service()
     iam.api.keys.extend([
         SimpleNamespace(application_id="application-1", access_key="old-1"),
@@ -153,11 +148,10 @@ async def test_credentials_replace_all_keys_and_create_owned_application():
 
     result = await iam.credentials("123", "Nöë")
 
-    assert result == Credentials("application-1", "new-access", "one-time-secret")
+    assert result == Credentials("application-1", "new-access-3", "one-time-secret")
     assert "one-time-secret" not in repr(result)
-    assert iam.api.deleted == ["old-1", "old-2"]
-    assert [key.access_key for key in iam.api.keys] == ["new-access"]
-    assert iam.api.events == ["add_member", "delete_key", "delete_key", "create_key"]
+    assert [key.access_key for key in iam.api.keys] == ["old-1", "old-2", "new-access-3"]
+    assert iam.api.events == ["add_member", "create_key"]
     application = iam.api.applications[0]
     assert application.name == "westmarches-gm-123"
     assert set(application.tags) == {
@@ -227,7 +221,7 @@ async def test_revoke_is_idempotent_when_application_is_absent():
     assert iam.api.events == []
 
 
-async def test_revoke_removes_group_member_and_every_application_key():
+async def test_revoke_removes_group_member_without_deleting_keys():
     iam = service()
     application = iam.api.create_application(
         organization_id=ORG,
@@ -246,8 +240,8 @@ async def test_revoke_removes_group_member_and_every_application_key():
 
     assert await iam.revoke("123", "former name") == {"revoked": True}
     assert iam.api.group_members == []
-    assert iam.api.deleted == ["old-1", "old-2"]
-    assert iam.api.events == ["remove_member", "delete_key", "delete_key"]
+    assert len(iam.api.keys) == 2
+    assert iam.api.events == ["remove_member"]
 
 
 @pytest.mark.parametrize("identifier", ["", "abc", "0", "-123", True, str(2**64)])
@@ -303,7 +297,7 @@ async def test_username_change_reuses_deterministic_application():
     await iam.credentials("123", "new name")
     assert len(iam.api.applications) == 1
     assert iam.api.applications[0].name == "westmarches-gm-123"
-    assert len(iam.api.keys) == 1
+    assert len(iam.api.keys) == 2
 
 
 async def test_test_prefix_isolates_issuance_and_revocation_from_production():
@@ -313,34 +307,20 @@ async def test_test_prefix_isolates_issuance_and_revocation_from_production():
         organization_id=ORG,
         tags=[iam.managed_tag, "discord-id=123"],
     )
-    production_key = SimpleNamespace(
-        application_id=production.id, access_key="production-key",
-    )
     iam.api.applications.append(production)
-    iam.api.keys.append(production_key)
-
-    def list_api_keys_all(**kwargs):
-        assert kwargs["organization_id"] == ORG
-        assert kwargs["application_id"] != production.id
-        return [
-            key for key in iam.api.keys
-            if key.application_id == kwargs["application_id"]
-        ]
-
-    iam.api.list_api_keys_all = list_api_keys_all
+    iam.api.group_members.append(production.id)
 
     assert await iam.revoke("123", "Alice") == {"revoked": True}
-    assert iam.api.keys == [production_key]
+    assert iam.api.group_members == [production.id]
     assert iam.api.events == []
 
     await iam.credentials("123", "Alice")
     assert iam.api.applications[1].name == "wm-test-gm-123"
-    assert production_key in iam.api.keys
     await iam.credentials("123", "Alice")
     assert len(iam.api.applications) == 2
+    assert all(key.application_id != production.id for key in iam.api.keys)
     await iam.revoke("123", "Alice")
-    assert iam.api.keys == [production_key]
-    assert "production-key" not in iam.api.deleted
+    assert iam.api.group_members == [production.id]
 
 
 @pytest.mark.parametrize("prefix", [None, "", "WM-test", "test app", "-test", "x" * 64, 123])
@@ -388,7 +368,7 @@ async def test_cancellation_keeps_sdk_operation_serialized_until_thread_finishes
     with pytest.raises(asyncio.CancelledError):
         await credentials
     assert await revoke == {"revoked": True}
-    assert len(iam.api.keys) == 0
+    assert iam.api.group_members == []
 
 
 @pytest.mark.parametrize("service,error,status", [
