@@ -6,7 +6,7 @@ from redbot.core.commands import Cog
 from westmarches_utils.api.kanka import KankaApiConfig
 
 from westmarches_utils.api.auth import Basic, APIKey, Bearer
-from westmarches_utils.api.config import WestMarchesApiConfig
+from westmarches_utils.api.config import ManagementApiConfig, WestMarchesApiConfig
 
 from .commands import *
 from .utils import log_message
@@ -44,7 +44,10 @@ class WestMarchesCog(Commands):
 
         api_config = WestMarchesApiConfig(
             api_auth=APIKey(os.environ['API_TOKEN']),
-            management_api_auth=Basic('foundry_manager', os.environ['MGMNT_API_SECRET']),
+            management=ManagementApiConfig(
+                endpoint=os.environ.get('MGMNT_API_ENDPOINT', 'http://management_api:5000'),
+                auth=Basic('foundry_manager', os.environ['MGMNT_API_SECRET']),
+            ),
             kanka=KankaApiConfig(self.config.kanka.campaign, Bearer(os.environ['KANKA_TOKEN']))
         )
 

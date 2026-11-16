@@ -6,7 +6,7 @@ module.exports = {
         name: "discordbot",
         interpreter: "/opt/venv/bin/python",
         // interpreter_args : "-m debugpy --listen 0.0.0.0:5679", // VScode
-        interpreter_args: "/opt/venv/lib/python3.9/site-packages/pydevd.py --multiprocess --port 5679 --client 172.17.0.1 --file", // PyCharm
+        // interpreter_args: "/opt/venv/lib/python3.9/site-packages/pydevd.py --multiprocess --port 5679 --client 172.17.0.1 --file", // PyCharm
         script: "/opt/venv/bin/redbot",
         args: [
             'westmarches',
