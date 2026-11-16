@@ -5,10 +5,15 @@ from westmarches_utils.api.kanka import KankaApiConfig
 
 
 @dataclass
+class ManagementApiConfig:
+    auth: AbstractClientAuth
+    endpoint: str = "http://management_api:5000"
+
+
+@dataclass
 class WestMarchesApiConfig:
     api_auth: AbstractClientAuth
-    management_api_auth: AbstractClientAuth
+    management: ManagementApiConfig
     kanka: KankaApiConfig
 
     api_endpoint: str = "http://api:3000"
-    mgmnt_api_endpoint: str = "http://management_api:5000"

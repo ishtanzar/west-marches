@@ -25,7 +25,7 @@ class WestMarchesApi(AbstractApi):
         super().__init__(config.api_endpoint, config.api_auth)
 
         self._foundry = FoundryApi(FoundryApiConfig())
-        self._management = ManagementApi(config.mgmnt_api_endpoint, config.management_api_auth)
+        self._management = ManagementApi(config.management)
         self._users = UsersApi(config.api_endpoint, config.api_auth)
         self._kanka = KankaApi(config.kanka)
 
