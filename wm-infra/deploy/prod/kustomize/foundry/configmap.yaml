@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foundry-config
+data:
+  CONTAINER_CACHE: "/opt/foundry-cache"
+  CONTAINER_PATCHES: "/data/container_patches"
+  FOUNDRY_AWS_CONFIG: "/data/Config/s3config.json"
+  TZ: "Europe/Paris"
+  CONTAINER_PRESERVE_CONFIG: "true"
+  FOUNDRY_COMPRESS_WEBSOCKET: "true"
+  FOUNDRY_MINIFY_STATIC_FILES: "true"
+  FOUNDRY_PROTOCOL: "4"
+  FOUNDRY_PROXY_PORT: "443"
+  FOUNDRY_PROXY_SSL: "true"

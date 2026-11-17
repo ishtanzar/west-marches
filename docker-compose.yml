@@ -1,119 +1,119 @@
 services:
-  influxdb:
-    image: influxdb:2.0.7
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=p@ssw0rd
-      - DOCKER_INFLUXDB_INIT_ORG=westmarchesdelacave
-      - DOCKER_INFLUXDB_INIT_BUCKET=bucket0
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=t0ken
-    ports:
-      - "8086:8086"
-  grafana:
-    image: grafana/grafana:main
-    volumes:
-      - ./wm-infra/modules/main/ansible/roles/westmarches/templates/grafana-dashboards.tpl.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
-      - ./wm-infra/deploy/local/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
-      - ./wm-infra/modules/main/ansible/roles/westmarches/files/grafana-dashboards:/var/lib/grafana/dashboards:ro
-    links:
-      - influxdb
-    ports:
-      - "3030:3000"
-  telegraf:
-    image: telegraf:1.28.1
-    volumes:
-      - ./wm-infra/deploy/local/telegraf.toml:/etc/telegraf/telegraf.conf:ro
-      - foundry-logs:/logs/foundry
-    links:
-      - influxdb
-  proxy:
-    image: nginx:1.21.0
-    volumes:
-      - ./:/opt/project:ro
-      - ./wm-infra/deploy/local/custom.nginx:/etc/nginx/conf.d/custom.conf:ro
-      - ./wm-infra/deploy/local/rootCA.pem:/etc/ssl/private/rootCA.pem:ro
-      - ./wm-infra/deploy/local/rootCA-key.pem:/etc/ssl/private/rootCA-key.pem:ro
-    links:
-      - foundry
-      - api
-      - website
-    ports:
-      - "0.0.0.0:8080:80"
-      - "0.0.0.0:8443:443"
-    networks:
-      default:
-        aliases:
-          - api.westmarches.localhost.lan
-  website:
-    build:
-      context: wm-website
-      dockerfile: dev.Dockerfile
-    volumes:
-      - ./:/opt/project:ro
-      - ./wm-website:/var/www/html:ro
-      - ./wm-infra/deploy/local/data/api/westmarches.db:/opt/data/api/westmarches.db
-      - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
-      - twig-cache:/var/cache/website
-    links:
-      - meilisearch
-    environment:
-      - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
-      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
-      - ADMIN_KEY=${API_ADMIN_KEY}
-      - API_ENDPOINT=https://api.westmarches.localhost.lan:8443
-      - PLAY_ENDPOINT=https://play.westmarches.localhost.lan:8443
-      - SEARCH_ENDPOINT=http://meilisearch:7700
-      - WEB_ROOT=https://westmarches.localhost.lan:8443
-  meilisearch:
-    image: getmeili/meilisearch:v1.5.0
-    ports:
-      - "7700:7700"
-    volumes:
-      - ./wm-infra/deploy/local/data/meilisearch:/meili_data
+#  influxdb:
+#    image: influxdb:2.0.7
+#    environment:
+#      - DOCKER_INFLUXDB_INIT_MODE=setup
+#      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+#      - DOCKER_INFLUXDB_INIT_PASSWORD=p@ssw0rd
+#      - DOCKER_INFLUXDB_INIT_ORG=westmarchesdelacave
+#      - DOCKER_INFLUXDB_INIT_BUCKET=bucket0
+#      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=t0ken
+#    ports:
+#      - "8086:8086"
+#  grafana:
+#    image: grafana/grafana:main
+#    volumes:
+#      - ./wm-infra/modules/main/ansible/roles/westmarches/templates/grafana-dashboards.tpl.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+#      - ./wm-infra/deploy/local/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+#      - ./wm-infra/modules/main/ansible/roles/westmarches/files/grafana-dashboards:/var/lib/grafana/dashboards:ro
+#    links:
+#      - influxdb
+#    ports:
+#      - "3030:3000"
+#  telegraf:
+#    image: telegraf:1.28.1
+#    volumes:
+#      - ./wm-infra/deploy/local/telegraf.toml:/etc/telegraf/telegraf.conf:ro
+#      - foundry-logs:/logs/foundry
+#    links:
+#      - influxdb
+#  proxy:
+#    image: nginx:1.21.0
+#    volumes:
+#      - ./:/opt/project:ro
+#      - ./wm-infra/deploy/local/custom.nginx:/etc/nginx/conf.d/custom.conf:ro
+#      - ./wm-infra/deploy/local/rootCA.pem:/etc/ssl/private/rootCA.pem:ro
+#      - ./wm-infra/deploy/local/rootCA-key.pem:/etc/ssl/private/rootCA-key.pem:ro
+#    links:
+#      - foundry
+#      - api
+#      - website
+#    ports:
+#      - "0.0.0.0:8080:80"
+#      - "0.0.0.0:8443:443"
+#    networks:
+#      default:
+#        aliases:
+#          - api.westmarches.localhost.lan
+#  website:
+#    build:
+#      context: wm-website
+#      dockerfile: dev.Dockerfile
+#    volumes:
+#      - ./:/opt/project:ro
+#      - ./wm-website:/var/www/html:ro
+#      - ./wm-infra/deploy/local/data/api/westmarches.db:/opt/data/api/westmarches.db
+#      - ./wm-infra/deploy/local/php.ini:/usr/local/etc/php/conf.d/zzz-custom.ini:ro
+#      - twig-cache:/var/cache/website
+#    links:
+#      - meilisearch
+#    environment:
+#      - JWT_CERTIFICATE=/opt/project/wm-infra/deploy/local/jwt-private.pem
+#      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
+#      - ADMIN_KEY=${API_ADMIN_KEY}
+#      - API_ENDPOINT=https://api.westmarches.localhost.lan:8443
+#      - PLAY_ENDPOINT=https://play.westmarches.localhost.lan:8443
+#      - SEARCH_ENDPOINT=http://meilisearch:7700
+#      - WEB_ROOT=https://westmarches.localhost.lan:8443
+#  meilisearch:
+#    image: getmeili/meilisearch:v1.5.0
+##    ports:
+##      - "7700:7700"
+#    volumes:
+#      - ./wm-infra/deploy/local/data/meilisearch:/meili_data
   minio:
     image: minio/minio:latest
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     command: server /data
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-  foundry:
-    build:
-      context: foundry-extensible-plugin
-      dockerfile: ../wm-infra/docker/foundry/Dockerfile
-    environment:
-      - TIMEZONE=Europe/Paris
-      - CONTAINER_PRESERVE_CONFIG=true
-      - FOUNDRY_WORLD=west-marches-de-la-cave
-      - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
-      - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
-      - FOUNDRY_ADMIN_KEY=atropos
-      - API_ADMIN_KEY=${API_ADMIN_KEY}
-      - DEBUG=*,-pm2:*,-axon:*,-axm:*,-interactor:*,-require-in-the-middle
-    links:
-      - api
-      - meilisearch
-    volumes:
-#      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
-#      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app:ro
-      - /home/pgmillon/workspace/ishtanzar/foundryvtt-9.269/resources/app:/home/foundry/resources/app:ro
-#      - ./wm-infra/deploy/local/data/foundry/Data-8.x:/data/Data
-      - ./wm-infra/deploy/local/data/foundry/Data-9.x:/data/Data
-      - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
-      - ./wm-infra/deploy/local/extensible-config.json:/home/foundry/resources/extensible-config.json
-      - foundry-logs:/data/Logs
-      - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
-      - ./winston-meilisearch:/home/foundry/resources/foundry-extensible-plugin/node_modules/winston-meilisearch:ro
-      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
-    entrypoint: []
-    command: ["/usr/local/bin/pm2-runtime", "/home/foundry/resources/foundry-extensible-plugin/pm2.config.js"]
-    ports:
-      - "30000:30000"
-      - "9229:9229"
+#  redis:
+#    image: redis:7-alpine
+#    ports:
+#      - "6379:6379"
+#  foundry:
+#    build:
+#      context: foundry-extensible-plugin
+#      dockerfile: ../wm-infra/docker/foundry/Dockerfile
+#    environment:
+#      - TIMEZONE=Europe/Paris
+#      - CONTAINER_PRESERVE_CONFIG=true
+#      - FOUNDRY_WORLD=west-marches-de-la-cave
+#      - FOUNDRY_AWS_CONFIG=/data/Config/s3config.json
+#      - CONTAINER_PRESERVE_OWNER=/data/Data/modules/wm-foundry-module
+#      - FOUNDRY_ADMIN_KEY=atropos
+#      - API_ADMIN_KEY=${API_ADMIN_KEY}
+##      - DEBUG=*,-pm2:*,-axon:*,-axm:*,-interactor:*,-require-in-the-middle
+#    links:
+#      - api
+#      - meilisearch
+#    volumes:
+##      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.7.10/resources/app:/home/foundry/resources/app:ro
+##      - /home/pgmillon/workspace/ishtanzar/foundryvtt-0.8.9/resources/app:/home/foundry/resources/app:ro
+#      - /home/pgmillon/workspace/ishtanzar/foundryvtt-9.269/resources/app:/home/foundry/resources/app:ro
+##      - ./wm-infra/deploy/local/data/foundry/Data-8.x:/data/Data
+#      - ./wm-infra/deploy/local/data/foundry/Data-9.x:/data/Data
+#      - ./wm-infra/deploy/local/data/foundry/Config:/data/Config
+#      - ./wm-infra/deploy/local/extensible-config.json:/home/foundry/resources/extensible-config.json
+#      - foundry-logs:/data/Logs
+#      - ./foundry-extensible-plugin:/home/foundry/resources/foundry-extensible-plugin:ro
+#      - ./winston-meilisearch:/home/foundry/resources/foundry-extensible-plugin/node_modules/winston-meilisearch:ro
+#      - ./wm-foundry-module:/data/Data/modules/wm-foundry-module:ro
+#    entrypoint: []
+#    command: ["/usr/local/bin/pm2-runtime", "/home/foundry/resources/foundry-extensible-plugin/pm2.config.js"]
+#    ports:
+#      - "30000:30000"
+#      - "9229:9229"
   management_api:
     build:
       context: ./
@@ -152,82 +152,83 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
     links:
       - minio
-      - foundry
-  api:
-    build:
-      context: ./
-      dockerfile: wm-api/dev.Dockerfile
-    volumes:
-      - ./:/opt/project
-      - ./wm-infra/deploy/local/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs
-      - ./wm-website/public/scripts/hexmap.mjs:/opt/hexmap/hexmap.mjs
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-api/pm2.config.cjs"]
-    ports:
-      - "3000:3000"
-      - "9228:9228"
-    links:
-      - redis
-      - meilisearch
-    environment:
-      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
-      - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
-      - FOW_PATH=/opt/project/wm-infra/deploy/local/fow.jpg
-      - FINAL_MAP=/opt/project/wm-infra/deploy/local/charted.jpg
-      - WEB_ROOT=https://api.westmarches.localhost.lan:8443
-      - ADMIN_KEY=${API_ADMIN_KEY}
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
-      - DISCORD_OAUTH_CLIENT=${DISCORD_OAUTH_CLIENT}
-      - DISCORD_OAUTH_SECRET=${DISCORD_OAUTH_SECRET}
-      - KANKA_OAUTH_CLIENT=${KANKA_OAUTH_CLIENT}
-      - KANKA_OAUTH_SECRET=${KANKA_OAUTH_SECRET}
-      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
-      - KOFI_VERIFICATION=${KOFI_VERIFICATION}
+#      - foundry
+#  api:
+#    build:
+#      context: ./
+#      dockerfile: wm-api/dev.Dockerfile
+#    volumes:
+#      - ./:/opt/project
+#      - ./wm-infra/deploy/local/hexMap-config.mjs:/opt/hexmap/hexMap-config.mjs
+#      - ./wm-website/public/scripts/hexmap.mjs:/opt/hexmap/hexmap.mjs
+#    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-api/pm2.config.cjs"]
+#    ports:
+#      - "3000:3000"
+#      - "9228:9228"
+#    links:
+#      - redis
+#      - meilisearch
+#    environment:
+#      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/api-config.json
+#      - BASE_MAP=/opt/project/wm-infra/deploy/local/map_full.jpg
+#      - FOW_PATH=/opt/project/wm-infra/deploy/local/fow.jpg
+#      - FINAL_MAP=/opt/project/wm-infra/deploy/local/charted.jpg
+#      - WEB_ROOT=https://api.westmarches.localhost.lan:8443
+#      - ADMIN_KEY=${API_ADMIN_KEY}
+#      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+#      - DISCORD_BOT_PUBLIC_KEY=${DISCORD_BOT_PUBLIC_KEY}
+#      - DISCORD_OAUTH_CLIENT=${DISCORD_OAUTH_CLIENT}
+#      - DISCORD_OAUTH_SECRET=${DISCORD_OAUTH_SECRET}
+#      - KANKA_OAUTH_CLIENT=${KANKA_OAUTH_CLIENT}
+#      - KANKA_OAUTH_SECRET=${KANKA_OAUTH_SECRET}
+#      - JWT_SHARED_KEY=${JWT_SHARED_KEY}
+#      - KOFI_VERIFICATION=${KOFI_VERIFICATION}
   discordbot:
     build:
       context: ./
       dockerfile: wm-discord-bot/dev.Dockerfile
-    links:
-      - management_api
-      - api
-      - redis
+#    links:
+#      - management_api
+#      - api
+#      - redis
     volumes:
       - ./:/opt/project
       - ./wm-infra/deploy/local/redbot-config.json:/root/.config/Red-DiscordBot/config.json
     environment:
       - TZ=Europe/Paris
-      - MGMNT_API_SECRET=changeme
-      - API_TOKEN=${API_ADMIN_KEY}
+      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+      - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
       - CONFIG_PATH=/opt/project/wm-infra/deploy/local/discordbot-config.json
+
+      - MGMNT_API_SECRET=${MGMNT_API_SECRET}
+      - API_TOKEN=${API_ADMIN_KEY}
       - DEFAULT_INTENTS_PATH=/opt/project/wm-infra/modules/main/ansible/roles/discordbot/files/default-intents.json
       - AWS_ACCESS_KEY_ID=${DISCORD_AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${DISCORD_AWS_SECRET_KEY}
       - AWS_DEFAULT_REGION=${DISCORD_AWS_REGION}
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - DISCORD_OWNER_ID=${DISCORD_OWNER_ID}
       - KANKA_TOKEN=${KANKA_TOKEN}
     command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-discord-bot/pm2.config.js"]
 #    ports:
 #      - "5679:5679" # VScode
-  worker:
-    build:
-      context: ./
-      dockerfile: wm-worker/dev.Dockerfile
-    volumes:
-      - ./:/opt/project
-    links:
-      - meilisearch
-      - api
-      - redis
-      - foundry
-    environment:
-      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
-      - KANKA_TOKEN=${KANKA_TOKEN}
-      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
-      - MGMNT_API_SECRET=changeme
-      - API_TOKEN=${API_ADMIN_KEY}
-      - PYTHONUNBUFFERED=1
-    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
+#  worker:
+#    build:
+#      context: ./
+#      dockerfile: wm-worker/dev.Dockerfile
+#    volumes:
+#      - ./:/opt/project
+#    links:
+#      - meilisearch
+#      - api
+#      - redis
+#      - foundry
+#    environment:
+#      - CONFIG_PATH=/opt/project/wm-infra/deploy/local/worker-config.json
+#      - KANKA_TOKEN=${KANKA_TOKEN}
+#      - DISCORD_BOT_SECRET=${DISCORD_BOT_SECRET}
+#      - MGMNT_API_SECRET=changeme
+#      - API_TOKEN=${API_ADMIN_KEY}
+#      - PYTHONUNBUFFERED=1
+#    command: ["/usr/local/bin/pm2-runtime", "/opt/project/wm-worker/pm2.config.js"]
 #    command:
 #      - /usr/local/bin/python
 #      - -m
@@ -239,27 +240,27 @@ services:
 #      - --file
 #      - /opt/project/wm-worker/src/__main__.py
 #      - kanka.live
-  arena: # UI for BeeQueue
-    image: mixmaxhq/arena:latest
-    links:
-      - redis
-    volumes:
-      - ./arena.json:/opt/arena/index.json
-    ports:
-      - "4567:4567"
-  meilisearch-ui:
-    image: riccoxie/meilisearch-ui:latest
-    ports:
-      - "24900:24900"
-  foundry_debugger:
-    image: alpine/socat
-    links:
-      - foundry
-    ports:
-      - "9229:9229"
-    command: tcp-listen:9229,fork,reuseaddr tcp-connect:foundry:9229
-    profiles:
-      - debug
+#  arena: # UI for BeeQueue
+#    image: mixmaxhq/arena:latest
+#    links:
+#      - redis
+#    volumes:
+#      - ./arena.json:/opt/arena/index.json
+#    ports:
+#      - "4567:4567"
+#  meilisearch-ui:
+#    image: riccoxie/meilisearch-ui:latest
+#    ports:
+#      - "24900:24900"
+#  foundry_debugger:
+#    image: alpine/socat
+#    links:
+#      - foundry
+#    ports:
+#      - "9229:9229"
+#    command: tcp-listen:9229,fork,reuseaddr tcp-connect:foundry:9229
+#    profiles:
+#      - debug
 volumes:
   foundry-logs:
   twig-cache:

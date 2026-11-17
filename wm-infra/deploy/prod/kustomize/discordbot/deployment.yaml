@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discordbot
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: discordbot
+  template:
+    metadata:
+      labels:
+        app: discordbot
+    spec:
+      imagePullSecrets:
+        - name: westmarches-registry
+      initContainers:
+        - name: prepare-red-data
+          image: busybox:1.36
+          command: ["sh", "-c", "mkdir -p /data/discordbot/cogs/CogManager/cogs /data/discordbot/logs && ln -sfn /opt/redbot/cogs/westmarches /data/discordbot/cogs/CogManager/cogs/westmarches"]
+          volumeMounts:
+            - name: state
+              mountPath: /data
+      containers:
+        - name: discordbot
+          image: rg.fr-par.scw.cloud/westmarches-prod/wm-discord-bot:latest
+          command: ["redbot"]
+          args:
+            - westmarches
+            - --no-prompt
+            - --mentionable
+            - --load-cogs=westmarches
+            - --token=$(DISCORD_BOT_SECRET)
+            - --owner=$(DISCORD_OWNER_ID)
+            - --prefix=$(DISCORD_PREFIX)
+          env:
+            - name: MGMNT_API_ENDPOINT
+              value: http://management-api:5000
+            - name: CONFIG_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: discordbot-config
+                  key: CONFIG_PATH
+            - name: TZ
+              value: Europe/Paris
+            - name: DISCORD_PREFIX
+              value: "!"
+          envFrom:
+            - secretRef:
+                name: discordbot-secrets
+          volumeMounts:
+            - name: state
+              mountPath: /data
+              subPath: discordbot
+            - name: profile
+              mountPath: /root/.config/Red-DiscordBot/config.json
+              subPath: config.json
+              readOnly: true
+            - name: config
+              mountPath: /config
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: state
+          persistentVolumeClaim:
+            claimName: services-volume
+        - name: profile
+          configMap:
+            name: discordbot-config
+        - name: config
+          secret:
+            secretName: discordbot-secrets
+            items:
+              - key: westmarches.json
+                path: westmarches.json

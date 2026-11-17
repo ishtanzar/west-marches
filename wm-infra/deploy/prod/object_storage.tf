@@ -2,6 +2,10 @@ resource "scaleway_object_bucket" "backups" {
   name = "westmarches-backups"
 }
 
+resource "scaleway_object_bucket" "mirror" {
+  name = "westmarches-mirror"
+}
+
 resource "scaleway_object_bucket" "data" {
   name = "westmarches-data"
 
@@ -40,36 +44,6 @@ locals {
   )
 }
 
-resource "scaleway_object_bucket_policy" "data" {
-  bucket = scaleway_object_bucket.data.name
-  policy = jsonencode({
-    Version = "2023-04-17"
-    Id      = "foundry-data"
-    Statement = [
-      {
-        Sid    = "FoundryReadWrite"
-        Effect = "Allow"
-        Principal = { SCW = "application_id:${var.foundry_application_id}" }
-        Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = [
-          scaleway_object_bucket.data.name,
-          "${scaleway_object_bucket.data.name}/*",
-        ]
-      },
-      {
-        Sid    = "AdministratorsFullAccess"
-        Effect = "Allow"
-        Principal = { SCW = local.administrator_principals }
-        Action = ["s3:*"]
-        Resource = [
-          scaleway_object_bucket.data.name,
-          "${scaleway_object_bucket.data.name}/*",
-        ]
-      }
-    ]
-  })
-}
-
 resource "scaleway_object_bucket_policy" "backups" {
   bucket = scaleway_object_bucket.backups.name
   policy = jsonencode({
@@ -83,6 +57,24 @@ resource "scaleway_object_bucket_policy" "backups" {
       Resource = [
         scaleway_object_bucket.backups.name,
         "${scaleway_object_bucket.backups.name}/*",
+      ]
+    }]
+  })
+}
+
+resource "scaleway_object_bucket_policy" "mirror" {
+  bucket = scaleway_object_bucket.mirror.name
+  policy = jsonencode({
+    Version = "2023-04-17"
+    Id      = "westmarches-mirror"
+    Statement = [{
+      Sid       = "AdministratorsFullAccess"
+      Effect    = "Allow"
+      Principal = { SCW = local.administrator_principals }
+      Action    = ["s3:*"]
+      Resource = [
+        scaleway_object_bucket.mirror.name,
+        "${scaleway_object_bucket.mirror.name}/*",
       ]
     }]
   })

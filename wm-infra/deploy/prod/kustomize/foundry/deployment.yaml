@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foundry
+spec:
+  selector:
+    matchLabels:
+      app: foundry
+  template:
+    metadata:
+      labels:
+        app: foundry
+        component: foundry-vtt
+    spec:
+      hostname: foundry
+      imagePullSecrets:
+        - name: westmarches-registry
+      securityContext:
+        fsGroup: 421
+        runAsUser: 421
+        runAsGroup: 421
+      initContainers:
+        - name: init-foundry
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - mkdir -p /data/Config
+          securityContext:
+            runAsUser: 421
+            runAsGroup: 421
+          volumeMounts:
+            - name: foundry-data
+              mountPath: /data
+        - name: init-foundry-content
+          image: rg.fr-par.scw.cloud/westmarches-prod/wm-docker-foundry:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /data/Data/modules /data/Data/systems
+              rm -rf /data/Data/modules/* /data/Data/systems/*
+              cp -a /opt/foundry-content/Data/modules/. /data/Data/modules/
+              cp -a /opt/foundry-content/Data/systems/. /data/Data/systems/
+          securityContext:
+            runAsUser: 421
+            runAsGroup: 421
+          volumeMounts:
+            - name: foundry-data
+              mountPath: /data
+      containers:
+        - name: foundry
+          image: rg.fr-par.scw.cloud/westmarches-prod/wm-docker-foundry:latest
+          ports:
+            - name: foundry
+              containerPort: 30000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: foundry-config
+            - secretRef:
+                name: foundry-secrets
+          volumeMounts:
+            - name: foundry-data
+              mountPath: /data
+            - name: s3-config-volume
+              mountPath: /data/Config/s3config.json
+              subPath: s3config.json
+              readOnly: true
+          # Final dedicated DEV1-M sizing:
+          # resources:
+          #   requests:
+          #     cpu: "2500m"
+          #     memory: "3Gi"
+          #   limits:
+          #     cpu: "3"
+          #     memory: "3500Mi"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+#          livenessProbe:
+#            httpGet:
+#              path: /api/status
+#              port: 30000
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#            timeoutSeconds: 5
+#            failureThreshold: 3
+#          readinessProbe:
+#            httpGet:
+#              path: /api/status
+#              port: 30000
+#            initialDelaySeconds: 10
+#            periodSeconds: 5
+#            timeoutSeconds: 3
+#            failureThreshold: 2
+#          securityContext:
+#            allowPrivilegeEscalation: false
+#            readOnlyRootFilesystem: false
+      volumes:
+        - name: foundry-data
+          persistentVolumeClaim:
+            claimName: foundry-data
+        - name: s3-config-volume
+          secret:
+            secretName: foundry-s3-config
+            defaultMode: 0400
+#      affinity:
+#        podAntiAffinity:
+#          preferredDuringSchedulingIgnoredDuringExecution:
+#            - weight: 100
+#              podAffinityTerm:
+#                labelSelector:
+#                  matchExpressions:
+#                    - key: app
+#                      operator: In
+#                      values:
+#                        - foundry
+#                topologyKey: kubernetes.io/hostname

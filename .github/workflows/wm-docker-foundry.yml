@@ -75,6 +75,9 @@ jobs:
           tags: ${{ steps.image.outputs.tags }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+          secrets: |
+            aws_access_key_id=${{ secrets.FOUNDRY_BUCKET_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.FOUNDRY_BUCKET_SECRET_ACCESS_KEY }}
 
       - name: Install Scaleway CLI
         if: github.event_name != 'pull_request' && github.ref_name == 'main'

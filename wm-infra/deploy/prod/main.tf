@@ -42,12 +42,11 @@ terraform {
   required_version = ">= 0.13"
 }
 
-module "main" {
-  source = "../../modules/main"
-
-  gandi_key     = var.gandi_key
-  ssh_key_id    = var.scw_ssh_key_id
-  instance_type = "DEV1-M"
-  host_name     = var.FOUNDRY_HOSTNAME
-  backup_bucket = scaleway_object_bucket.backups.name
-}
+# module "main" {
+#   source = "../../modules/main"
+#
+#   gandi_key     = var.gandi_key
+#   instance_type = "DEV1-M"
+#   host_name     = var.FOUNDRY_HOSTNAME
+#   backup_bucket = scaleway_object_bucket.backups.name
+# }

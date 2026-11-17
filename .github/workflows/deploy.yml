@@ -2,11 +2,11 @@ name: deploy
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - wm-infra/**
-    branches:
-      - main
+#  push:
+#    paths:
+#      - wm-infra/**
+#    branches:
+#      - main
 
 jobs:
   deploy:
@@ -72,9 +72,14 @@ jobs:
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
           SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
           SCW_SSH_KEY_ID: ${{ secrets.SCW_SSH_KEY_ID }}
-          SCW_TOKEN: ${{ secrets.SCW_SECRET_KEY }}
           SCW_REGION: fr-par
           TF_VAR_gandi_key: ${{ secrets.GANDI_KEY }}
+          TF_VAR_scaleway_organization_id: ${{ vars.SCW_DEFAULT_ORGANIZATION_ID }}
+          TF_VAR_s3_discord_bot_id: ${{ vars.DISCORD_BOT_ID }}
+          TF_VAR_s3_gm_guild_id: ${{ vars.DISCORD_GM_GUILD_ID }}
+          TF_VAR_s3_editors_group_id: ${{ vars.S3_EDITORS_GROUP_ID }}
+          TF_VAR_management_api_database_host: ${{ vars.MANAGEMENT_API_DATABASE_HOST }}
+          TF_VAR_discord_bot_secret: ${{ secrets.DISCORD_BOT_SECRET }}
           TF_VAR_scw_ssh_key_id: ${{ secrets.SCW_SSH_KEY_ID }}
           AWS_REGION: fr-par
           AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}

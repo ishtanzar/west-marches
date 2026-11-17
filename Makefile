@@ -1,5 +1,5 @@
 .PHONY: docker/foundry docker/foundry/push deploy/test deploy/test/init deploy/test/plan \
-	compose/up compose/down compose/build compose/restart compose/logs compose/ps
+	compose/up compose/down compose/build compose/restart compose/logs compose/ps logs/discordbot
 
 SERVICES ?=
 
@@ -26,3 +26,6 @@ compose/build:
 
 compose/logs:
 	docker compose logs -f $(SERVICES)
+
+logs/discordbot:
+	$(MAKE) -C wm-infra/deploy/prod logs/discordbot

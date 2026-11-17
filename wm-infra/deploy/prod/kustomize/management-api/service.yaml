@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: management-api
+spec:
+  type: ClusterIP
+  selector:
+    app: management-api
+  ports:
+    - name: http
+      port: 5000
+      targetPort: http

@@ -1,30 +1,27 @@
 terraform {
   required_providers {
     scaleway = {
-      source = "scaleway/scaleway"
+      source  = "scaleway/scaleway"
+      version = "2.89.0"
     }
   }
 
   backend "s3" {
-    bucket = "westmarches-test-iac"
-    key    = "tfstate/main.tfstate"
+    bucket = "westmarches-infra"
+    key    = "tfstate/test/main.tfstate"
     region = "fr-par"
 
-    endpoint = "https://s3.fr-par.scw.cloud"
-    skip_region_validation = true
+    endpoint                    = "https://s3.fr-par.scw.cloud"
+    skip_region_validation      = true
     skip_credentials_validation = true
+    skip_metadata_api_check     = true
   }
 
-  required_version = ">= 0.13"
+  required_version = ">= 1.5"
 }
 
-variable "gandi_key" {}
-
-module "main" {
-  source = "../../modules/main"
-
-  gandi_key = var.gandi_key
-  host_name = "westmarchesdelacave-test"
-  backup_bucket = "westmarches-test-backups"
-  ssh_key_id = "b58acf4e-c85b-4087-b2f1-9578418a5f9c"
+provider "scaleway" {
+  organization_id = var.scaleway_organization_id
+  project_id      = var.scaleway_project_id
+  region          = var.scaleway_region
 }

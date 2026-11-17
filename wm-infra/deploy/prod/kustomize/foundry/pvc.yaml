@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: foundry-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: sbs-default-retain
+  resources:
+    requests:
+      storage: 1Gi

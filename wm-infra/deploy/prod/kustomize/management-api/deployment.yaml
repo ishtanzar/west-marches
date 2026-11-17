@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: management-api
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: management-api
+  template:
+    metadata:
+      labels:
+        app: management-api
+    spec:
+      imagePullSecrets:
+        - name: westmarches-registry
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: management-api
+          image: rg.fr-par.scw.cloud/westmarches-prod/wm-management-api:latest
+          command: ["python", "__main__.py"]
+          ports:
+            - name: http
+              containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: management-api-config
+            - secretRef:
+                name: management-api-secrets
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi

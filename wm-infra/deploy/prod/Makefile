@@ -8,6 +8,8 @@ APT_REFRESH = $(if $(filter true,$(REFRESH)),$(shell \date -u +%s%N),initial)
 KUBE_CONFIG ?= $(CURDIR)/kubeconfig.yml
 KUBECTL = KUBECONFIG="$(KUBE_CONFIG)" kubectl
 
+.PHONY: logs/discordbot
+
 ifdef SKIP_MODULES
 ANSIBLE_SKIP := $(ANSIBLE_SKIP),modules
 endif
@@ -63,3 +65,6 @@ exec/foundry:
 
 logs/foundry:
 	$(KUBECTL) logs -f -n lesaventuriersducairn-prod deploy/foundry -c foundry
+
+logs/discordbot:
+	$(KUBECTL) logs -f --tail=200 -n lesaventuriersducairn-prod deploy/discordbot -c discordbot
